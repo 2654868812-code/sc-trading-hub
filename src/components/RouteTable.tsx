@@ -22,8 +22,18 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
     );
   }
 
+  const updateTime = routes[0]?.dataUpdatedAt
+    ? new Date(routes[0].dataUpdatedAt).toLocaleString('zh-CN')
+    : null;
+
   return (
-    <div className="overflow-x-auto">
+    <div>
+      {updateTime && (
+        <div className="text-xs text-muted-foreground mb-2">
+          数据更新时间：{updateTime}
+        </div>
+      )}
+      <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border">
@@ -33,6 +43,8 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
             <th className="text-left py-2 px-2 font-medium text-muted-foreground">出售地</th>
             <th className="text-right py-2 px-2 font-medium text-muted-foreground">卖价</th>
             <th className="text-right py-2 px-2 font-medium text-muted-foreground">利润/SCU</th>
+            <th className="text-right py-2 px-2 font-medium text-muted-foreground">进货库存</th>
+            <th className="text-right py-2 px-2 font-medium text-muted-foreground">出货库存</th>
             <th className="text-right py-2 px-2 font-medium text-muted-foreground">ROI</th>
             <th className="text-center py-2 px-2 font-medium text-muted-foreground">自动装卸</th>
           </tr>
@@ -66,6 +78,12 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               <td className="py-2 px-2 text-right font-mono text-green-400">
                 {r.profitPerScu.toLocaleString()}
               </td>
+              <td className="py-2 px-2 text-right font-mono text-muted-foreground">
+                {r.originStock.toLocaleString()}
+              </td>
+              <td className="py-2 px-2 text-right font-mono text-muted-foreground">
+                {r.destStock.toLocaleString()}
+              </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.roi}%
               </td>
@@ -76,6 +94,7 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   );
 }

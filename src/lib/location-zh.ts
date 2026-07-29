@@ -34,7 +34,7 @@ const LOCATION_EN_TO_ZH: Record<string, string> = {
   "Nyx Gateway (Pyro)": "尼克斯星门(派罗)",
   "Nyx Gateway (Stanton)": "尼克斯星门 (斯坦顿)",
   "Orbituary": "轨道讣闻站",
-  "Orison": "十字军上的奥里森",
+  "Orison": "奥里森",
   "Patch City": "补丁城",
   "People's Service Station Alpha": "人民服务空间站 阿尔法",
   "People's Service Station Delta": "人民服务空间站 德尔塔",

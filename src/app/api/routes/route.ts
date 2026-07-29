@@ -100,6 +100,9 @@ export async function GET(request: NextRequest) {
         profitPerScu,
         roi: Math.round(roi * 10) / 10,
         distanceGm: null,
+        originStock: buy.scuSellStock || 0,
+        destStock: sell.scuSellStock || 0,
+        dataUpdatedAt: latest.fetchedAt.toISOString(),
         isAutoLoadOrigin: buy.terminal.isAutoLoad,
         isAutoLoadDest: sell.terminal.isAutoLoad,
       });

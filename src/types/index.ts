@@ -46,6 +46,9 @@ export interface TradeRoute {
   profitPerScu: number;
   roi: number;
   distanceGm: number | null;
+  originStock: number;
+  destStock: number;
+  dataUpdatedAt: string;
   isAutoLoadOrigin: boolean;
   isAutoLoadDest: boolean;
 }
