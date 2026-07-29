@@ -12,12 +12,19 @@ interface HeatmapProps {
 export function Heatmap({ commodities, loading }: HeatmapProps) {
   const router = useRouter();
 
-  const refined = commodities
-    .filter((c) => c.isRefined)
+  // 大宗：能源、矿产、战略原材料，交易量大价值高
+  const bulkKinds = new Set([
+    'Metal', 'Mineral', 'Gas', 'Fuel', 'Halogen', 'Alloy',
+    'Chemical', 'Non-Metal', 'Raw Materials', 'Liquid', 'Minteral',
+  ]);
+
+  const major = commodities
+    .filter((c) => bulkKinds.has(c.kind || '') || c.isRefined)
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  const raw = commodities
-    .filter((c) => c.isRaw)
+  // 小宗：农产品、日用品、轻工业品、药品、废料等
+  const minor = commodities
+    .filter((c) => !bulkKinds.has(c.kind || ''))
     .sort((a, b) => a.name.localeCompare(b.name));
 
   if (loading) {
@@ -28,10 +35,10 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
     <div className="space-y-4">
       <section>
         <h2 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-          大宗商品
+          大宗商品 · 矿产能源原材料
         </h2>
         <div className="flex flex-wrap gap-2">
-          {refined.map((c) => (
+          {major.map((c) => (
             <CommodityCell
               key={c.id}
               name={c.name}
@@ -48,10 +55,10 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
 
       <section>
         <h2 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-          小宗商品
+          小宗商品 · 日用品消耗品
         </h2>
         <div className="flex flex-wrap gap-2">
-          {raw.map((c) => (
+          {minor.map((c) => (
             <CommodityCell
               key={c.id}
               name={c.name}
