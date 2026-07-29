@@ -50,21 +50,21 @@
 
 :root {
   --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 15%);
+  --foreground: hsl(0 0% 10%);
   --card: hsl(45 30% 98%);
-  --card-foreground: hsl(0 0% 15%);
+  --card-foreground: hsl(0 0% 10%);
   --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 15%);
-  --primary: hsl(40 75% 45%);
+  --popover-foreground: hsl(0 0% 10%);
+  --primary: hsl(40 75% 42%);
   --primary-foreground: hsl(0 0% 100%);
   --secondary: hsl(45 30% 95%);
-  --secondary-foreground: hsl(0 0% 15%);
+  --secondary-foreground: hsl(0 0% 10%);
   --muted: hsl(45 20% 94%);
-  --muted-foreground: hsl(0 0% 45%);
+  --muted-foreground: hsl(0 0% 38%);
   --accent: hsl(43 50% 92%);
-  --accent-foreground: hsl(0 0% 15%);
+  --accent-foreground: hsl(0 0% 10%);
   --destructive: hsl(0 72% 45%);
-  --border: hsl(40 35% 72%);
+  --border: hsl(40 40% 60%);
   --input: hsl(40 25% 82%);
   --ring: hsl(40 60% 50%);
   --chart-1: hsl(40 75% 45%);

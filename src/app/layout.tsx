@@ -15,16 +15,16 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="min-h-screen bg-background text-foreground antialiased">
-        <header className="border-b border-border bg-card">
-          <div className="max-w-[1600px] mx-auto px-6 py-3 flex items-center gap-3">
+        <header className="border-b-2 border-border bg-card">
+          <div className="max-w-[1600px] mx-auto px-6 py-4 flex items-center gap-4">
             <Image
               src="/logo.png"
               alt="泛天贸易"
-              width={36}
-              height={36}
+              width={48}
+              height={48}
               className="rounded"
             />
-            <h1 className="text-xl font-bold tracking-tight">泛天贸易</h1>
+            <h1 className="text-2xl font-bold tracking-tight">泛天贸易</h1>
           </div>
         </header>
         <main className="px-6 py-4">{children}</main>
