@@ -815,7 +815,7 @@ const LOCATION_EN_TO_ZH: Record<string, string> = {
   "Megumi Refueling Habs": "恩惠加油站居住区",
   "Megumi Refueling at the L5 Lagrange of Pyro VI": "派罗VI的L5拉格朗日点的恩惠加油站",
   "Melodic Fields Station at Hurston's L4 Lagrange point": "位于赫斯顿的L4拉格朗日点的旋律领域站",
-  "MicroTech": "微科公司",
+  "MicroTech": "微科星",
   "Minlo Spire": "明洛塔",
   "Minlo Spire on Daymar": "戴玛尔上的明洛塔",
   "Modern Express Station at ArcCorp's L3 Lagrange point": "位于弧光星的L3拉格朗日点的摩登快车站",
