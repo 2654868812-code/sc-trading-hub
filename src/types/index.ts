@@ -31,11 +31,15 @@ export interface TradeRoute {
   originTerminalId: number;
   originTerminalName: string;
   originTerminalNameZh: string;
+  originLocation: string;
+  originLocationZh: string;
   originSystemName: string;
   buyPrice: number;
   destTerminalId: number;
   destTerminalName: string;
   destTerminalNameZh: string;
+  destLocation: string;
+  destLocationZh: string;
   destSystemName: string;
   sellPrice: number;
   profitPerScu: number;
