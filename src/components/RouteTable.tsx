@@ -65,7 +65,9 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               </td>
               <td className="py-2 px-2">
                 {r.originLocationZh || r.originTerminalNameZh || r.originTerminalName}
-                <div className="text-[10px] text-muted-foreground">{getLocationZh(r.originSystemName)}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {[r.originSystemName, r.originPlanetName, r.originMoonName].filter(Boolean).join(' · ')}
+                </div>
                 <div className="text-[9px] text-muted-foreground/60">{fmtTime(r.originUpdatedAt)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
@@ -76,7 +78,9 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               </td>
               <td className="py-2 px-2">
                 {r.destLocationZh || r.destTerminalNameZh || r.destTerminalName}
-                <div className="text-[10px] text-muted-foreground">{getLocationZh(r.destSystemName)}</div>
+                <div className="text-[10px] text-muted-foreground">
+                  {[r.destSystemName, r.destPlanetName, r.destMoonName].filter(Boolean).join(' · ')}
+                </div>
                 <div className="text-[9px] text-muted-foreground/60">{fmtTime(r.destUpdatedAt)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">

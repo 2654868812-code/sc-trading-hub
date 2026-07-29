@@ -35,6 +35,8 @@ export interface TradeRoute {
   originLocation: string;
   originLocationZh: string;
   originSystemName: string;
+  originPlanetName: string;
+  originMoonName: string;
   buyPrice: number;
   destTerminalId: number;
   destTerminalName: string;
@@ -42,6 +44,8 @@ export interface TradeRoute {
   destLocation: string;
   destLocationZh: string;
   destSystemName: string;
+  destPlanetName: string;
+  destMoonName: string;
   sellPrice: number;
   profitPerScu: number;
   roi: number;
@@ -71,6 +75,8 @@ export interface TerminalInfo {
   name: string;
   nameZh: string;
   starSystemName: string | null;
+  planetName: string | null;
+  moonName: string | null;
   cityName: string | null;
   spaceStationName: string | null;
   type: string | null;

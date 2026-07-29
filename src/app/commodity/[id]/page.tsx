@@ -157,7 +157,7 @@ export default function CommodityDetailPage() {
                   <span>
                     {location}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {t.starSystemName}
+                      {[t.starSystemName, t.planetName, t.moonName].filter(Boolean).join(' · ')}
                     </span>
                     {(t.cityName || t.spaceStationName) && (t.nameZh || t.name) !== location && (
                       <span className="absolute left-0 bottom-full mb-1 hidden group-hover:block px-2 py-1 rounded bg-card border border-border text-xs text-foreground shadow whitespace-nowrap z-10">
@@ -188,7 +188,7 @@ export default function CommodityDetailPage() {
                   <span>
                     {location}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {t.starSystemName}
+                      {[t.starSystemName, t.planetName, t.moonName].filter(Boolean).join(' · ')}
                     </span>
                     {(t.cityName || t.spaceStationName) && (t.nameZh || t.name) !== location && (
                       <span className="absolute left-0 bottom-full mb-1 hidden group-hover:block px-2 py-1 rounded bg-card border border-border text-xs text-foreground shadow whitespace-nowrap z-10">

@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     },
     include: {
       commodity: { select: { id: true, name: true, kind: true, isIllegal: true } },
-      terminal: { select: { id: true, name: true, starSystemName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
+      terminal: { select: { id: true, name: true, starSystemName: true, planetName: true, moonName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
     },
   });
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
       ...(commodityId ? { commodityId } : {}),
     },
     include: {
-      terminal: { select: { id: true, name: true, starSystemName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
+      terminal: { select: { id: true, name: true, starSystemName: true, planetName: true, moonName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
     },
   });
 
@@ -89,6 +89,8 @@ export async function GET(request: NextRequest) {
         originLocation: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
         originLocationZh: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
         originSystemName: buy.terminal.starSystemName || '',
+        originPlanetName: buy.terminal.planetName || '',
+        originMoonName: buy.terminal.moonName || '',
         buyPrice: buy.priceBuy!,
         destTerminalId: sell.terminalId,
         destTerminalName: sell.terminal.name,
@@ -96,6 +98,8 @@ export async function GET(request: NextRequest) {
         destLocation: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
         destLocationZh: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
         destSystemName: sell.terminal.starSystemName || '',
+        destPlanetName: sell.terminal.planetName || '',
+        destMoonName: sell.terminal.moonName || '',
         sellPrice: sell.priceSell!,
         profitPerScu,
         roi: Math.round(roi * 10) / 10,
