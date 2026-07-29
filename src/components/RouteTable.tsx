@@ -47,7 +47,6 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                 >
                   {r.commodityNameZh || r.commodityName}
                 </button>
-                <div className="text-[10px] text-muted-foreground">{r.commodityKindZh || r.commodityKind}</div>
               </td>
               <td className="py-2 px-2">
                 {r.originTerminalName}
