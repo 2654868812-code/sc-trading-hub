@@ -9,6 +9,7 @@ import {
 import type { PricePoint, TerminalInfo, CommodityWithChange } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
 import { getTerminalZh } from '@/lib/terminal-zh';
+import { getLocationZh } from '@/lib/location-zh';
 
 const LINE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -189,7 +190,7 @@ export default function CommodityDetailPage() {
                   <span>
                     {getTerminalZh(t.name)}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {t.starSystemName}
+                      {getLocationZh(t.starSystemName)}
                     </span>
                   </span>
                   {latest && (
@@ -214,7 +215,7 @@ export default function CommodityDetailPage() {
                   <span>
                     {getTerminalZh(t.name)}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {t.starSystemName}
+                      {getLocationZh(t.starSystemName)}
                     </span>
                   </span>
                   {latest && (

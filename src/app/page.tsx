@@ -5,10 +5,11 @@ import { Heatmap } from '@/components/Heatmap';
 import { TradeRouteFilter } from '@/components/TradeRouteFilter';
 import { RouteTable } from '@/components/RouteTable';
 import type { CommodityWithChange, TradeRoute, RouteFilters } from '@/types';
+import { getLocationZh } from '@/lib/location-zh';
 
 export default function HomePage() {
   const [commodities, setCommodities] = useState<CommodityWithChange[]>([]);
-  const [systems, setSystems] = useState<string[]>([]);
+  const [systems, setSystems] = useState<{ en: string; zh: string }[]>([]);
   const [routes, setRoutes] = useState<TradeRoute[]>([]);
   const [loadingCommodities, setLoadingCommodities] = useState(true);
   const [loadingRoutes, setLoadingRoutes] = useState(false);
@@ -23,7 +24,10 @@ export default function HomePage() {
 
     fetch('/api/terminals?distinctSystems=true')
       .then((r) => r.json())
-      .then((data) => setSystems(data as string[]))
+      .then((data) => {
+        const enSystems = data as string[];
+        setSystems(enSystems.map((en) => ({ en, zh: getLocationZh(en) })));
+      })
       .catch(console.error);
   }, []);
 

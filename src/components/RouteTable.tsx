@@ -1,6 +1,7 @@
 'use client';
 
 import type { TradeRoute } from '@/types';
+import { getLocationZh } from '@/lib/location-zh';
 
 interface RouteTableProps {
   routes: TradeRoute[];
@@ -50,14 +51,14 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               </td>
               <td className="py-2 px-2">
                 {r.originLocationZh || r.originTerminalNameZh || r.originTerminalName}
-                <div className="text-[10px] text-muted-foreground">{r.originSystemName}</div>
+                <div className="text-[10px] text-muted-foreground">{getLocationZh(r.originSystemName)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.buyPrice.toLocaleString()}
               </td>
               <td className="py-2 px-2">
                 {r.destLocationZh || r.destTerminalNameZh || r.destTerminalName}
-                <div className="text-[10px] text-muted-foreground">{r.destSystemName}</div>
+                <div className="text-[10px] text-muted-foreground">{getLocationZh(r.destSystemName)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.sellPrice.toLocaleString()}

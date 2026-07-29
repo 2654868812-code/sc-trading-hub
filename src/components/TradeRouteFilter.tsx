@@ -3,8 +3,13 @@
 import { useState } from 'react';
 import type { RouteFilters } from '@/types';
 
+interface SystemOption {
+  en: string;
+  zh: string;
+}
+
 interface TradeRouteFilterProps {
-  systems: string[];
+  systems: SystemOption[];
   onFilterChange: (filters: RouteFilters) => void;
   loading?: boolean;
 }
@@ -46,7 +51,7 @@ export function TradeRouteFilter({ systems, onFilterChange, loading }: TradeRout
           >
             <option value="">全部</option>
             {systems.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s.en} value={s.en}>{s.zh}</option>
             ))}
           </select>
         </div>
@@ -60,7 +65,7 @@ export function TradeRouteFilter({ systems, onFilterChange, loading }: TradeRout
           >
             <option value="">全部</option>
             {systems.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s.en} value={s.en}>{s.zh}</option>
             ))}
           </select>
         </div>
