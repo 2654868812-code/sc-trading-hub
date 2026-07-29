@@ -42,6 +42,7 @@ export async function GET(request: NextRequest) {
   const terminals = snapshots.map((s) => ({
     id: s.terminal.id,
     name: s.terminal.name,
+    nameZh: s.terminal.name,
     starSystemName: s.terminal.starSystemName,
     cityName: s.terminal.cityName,
     spaceStationName: s.terminal.spaceStationName,
