@@ -2,6 +2,7 @@
 
 interface CommodityCellProps {
   name: string;
+  nameZh: string;
   code: string;
   kind: string | null;
   changePercent: number | null;
@@ -22,7 +23,7 @@ function getColor(change: number | null): string {
   return 'text-gray-400';
 }
 
-export function CommodityCell({ name, code, kind, changePercent, onClick }: CommodityCellProps) {
+export function CommodityCell({ name, nameZh, code, kind, changePercent, onClick }: CommodityCellProps) {
   return (
     <button
       onClick={onClick}
@@ -31,7 +32,7 @@ export function CommodityCell({ name, code, kind, changePercent, onClick }: Comm
                  min-w-[72px] h-16"
     >
       <span className="text-sm font-medium leading-tight" style={{ color: getColor(changePercent) }}>
-        {code}
+        {nameZh}
       </span>
       {kind && (
         <span className="text-[10px] text-muted-foreground leading-tight">{kind}</span>

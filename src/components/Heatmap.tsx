@@ -35,6 +35,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
             <CommodityCell
               key={c.id}
               name={c.name}
+              nameZh={c.nameZh}
               code={c.code}
               kind={c.kind}
               changePercent={c.changePercent}
@@ -53,6 +54,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
             <CommodityCell
               key={c.id}
               name={c.name}
+              nameZh={c.nameZh}
               code={c.code}
               kind={c.kind}
               changePercent={c.changePercent}

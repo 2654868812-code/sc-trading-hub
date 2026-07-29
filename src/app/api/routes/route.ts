@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import type { TradeRoute } from '@/types';
+import { getZhName } from '@/lib/commodity-zh';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -79,6 +80,7 @@ export async function GET(request: NextRequest) {
       routes.push({
         commodityId: buy.commodityId,
         commodityName: buy.commodity.name,
+        commodityNameZh: getZhName(buy.commodity.name),
         commodityKind: buy.commodity.kind,
         originTerminalId: buy.terminalId,
         originTerminalName: buy.terminal.name,

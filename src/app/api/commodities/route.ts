@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import type { CommodityWithChange } from '@/types';
+import { getZhName } from '@/lib/commodity-zh';
 
 export async function GET() {
   const now = new Date();
@@ -16,7 +17,7 @@ export async function GET() {
       orderBy: { name: 'asc' },
     });
     return NextResponse.json(
-      commodities.map((c) => ({ ...c, changePercent: null, currentBuyAvg: null, currentSellAvg: null }))
+      commodities.map((c) => ({ ...c, nameZh: getZhName(c.name), changePercent: null, currentBuyAvg: null, currentSellAvg: null }))
     );
   }
 
@@ -62,6 +63,7 @@ export async function GET() {
     }
     return {
       ...c,
+      nameZh: getZhName(c.name),
       changePercent,
       currentBuyAvg: cur?.avgBuy ?? null,
       currentSellAvg: cur?.avgSell ?? null,

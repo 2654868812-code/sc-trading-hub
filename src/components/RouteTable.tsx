@@ -45,7 +45,7 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                   onClick={() => onCommodityClick?.(r.commodityId)}
                   className="text-primary hover:underline text-left"
                 >
-                  {r.commodityName}
+                  {r.commodityNameZh || r.commodityName}
                 </button>
                 <div className="text-[10px] text-muted-foreground">{r.commodityKind}</div>
               </td>

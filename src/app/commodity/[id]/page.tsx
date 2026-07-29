@@ -90,9 +90,9 @@ export default function CommodityDetailPage() {
 
       {commodity && (
         <div>
-          <h1 className="text-2xl font-bold">{commodity.name}</h1>
+          <h1 className="text-2xl font-bold">{commodity.nameZh}</h1>
           <p className="text-sm text-muted-foreground">
-            {commodity.kind} &middot; {commodity.code}
+            {commodity.name} &middot; {commodity.kind} &middot; {commodity.code}
           </p>
         </div>
       )}

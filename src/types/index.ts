@@ -1,6 +1,7 @@
 export interface CommodityWithChange {
   id: number;
   name: string;
+  nameZh: string;
   code: string;
   kind: string | null;
   isBuyable: boolean;
@@ -23,6 +24,7 @@ export interface PricePoint {
 export interface TradeRoute {
   commodityId: number;
   commodityName: string;
+  commodityNameZh: string;
   commodityKind: string | null;
   originTerminalId: number;
   originTerminalName: string;
