@@ -180,7 +180,7 @@ const EN_TO_ZH: Record<string, string> = {
   "Taranite": "塔兰导电石",
   "Taranite (Raw)": "塔兰导电石（粗制）",
   "Tellurium": "碲",
-  "Thermalfoam": "Thermalfoam",
+  "Thermalfoam": "热泡沫塑料",
   "Thrust": "猛冲",
   "Tin": "锡",
   "Tin (Ore)": "锡矿石",

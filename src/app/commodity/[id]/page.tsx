@@ -19,7 +19,6 @@ export default function CommodityDetailPage() {
   const [commodity, setCommodity] = useState<CommodityWithChange | null>(null);
   const [priceData, setPriceData] = useState<PricePoint[]>([]);
   const [terminals, setTerminals] = useState<TerminalInfo[]>([]);
-  const [selectedTerminalIds, setSelectedTerminalIds] = useState<number[]>([]);
   const [hours, setHours] = useState(24);
   const [loading, setLoading] = useState(true);
 
@@ -36,23 +35,21 @@ export default function CommodityDetailPage() {
   useEffect(() => {
     fetch(`/api/prices/terminals?commodityId=${commodityId}`)
       .then((r) => r.json())
-      .then((data: TerminalInfo[]) => {
-        setTerminals(data);
-        setSelectedTerminalIds(data.slice(0, 5).map((t) => t.id));
-      })
+      .then((data: TerminalInfo[]) => setTerminals(data))
       .catch(console.error);
   }, [commodityId]);
 
   useEffect(() => {
-    if (selectedTerminalIds.length === 0) return;
+    if (terminals.length === 0) return;
     setLoading(true);
-    const ids = selectedTerminalIds.join(',');
+    // Auto-select first 5 terminals for chart
+    const ids = terminals.slice(0, 5).map((t) => t.id).join(',');
     fetch(`/api/prices?commodityId=${commodityId}&terminalIds=${ids}&hours=${hours}`)
       .then((r) => r.json())
       .then((data: PricePoint[]) => setPriceData(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [commodityId, selectedTerminalIds, hours]);
+  }, [commodityId, terminals, hours]);
 
   const chartData = useMemo(() => {
     const map = new Map<string, Record<string, number | null>>();
@@ -146,39 +143,10 @@ export default function CommodityDetailPage() {
         )}
       </div>
 
-      <div>
-        <h3 className="text-sm font-semibold mb-2">选择终端对比（最多8个）</h3>
-        <div className="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto">
-          {terminals.map((t) => {
-            const isSelected = selectedTerminalIds.includes(t.id);
-            return (
-              <button
-                key={t.id}
-                onClick={() => {
-                  if (isSelected) {
-                    setSelectedTerminalIds(selectedTerminalIds.filter((id) => id !== t.id));
-                  } else if (selectedTerminalIds.length < 8) {
-                    setSelectedTerminalIds([...selectedTerminalIds, t.id]);
-                  }
-                }}
-                className={`px-2 py-1 text-xs rounded-md border transition-colors ${
-                  isSelected
-                    ? 'bg-primary/20 border-primary text-primary'
-                    : 'border-border hover:bg-card text-muted-foreground'
-                }`}
-              >
-                {t.name}
-                {t.isAutoLoad ? ' 🚀' : ''}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="grid grid-cols-2 gap-6">
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-green-400">可购买地点</h3>
-          <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          <h3 className="text-sm font-semibold mb-2 text-green-600">可购买地点</h3>
+          <div className="space-y-1 max-h-[500px] overflow-y-auto">
             {buyTerminals.map((t) => {
               const latest = priceData
                 .filter((p) => p.terminalName === t.name && p.priceBuy != null)
@@ -186,7 +154,7 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {t.name}
+                    {t.nameZh || t.name}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
@@ -202,8 +170,8 @@ export default function CommodityDetailPage() {
           </div>
         </div>
         <div>
-          <h3 className="text-sm font-semibold mb-2 text-red-400">可售出地点</h3>
-          <div className="space-y-1 max-h-[400px] overflow-y-auto">
+          <h3 className="text-sm font-semibold mb-2 text-red-500">可售出地点</h3>
+          <div className="space-y-1 max-h-[500px] overflow-y-auto">
             {sellTerminals.map((t) => {
               const latest = priceData
                 .filter((p) => p.terminalName === t.name && p.priceSell != null)
@@ -211,7 +179,7 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {t.name}
+                    {t.nameZh || t.name}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
