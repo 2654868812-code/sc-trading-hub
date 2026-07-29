@@ -113,6 +113,7 @@ export async function syncPrices(): Promise<number> {
     priceSell: number | null;
     scuBuyStock: number | null;
     scuSellStock: number | null;
+    uexModifiedAt?: number | null;
     fetchedAt: Date;
   }> = [];
 
