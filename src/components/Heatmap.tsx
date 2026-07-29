@@ -28,7 +28,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
     <div className="space-y-4">
       <section>
         <h2 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-          大宗商品 · Refined
+          大宗商品
         </h2>
         <div className="flex flex-wrap gap-2">
           {refined.map((c) => (
@@ -38,6 +38,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
               nameZh={c.nameZh}
               code={c.code}
               kind={c.kind}
+              kindZh={c.kindZh}
               changePercent={c.changePercent}
               onClick={() => router.push(`/commodity/${c.id}`)}
             />
@@ -47,7 +48,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
 
       <section>
         <h2 className="text-sm font-semibold mb-2 text-muted-foreground uppercase tracking-wider">
-          小宗商品 · Raw
+          小宗商品
         </h2>
         <div className="flex flex-wrap gap-2">
           {raw.map((c) => (
@@ -57,6 +58,7 @@ export function Heatmap({ commodities, loading }: HeatmapProps) {
               nameZh={c.nameZh}
               code={c.code}
               kind={c.kind}
+              kindZh={c.kindZh}
               changePercent={c.changePercent}
               onClick={() => router.push(`/commodity/${c.id}`)}
             />

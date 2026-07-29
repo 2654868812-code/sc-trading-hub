@@ -7,6 +7,7 @@ import {
   ResponsiveContainer, Legend,
 } from 'recharts';
 import type { PricePoint, TerminalInfo, CommodityWithChange } from '@/types';
+import { getZhKind } from '@/lib/commodity-zh';
 
 const LINE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -92,7 +93,7 @@ export default function CommodityDetailPage() {
         <div>
           <h1 className="text-2xl font-bold">{commodity.nameZh}</h1>
           <p className="text-sm text-muted-foreground">
-            {commodity.name} &middot; {commodity.kind} &middot; {commodity.code}
+            {commodity.name} &middot; {getZhKind(commodity.kind)} &middot; {commodity.code}
           </p>
         </div>
       )}

@@ -168,3 +168,45 @@ const EN_TO_ZH: Record<string, string> = {
 export function getZhName(enName: string): string {
   return EN_TO_ZH[enName] || enName;
 }
+
+const KIND_TO_ZH: Record<string, string> = {
+  "Agricultural": "农产品",
+  "Alloy": "合金",
+  "Ammunition": "弹药",
+  "Animal": "动物制品",
+  "Chemical": "化学品",
+  "Commodity": "商品",
+  "Crafting": "制造材料",
+  "Drug": "药物",
+  "Electronics": "电子产品",
+  "Explosive": "爆炸物",
+  "Food": "食品",
+  "Fuel": "燃料",
+  "Gas": "气体",
+  "Halogen": "卤素",
+  "Liquid": "液体",
+  "Man-Made": "人造物",
+  "Man-made": "人造物",
+  "Medical": "医疗品",
+  "Medicine": "药品",
+  "Metal": "金属",
+  "Mineral": "矿物",
+  "Minteral": "矿物",
+  "Natural": "天然物",
+  "Non-Metal": "非金属",
+  "Organic": "有机物",
+  "Organics": "有机物",
+  "Other": "其他",
+  "Raw Materials": "原材料",
+  "Scrap": "废料",
+  "Seed": "种子",
+  "Temporary": "临时品",
+  "Vice": "违禁品",
+  "Waste": "废料",
+  "mineral": "矿物",
+};
+
+export function getZhKind(enKind: string | null): string {
+  if (!enKind) return "";
+  return KIND_TO_ZH[enKind] || enKind;
+}

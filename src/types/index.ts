@@ -9,6 +9,7 @@ export interface CommodityWithChange {
   isIllegal: boolean;
   isRaw: boolean;
   isRefined: boolean;
+  kindZh: string;
   changePercent: number | null;
   currentBuyAvg: number | null;
   currentSellAvg: number | null;
@@ -25,6 +26,7 @@ export interface TradeRoute {
   commodityId: number;
   commodityName: string;
   commodityNameZh: string;
+  commodityKindZh: string;
   commodityKind: string | null;
   originTerminalId: number;
   originTerminalName: string;
