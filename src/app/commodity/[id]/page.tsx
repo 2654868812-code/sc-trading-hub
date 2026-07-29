@@ -122,12 +122,12 @@ export default function CommodityDetailPage() {
         ) : (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-              <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#888' }} interval="preserveStartEnd" />
-              <YAxis tick={{ fontSize: 11, fill: '#888' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#d4c9a8" />
+              <XAxis dataKey="time" tick={{ fontSize: 11, fill: '#8b7355' }} interval="preserveStartEnd" />
+              <YAxis tick={{ fontSize: 11, fill: '#8b7355' }} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#1a1a2e', border: '1px solid #333', borderRadius: 8 }}
-                labelStyle={{ color: '#ccc' }}
+                contentStyle={{ backgroundColor: '#fffdf7', border: '1px solid #c9b87a', borderRadius: 8 }}
+                labelStyle={{ color: '#5c4a1f' }}
               />
               <Legend />
               {terminalNames.map((name, i) => (

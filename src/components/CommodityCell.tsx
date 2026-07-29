@@ -10,18 +10,17 @@ interface CommodityCellProps {
   onClick: () => void;
 }
 
-function getColor(change: number | null): string {
-  if (change === null) return 'text-gray-500';
+function getColor(change: number | null): { color: string; fontWeight: number } {
+  if (change === null) return { color: '#9ca3af', fontWeight: 500 };
   const abs = Math.abs(change);
   const intensity = Math.min(abs / 15, 1);
+  const l = Math.round(48 - intensity * 28);
   if (change > 0) {
-    const l = Math.round(60 - intensity * 30);
-    return `hsl(142, 71%, ${l}%)`;
+    return { color: `hsl(145, 65%, ${l}%)`, fontWeight: 600 + Math.round(intensity * 200) };
   } else if (change < 0) {
-    const l = Math.round(60 - intensity * 30);
-    return `hsl(0, 84%, ${l}%)`;
+    return { color: `hsl(0, 72%, ${l}%)`, fontWeight: 600 + Math.round(intensity * 200) };
   }
-  return 'text-gray-400';
+  return { color: '#9ca3af', fontWeight: 500 };
 }
 
 export function CommodityCell({ name, nameZh, code, kind, kindZh, changePercent, onClick }: CommodityCellProps) {
@@ -32,7 +31,10 @@ export function CommodityCell({ name, nameZh, code, kind, kindZh, changePercent,
                  hover:bg-accent hover:text-accent-foreground transition-colors
                  min-w-[72px] h-16"
     >
-      <span className="text-sm font-medium leading-tight" style={{ color: getColor(changePercent) }}>
+      <span className="text-sm leading-tight" style={(() => {
+          const c = getColor(changePercent);
+          return { color: c.color, fontWeight: c.fontWeight };
+        })()}>
         {nameZh}
       </span>
       {kindZh && (
