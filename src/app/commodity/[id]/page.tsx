@@ -151,13 +151,19 @@ export default function CommodityDetailPage() {
               const latest = priceData
                 .filter((p) => p.terminalName === t.name && p.priceBuy != null)
                 .at(-1);
+              const location = t.cityName || t.spaceStationName || (t.nameZh || t.name);
               return (
-                <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
+                <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50 relative group cursor-default">
                   <span>
-                    {t.nameZh || t.name}
+                    {location}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
+                    {(t.cityName || t.spaceStationName) && (t.nameZh || t.name) !== location && (
+                      <span className="absolute left-0 bottom-full mb-1 hidden group-hover:block px-2 py-1 rounded bg-card border border-border text-xs text-foreground shadow whitespace-nowrap z-10">
+                        {t.nameZh || t.name}
+                      </span>
+                    )}
                   </span>
                   {latest && (
                     <span className="font-mono text-green-600">
@@ -176,13 +182,19 @@ export default function CommodityDetailPage() {
               const latest = priceData
                 .filter((p) => p.terminalName === t.name && p.priceSell != null)
                 .at(-1);
+              const location = t.cityName || t.spaceStationName || (t.nameZh || t.name);
               return (
-                <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
+                <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50 relative group cursor-default">
                   <span>
-                    {t.nameZh || t.name}
+                    {location}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
+                    {(t.cityName || t.spaceStationName) && (t.nameZh || t.name) !== location && (
+                      <span className="absolute left-0 bottom-full mb-1 hidden group-hover:block px-2 py-1 rounded bg-card border border-border text-xs text-foreground shadow whitespace-nowrap z-10">
+                        {t.nameZh || t.name}
+                      </span>
+                    )}
                   </span>
                   {latest && (
                     <span className="font-mono text-red-500">
