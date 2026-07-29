@@ -37,9 +37,6 @@ export function CommodityCell({ name, nameZh, code, kind, kindZh, changePercent,
         })()}>
         {nameZh}
       </span>
-      {kindZh && (
-        <span className="text-[10px] text-muted-foreground leading-tight">{kindZh}</span>
-      )}
     </button>
   );
 }
