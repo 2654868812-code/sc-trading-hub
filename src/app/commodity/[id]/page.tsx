@@ -8,8 +8,6 @@ import {
 } from 'recharts';
 import type { PricePoint, TerminalInfo, CommodityWithChange } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
-import { getTerminalZh } from '@/lib/terminal-zh';
-import { getLocationZh } from '@/lib/location-zh';
 
 const LINE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -169,7 +167,7 @@ export default function CommodityDetailPage() {
                     : 'border-border hover:bg-card text-muted-foreground'
                 }`}
               >
-                {getTerminalZh(t.name)}
+                {t.name}
                 {t.isAutoLoad ? ' 🚀' : ''}
               </button>
             );
@@ -188,9 +186,9 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {getTerminalZh(t.name)}
+                    {t.name}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {getLocationZh(t.starSystemName)}
+                      {t.starSystemName}
                     </span>
                   </span>
                   {latest && (
@@ -213,9 +211,9 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {getTerminalZh(t.name)}
+                    {t.name}
                     <span className="text-[10px] text-muted-foreground ml-1">
-                      {getLocationZh(t.starSystemName)}
+                      {t.starSystemName}
                     </span>
                   </span>
                   {latest && (

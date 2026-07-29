@@ -7,6 +7,9 @@ import {
   type UexTerminal,
   type UexPriceAll,
 } from './uex';
+import { getZhName } from './commodity-zh';
+import { getTerminalZh } from './terminal-zh';
+import { getLocationZh } from './location-zh';
 
 function toBool(n: number | undefined): boolean {
   return n === 1;
@@ -19,7 +22,7 @@ export async function syncCommodities(): Promise<number> {
     await prisma.commodity.upsert({
       where: { id: c.id },
       update: {
-        name: c.name,
+        name: getZhName(c.name),
         code: c.code,
         kind: c.kind,
         weightScu: c.weight_scu,
@@ -33,7 +36,7 @@ export async function syncCommodities(): Promise<number> {
       },
       create: {
         id: c.id,
-        name: c.name,
+        name: getZhName(c.name),
         code: c.code,
         kind: c.kind,
         weightScu: c.weight_scu,
@@ -56,17 +59,23 @@ export async function syncTerminals(): Promise<number> {
   const data: UexTerminal[] = await fetchTerminals();
   let count = 0;
   for (const t of data) {
+    const zhName = getTerminalZh(t.name);
+    const zhCity = getLocationZh(t.city_name);
+    const zhStation = getLocationZh(t.space_station_name);
+    const zhSystem = getLocationZh(t.star_system_name);
+    const zhPlanet = getLocationZh(t.planet_name);
+
     await prisma.terminal.upsert({
       where: { id: t.id },
       update: {
-        name: t.name,
+        name: zhName,
         code: t.code,
         type: t.type,
-        starSystemName: t.star_system_name,
-        planetName: t.planet_name,
+        starSystemName: zhSystem,
+        planetName: zhPlanet,
         moonName: t.moon_name,
-        cityName: t.city_name,
-        spaceStationName: t.space_station_name,
+        cityName: zhCity,
+        spaceStationName: zhStation,
         hasCargoCenter: toBool(t.has_cargo_center),
         hasDockingPort: toBool(t.has_docking_port),
         hasFreightElevator: toBool(t.has_freight_elevator),
@@ -74,14 +83,14 @@ export async function syncTerminals(): Promise<number> {
       },
       create: {
         id: t.id,
-        name: t.name,
+        name: zhName,
         code: t.code,
         type: t.type,
-        starSystemName: t.star_system_name,
-        planetName: t.planet_name,
+        starSystemName: zhSystem,
+        planetName: zhPlanet,
         moonName: t.moon_name,
-        cityName: t.city_name,
-        spaceStationName: t.space_station_name,
+        cityName: zhCity,
+        spaceStationName: zhStation,
         hasCargoCenter: toBool(t.has_cargo_center),
         hasDockingPort: toBool(t.has_docking_port),
         hasFreightElevator: toBool(t.has_freight_elevator),

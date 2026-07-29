@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import type { TradeRoute } from '@/types';
-import { getZhName, getZhKind } from '@/lib/commodity-zh';
-import { getTerminalZh } from '@/lib/terminal-zh';
-import { getLocationZh } from '@/lib/location-zh';
+import { getZhKind } from '@/lib/commodity-zh';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -82,21 +80,21 @@ export async function GET(request: NextRequest) {
       routes.push({
         commodityId: buy.commodityId,
         commodityName: buy.commodity.name,
-        commodityNameZh: getZhName(buy.commodity.name),
+        commodityNameZh: buy.commodity.name,
         commodityKind: buy.commodity.kind,
         commodityKindZh: getZhKind(buy.commodity.kind),
         originTerminalId: buy.terminalId,
         originTerminalName: buy.terminal.name,
-        originTerminalNameZh: getTerminalZh(buy.terminal.name),
+        originTerminalNameZh: buy.terminal.name,
         originLocation: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
-        originLocationZh: getLocationZh(buy.terminal.cityName || buy.terminal.spaceStationName) || getTerminalZh(buy.terminal.name),
+        originLocationZh: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
         originSystemName: buy.terminal.starSystemName || '',
         buyPrice: buy.priceBuy!,
         destTerminalId: sell.terminalId,
         destTerminalName: sell.terminal.name,
-        destTerminalNameZh: getTerminalZh(sell.terminal.name),
+        destTerminalNameZh: sell.terminal.name,
         destLocation: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
-        destLocationZh: getLocationZh(sell.terminal.cityName || sell.terminal.spaceStationName) || getTerminalZh(sell.terminal.name),
+        destLocationZh: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
         destSystemName: sell.terminal.starSystemName || '',
         sellPrice: sell.priceSell!,
         profitPerScu,
