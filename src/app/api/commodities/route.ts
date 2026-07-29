@@ -17,7 +17,7 @@ export async function GET() {
       orderBy: { name: 'asc' },
     });
     return NextResponse.json(
-      commodities.map((c) => ({ ...c, nameZh: c.name, kindZh: getZhKind(c.kind), changePercent: null, currentBuyAvg: null, currentSellAvg: null }))
+      commodities.map((c) => ({ ...c, nameZh: c.name, kindZh: getZhKind(c.kind), totalSellStock: 0, changePercent: null, currentBuyAvg: null, currentSellAvg: null }))
     );
   }
 
@@ -52,6 +52,17 @@ export async function GET() {
     currentMap[c.commodityId] = { avgBuy: c._avg.priceBuy, avgSell: c._avg.priceSell };
   }
 
+  // Get total sell stock per commodity from latest snapshot
+  const stockData = await prisma.priceSnapshot.groupBy({
+    by: ['commodityId'],
+    where: { fetchedAt: latestTime, scuSellStock: { gt: 0 } },
+    _sum: { scuSellStock: true },
+  });
+  const stockMap: Record<number, number> = {};
+  for (const s of stockData) {
+    stockMap[s.commodityId] = s._sum.scuSellStock || 0;
+  }
+
   const commodities = await prisma.commodity.findMany({ orderBy: { name: 'asc' } });
 
   const result: CommodityWithChange[] = commodities.map((c) => {
@@ -65,6 +76,7 @@ export async function GET() {
       ...c,
       nameZh: c.name,
       kindZh: getZhKind(c.kind),
+      totalSellStock: stockMap[c.id] || 0,
       changePercent,
       currentBuyAvg: cur?.avgBuy ?? null,
       currentSellAvg: cur?.avgSell ?? null,

@@ -10,6 +10,7 @@ export interface CommodityWithChange {
   isRaw: boolean;
   isRefined: boolean;
   kindZh: string;
+  totalSellStock: number;
   changePercent: number | null;
   currentBuyAvg: number | null;
   currentSellAvg: number | null;
