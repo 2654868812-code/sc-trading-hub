@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model Commodity {
@@ -48,7 +48,7 @@ model PriceSnapshot {
   priceSell    Float?
   scuBuyStock  Int?
   scuSellStock Int?
-  fetchedAt    DateTime   @db.Timestamptz(3)
+  fetchedAt    DateTime
 
   commodity    Commodity  @relation(fields: [commodityId], references: [id], onDelete: Cascade)
   terminal     Terminal   @relation(fields: [terminalId], references: [id], onDelete: Cascade)
