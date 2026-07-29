@@ -102,7 +102,12 @@ export async function GET(request: NextRequest) {
         distanceGm: null,
         originStock: buy.scuSellStock || 0,
         destStock: sell.scuSellStock || 0,
-        dataUpdatedAt: latest.fetchedAt.toISOString(),
+        originUpdatedAt: buy.uexModifiedAt
+          ? new Date(buy.uexModifiedAt * 1000).toISOString()
+          : buy.fetchedAt.toISOString(),
+        destUpdatedAt: sell.uexModifiedAt
+          ? new Date(sell.uexModifiedAt * 1000).toISOString()
+          : sell.fetchedAt.toISOString(),
         isAutoLoadOrigin: buy.terminal.isAutoLoad,
         isAutoLoadDest: sell.terminal.isAutoLoad,
       });

@@ -22,17 +22,14 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
     );
   }
 
-  const updateTime = routes[0]?.dataUpdatedAt
-    ? new Date(routes[0].dataUpdatedAt).toLocaleString('zh-CN')
-    : null;
+  function fmtTime(iso: string) {
+    return new Date(iso).toLocaleString('zh-CN', {
+      month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit',
+    });
+  }
 
   return (
     <div>
-      {updateTime && (
-        <div className="text-xs text-muted-foreground mb-2">
-          数据更新时间：{updateTime}
-        </div>
-      )}
       <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
@@ -64,6 +61,7 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               <td className="py-2 px-2">
                 {r.originLocationZh || r.originTerminalNameZh || r.originTerminalName}
                 <div className="text-[10px] text-muted-foreground">{getLocationZh(r.originSystemName)}</div>
+                <div className="text-[9px] text-muted-foreground/60">{fmtTime(r.originUpdatedAt)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.buyPrice.toLocaleString()}
@@ -71,6 +69,7 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               <td className="py-2 px-2">
                 {r.destLocationZh || r.destTerminalNameZh || r.destTerminalName}
                 <div className="text-[10px] text-muted-foreground">{getLocationZh(r.destSystemName)}</div>
+                <div className="text-[9px] text-muted-foreground/60">{fmtTime(r.destUpdatedAt)}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.sellPrice.toLocaleString()}

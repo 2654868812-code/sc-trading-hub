@@ -57,6 +57,7 @@ export interface UexPriceAll {
   scu_sell_stock_avg: number | null;
   scu_sell: number | null;
   scu_sell_avg: number | null;
+  date_modified: number | null;
   commodity_name: string;
   terminal_name: string;
 }

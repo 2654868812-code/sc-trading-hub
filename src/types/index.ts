@@ -48,7 +48,8 @@ export interface TradeRoute {
   distanceGm: number | null;
   originStock: number;
   destStock: number;
-  dataUpdatedAt: string;
+  originUpdatedAt: string;
+  destUpdatedAt: string;
   isAutoLoadOrigin: boolean;
   isAutoLoadDest: boolean;
 }

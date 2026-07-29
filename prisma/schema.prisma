@@ -48,6 +48,7 @@ model PriceSnapshot {
   priceSell    Float?
   scuBuyStock  Int?
   scuSellStock Int?
+  uexModifiedAt Int?
   fetchedAt    DateTime
 
   commodity    Commodity  @relation(fields: [commodityId], references: [id], onDelete: Cascade)
