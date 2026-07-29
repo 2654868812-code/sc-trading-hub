@@ -1,65 +1,76 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState, useCallback } from 'react';
+import { Heatmap } from '@/components/Heatmap';
+import { TradeRouteFilter } from '@/components/TradeRouteFilter';
+import { RouteTable } from '@/components/RouteTable';
+import type { CommodityWithChange, TradeRoute, RouteFilters } from '@/types';
+
+export default function HomePage() {
+  const [commodities, setCommodities] = useState<CommodityWithChange[]>([]);
+  const [systems, setSystems] = useState<string[]>([]);
+  const [routes, setRoutes] = useState<TradeRoute[]>([]);
+  const [loadingCommodities, setLoadingCommodities] = useState(true);
+  const [loadingRoutes, setLoadingRoutes] = useState(false);
+  const [routesSearched, setRoutesSearched] = useState(false);
+
+  useEffect(() => {
+    fetch('/api/commodities')
+      .then((r) => r.json())
+      .then((data) => setCommodities(data))
+      .catch(console.error)
+      .finally(() => setLoadingCommodities(false));
+
+    fetch('/api/terminals?distinctSystems=true')
+      .then((r) => r.json())
+      .then((data) => setSystems(data as string[]))
+      .catch(console.error);
+  }, []);
+
+  const handleFilterChange = useCallback(async (filters: RouteFilters) => {
+    setLoadingRoutes(true);
+    setRoutesSearched(true);
+    const params = new URLSearchParams();
+    if (filters.commodityId) params.set('commodityId', String(filters.commodityId));
+    if (filters.originSystem) params.set('originSystem', filters.originSystem);
+    if (filters.destSystem) params.set('destSystem', filters.destSystem);
+    if (filters.maxInvestment) params.set('maxInvestment', String(filters.maxInvestment));
+    if (filters.maxDistance) params.set('maxDistance', String(filters.maxDistance));
+    if (filters.autoLoadOnly) params.set('autoLoadOnly', 'true');
+    if (filters.excludeIllegal) params.set('excludeIllegal', 'true');
+    if (filters.sortBy) params.set('sortBy', filters.sortBy);
+    if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
+
+    try {
+      const res = await fetch(`/api/routes?${params.toString()}`);
+      const data = await res.json();
+      setRoutes(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingRoutes(false);
+    }
+  }, []);
+
+  const handleCommodityClick = useCallback((commodityId: number) => {
+    handleFilterChange({ commodityId, sortBy: 'roi', sortOrder: 'desc' });
+  }, [handleFilterChange]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="space-y-6 max-w-[1600px] mx-auto">
+      <Heatmap commodities={commodities} loading={loadingCommodities} />
+
+      <hr className="border-border" />
+
+      <TradeRouteFilter systems={systems} onFilterChange={handleFilterChange} loading={loadingRoutes} />
+
+      {routesSearched && (
+        <RouteTable
+          routes={routes}
+          loading={loadingRoutes}
+          onCommodityClick={handleCommodityClick}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      )}
     </div>
   );
 }
