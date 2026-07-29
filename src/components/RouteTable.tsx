@@ -49,14 +49,14 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                 </button>
               </td>
               <td className="py-2 px-2">
-                {r.originTerminalName}
+                {r.originTerminalNameZh || r.originTerminalName}
                 <div className="text-[10px] text-muted-foreground">{r.originSystemName}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">
                 {r.buyPrice.toLocaleString()}
               </td>
               <td className="py-2 px-2">
-                {r.destTerminalName}
+                {r.destTerminalNameZh || r.destTerminalName}
                 <div className="text-[10px] text-muted-foreground">{r.destSystemName}</div>
               </td>
               <td className="py-2 px-2 text-right font-mono text-foreground">

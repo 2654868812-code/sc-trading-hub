@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import type { TerminalInfo } from '@/types';
+import { getTerminalZh } from '@/lib/terminal-zh';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -40,6 +41,7 @@ export async function GET(request: NextRequest) {
   const result: TerminalInfo[] = terminals.map((t) => ({
     id: t.id,
     name: t.name,
+    nameZh: getTerminalZh(t.name),
     starSystemName: t.starSystemName,
     cityName: t.cityName,
     spaceStationName: t.spaceStationName,

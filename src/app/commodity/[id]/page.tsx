@@ -8,6 +8,7 @@ import {
 } from 'recharts';
 import type { PricePoint, TerminalInfo, CommodityWithChange } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
+import { getTerminalZh } from '@/lib/terminal-zh';
 
 const LINE_COLORS = ['#22c55e', '#ef4444', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -167,7 +168,7 @@ export default function CommodityDetailPage() {
                     : 'border-border hover:bg-card text-muted-foreground'
                 }`}
               >
-                {t.name}
+                {getTerminalZh(t.name)}
                 {t.isAutoLoad ? ' 🚀' : ''}
               </button>
             );
@@ -186,13 +187,13 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {t.name}
+                    {getTerminalZh(t.name)}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
                   </span>
                   {latest && (
-                    <span className="font-mono text-green-400">
+                    <span className="font-mono text-green-600">
                       {latest.priceBuy!.toLocaleString()} aUEC
                     </span>
                   )}
@@ -211,13 +212,13 @@ export default function CommodityDetailPage() {
               return (
                 <div key={t.id} className="flex justify-between text-sm py-1 px-2 rounded hover:bg-card/50">
                   <span>
-                    {t.name}
+                    {getTerminalZh(t.name)}
                     <span className="text-[10px] text-muted-foreground ml-1">
                       {t.starSystemName}
                     </span>
                   </span>
                   {latest && (
-                    <span className="font-mono text-red-400">
+                    <span className="font-mono text-red-500">
                       {latest.priceSell!.toLocaleString()} aUEC
                     </span>
                   )}

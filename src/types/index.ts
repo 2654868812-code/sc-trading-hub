@@ -30,10 +30,12 @@ export interface TradeRoute {
   commodityKind: string | null;
   originTerminalId: number;
   originTerminalName: string;
+  originTerminalNameZh: string;
   originSystemName: string;
   buyPrice: number;
   destTerminalId: number;
   destTerminalName: string;
+  destTerminalNameZh: string;
   destSystemName: string;
   sellPrice: number;
   profitPerScu: number;
@@ -58,6 +60,7 @@ export interface RouteFilters {
 export interface TerminalInfo {
   id: number;
   name: string;
+  nameZh: string;
   starSystemName: string | null;
   cityName: string | null;
   spaceStationName: string | null;
