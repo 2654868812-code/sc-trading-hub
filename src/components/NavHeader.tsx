@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const TABS = [
   { href: '/', label: '商品总览' },
   { href: '/routes', label: '贸易路线' },
+  { href: '/reports', label: '泛天财报' },
 ];
 
 export function NavHeader() {
