@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Noto_Sans_SC } from 'next/font/google';
 import './globals.css';
 import { NavHeader } from '@/components/NavHeader';
+import { Footer } from '@/components/Footer';
 
 const notoSans = Noto_Sans_SC({
   subsets: ['latin'],
@@ -39,6 +40,7 @@ export default function RootLayout({
           <div className="gold-shimmer-line" />
         </header>
         <main className="max-w-[1280px] mx-auto px-6 py-4">{children}</main>
+        <Footer />
       </body>
     </html>
   );

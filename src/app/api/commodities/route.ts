@@ -20,6 +20,7 @@ export async function GET() {
         ...c, nameZh: c.name, kindZh: getZhKind(c.kind),
         totalSellStock: 0, totalBuyStock: 0,
         changePercent: null, currentBuyAvg: null, currentSellAvg: null,
+        profitMargin: null, profitChange: null, maxProfitMargin: null,
         isDazong: false,
       }))
     );
@@ -28,11 +29,16 @@ export async function GET() {
   const latestTime = latestSnapshot.fetchedAt;
 
   // Parallel queries only for stock + current prices
-  const [currentPrices, stockData, buyStockData, commodityAverages] = await Promise.all([
+  const [currentPrices, sellPrices, stockData, buyStockData, commodityAverages] = await Promise.all([
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latestTime },
-      _avg: { priceBuy: true, priceSell: true },
+      where: { fetchedAt: latestTime, priceBuy: { gt: 0 } },
+      _avg: { priceBuy: true },
+    }),
+    prisma.priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: latestTime, priceSell: { gt: 0 } },
+      _avg: { priceSell: true },
     }),
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
@@ -51,7 +57,14 @@ export async function GET() {
 
   const currentMap: Record<number, { avgBuy: number | null; avgSell: number | null }> = {};
   for (const c of currentPrices) {
-    currentMap[c.commodityId] = { avgBuy: c._avg.priceBuy, avgSell: c._avg.priceSell };
+    currentMap[c.commodityId] = { avgBuy: c._avg.priceBuy, avgSell: null };
+  }
+  for (const s of sellPrices) {
+    if (currentMap[s.commodityId]) {
+      currentMap[s.commodityId].avgSell = s._avg.priceSell;
+    } else {
+      currentMap[s.commodityId] = { avgBuy: null, avgSell: s._avg.priceSell };
+    }
   }
 
   const stockMap: Record<number, number> = {};
@@ -68,7 +81,7 @@ export async function GET() {
   // changePercent, profitMargin, profitChange are pre-computed during sync
   const commodities = await prisma.commodity.findMany({
     orderBy: { name: 'asc' },
-    select: { id: true, name: true, nameEn: true, code: true, kind: true, weightScu: true, isBuyable: true, isSellable: true, isIllegal: true, isRaw: true, isRefined: true, dateAdded: true, dateModified: true, changePercent: true, profitMargin: true, profitChange: true },
+    select: { id: true, name: true, nameEn: true, code: true, kind: true, weightScu: true, isBuyable: true, isSellable: true, isIllegal: true, isRaw: true, isRefined: true, dateAdded: true, dateModified: true, changePercent: true, profitMargin: true, profitChange: true, maxProfitMargin: true },
   });
 
   const result: CommodityWithChange[] = commodities.map((c) => {
@@ -86,6 +99,7 @@ export async function GET() {
       currentSellAvg: cur?.avgSell ?? avg?.priceSellAvg ?? null,
       profitMargin: c.profitMargin ?? null,
       profitChange: c.profitChange ?? null,
+      maxProfitMargin: c.maxProfitMargin ?? null,
       isDazong: (avg?.maxBuy || 0) >= DAZONG_MAX_STOCK_THRESHOLD,
     };
   });

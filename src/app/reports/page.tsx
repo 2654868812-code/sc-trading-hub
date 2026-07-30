@@ -7,9 +7,12 @@ interface NewsItem {
   title: string;
   body: string;
   image?: string;
+  imagePosition?: 'left' | 'right';
+  imageScale?: number;
 }
 
 interface RouteItem {
+  ship?: string;
   commodity: string;
   origin: string;
   dest: string;
@@ -42,14 +45,14 @@ export default function ReportsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">泛天财报</h1>
-        <p className="text-sm text-muted-foreground mt-1">每周财经新闻与推荐跑商路线</p>
+        <h1 className="text-2xl font-bold tracking-tight">泛天商报</h1>
+        <p className="text-sm text-muted-foreground mt-1">每周商业新闻与推荐跑商路线</p>
       </div>
 
       {/* Weekly News */}
       <section>
         <h2 className="text-xs font-semibold tracking-[0.15em] uppercase text-muted-foreground mb-4 flex items-center gap-2">
-          每周财经新闻
+          每周商业新闻
           <span className="h-px flex-1 bg-border/50" />
         </h2>
         {newsItems.length === 0 ? (
@@ -64,11 +67,22 @@ export default function ReportsPage() {
                   )}
                   <h3 className="text-base font-semibold">{item.title}</h3>
                 </div>
-                {item.image && (
-                  <img src={item.image} alt={item.title} className="w-full max-h-80 object-cover rounded-lg mb-3" />
-                )}
-                {item.body && (
-                  <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{item.body}</p>
+                {item.image ? (
+                  <div className={`flex gap-4 ${item.imagePosition === 'right' ? 'flex-row-reverse' : ''}`}>
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="max-h-80 object-contain rounded-lg shrink-0"
+                      style={{ width: `${item.imageScale ?? 45}%` }}
+                    />
+                    {item.body && (
+                      <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line flex-1">{item.body}</p>
+                    )}
+                  </div>
+                ) : (
+                  item.body && (
+                    <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">{item.body}</p>
+                  )
                 )}
               </div>
             ))}
@@ -90,6 +104,7 @@ export default function ReportsPage() {
             <table className="w-full">
               <thead>
                 <tr>
+                  <th className="th-cell">货船</th>
                   <th className="th-cell">商品</th>
                   <th className="th-cell">购买地</th>
                   <th className="th-cell">出售地</th>
@@ -100,6 +115,7 @@ export default function ReportsPage() {
               <tbody>
                 {routeItems.map((item, i) => (
                   <tr key={i} className={i % 2 === 0 ? 'bg-card' : 'bg-[#faf7f0]'}>
+                    <td className="td-cell font-medium">{item.ship || '—'}</td>
                     <td className="td-cell font-medium">{item.commodity}</td>
                     <td className="td-cell">{item.origin}</td>
                     <td className="td-cell">{item.dest}</td>

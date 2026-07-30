@@ -18,6 +18,7 @@ export interface CommodityWithChange {
   currentSellAvg: number | null;
   profitMargin: number | null;
   profitChange: number | null;
+  maxProfitMargin: number | null;
   isDazong: boolean;
 }
 

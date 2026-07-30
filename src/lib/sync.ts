@@ -371,25 +371,62 @@ export async function updatePriceChanges(): Promise<number> {
 
   const [latest, prev] = times;
 
-  // Current and previous avg prices (both buy and sell)
-  const [curData, prevData] = await Promise.all([
+  // Current and previous avg prices — filter zeros (terminal not buying/selling)
+  const [curBuy, curSell, prevBuy, prevSell] = await Promise.all([
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latest.fetchedAt },
-      _avg: { priceBuy: true, priceSell: true },
+      where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } },
+      _avg: { priceBuy: true },
     }),
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: prev.fetchedAt },
-      _avg: { priceBuy: true, priceSell: true },
+      where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } },
+      _avg: { priceSell: true },
+    }),
+    prisma.priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: prev.fetchedAt, priceBuy: { gt: 0 } },
+      _avg: { priceBuy: true },
+    }),
+    prisma.priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: prev.fetchedAt, priceSell: { gt: 0 } },
+      _avg: { priceSell: true },
     }),
   ]);
 
   const curMap: Record<number, { buy: number | null; sell: number | null }> = {};
-  for (const c of curData) curMap[c.commodityId] = { buy: c._avg.priceBuy, sell: c._avg.priceSell };
+  for (const c of curBuy) curMap[c.commodityId] = { buy: c._avg.priceBuy, sell: null };
+  for (const s of curSell) {
+    if (curMap[s.commodityId]) curMap[s.commodityId].sell = s._avg.priceSell;
+    else curMap[s.commodityId] = { buy: null, sell: s._avg.priceSell };
+  }
 
   const prevMap: Record<number, { buy: number | null; sell: number | null }> = {};
-  for (const p of prevData) prevMap[p.commodityId] = { buy: p._avg.priceBuy, sell: p._avg.priceSell };
+  for (const p of prevBuy) prevMap[p.commodityId] = { buy: p._avg.priceBuy, sell: null };
+  for (const s of prevSell) {
+    if (prevMap[s.commodityId]) prevMap[s.commodityId].sell = s._avg.priceSell;
+    else prevMap[s.commodityId] = { buy: null, sell: s._avg.priceSell };
+  }
+
+  // Max profit margin: min buy price → max sell price across all terminals
+  const [minBuyData, maxSellData] = await Promise.all([
+    prisma.priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } },
+      _min: { priceBuy: true },
+    }),
+    prisma.priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } },
+      _max: { priceSell: true },
+    }),
+  ]);
+
+  const minBuyMap: Record<number, number> = {};
+  for (const m of minBuyData) if (m._min.priceBuy != null) minBuyMap[m.commodityId] = m._min.priceBuy;
+  const maxSellMap: Record<number, number> = {};
+  for (const m of maxSellData) if (m._max.priceSell != null) maxSellMap[m.commodityId] = m._max.priceSell;
 
   let updated = 0;
   for (const commodityId of Object.keys(curMap)) {
@@ -412,16 +449,23 @@ export async function updatePriceChanges(): Promise<number> {
     // Get stored baseline
     const stored = await prisma.commodity.findUnique({
       where: { id },
-      select: { profitMargin: true, prevBuyAvg: true },
+      select: { profitMargin: true, prevBuyAvg: true, profitChange: true },
     });
 
     // Track profit change via unit profit (stored in prevBuyAvg as baseline)
     const lastUnitProfit = stored?.prevBuyAvg;
-    let profitChangeVal: number | null = null;
+    // Default: keep existing profitChange if profit hasn't moved
+    let profitChangeVal: number | null = stored?.profitChange ?? null;
     if (lastUnitProfit != null && curProfit !== lastUnitProfit) {
       profitChangeVal = Math.round(curProfit - lastUnitProfit);
     } else if (lastUnitProfit == null && prevProfit != null && curProfit !== prevProfit) {
       profitChangeVal = Math.round(curProfit - prevProfit);
+    }
+
+    // Max profit margin from best buy→sell pair
+    let maxMargin: number | null = null;
+    if (minBuyMap[id] != null && maxSellMap[id] != null && minBuyMap[id] > 0) {
+      maxMargin = Math.round(((maxSellMap[id] - minBuyMap[id]) / minBuyMap[id]) * 1000) / 10;
     }
 
     await prisma.commodity.update({
@@ -429,6 +473,7 @@ export async function updatePriceChanges(): Promise<number> {
       data: {
         profitMargin: curMargin,
         profitChange: profitChangeVal,
+        maxProfitMargin: maxMargin,
         prevBuyAvg: curProfit, // baseline for next comparison
       },
     });

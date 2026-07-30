@@ -57,7 +57,7 @@ export function CommodityCell({
         <div className="flex items-center gap-1.5 mt-0.5 w-full">
           <span className="text-[10px] text-muted-foreground/55">{kindZh}</span>
           {hasChange && (
-            <span className={`text-[10px] tabular-nums font-medium ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+            <span className={`text-[10px] tabular-nums font-medium ml-auto ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
               {profitChange! >= 0 ? '▲' : '▼'}{fmtProfit(Math.abs(profitChange!))}
             </span>
           )}

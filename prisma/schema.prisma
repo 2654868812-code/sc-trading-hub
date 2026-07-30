@@ -21,10 +21,11 @@ model Commodity {
   isRefined       Boolean          @default(false)
   dateAdded       Int?
   dateModified    Int?
-  prevBuyAvg      Float?
-  changePercent   Float?
-  profitMargin    Float?
-  profitChange    Float?
+  prevBuyAvg       Float?
+  changePercent    Float?
+  profitMargin     Float?
+  profitChange     Float?
+  maxProfitMargin  Float?
   priceSnapshots   PriceSnapshot[]
   average          CommodityAverage?
   cargoRoutes      CargoRoute[]
