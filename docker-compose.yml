@@ -1,35 +1,19 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: scuser
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-scpassword}
-      POSTGRES_DB: sctrading
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U scuser -d sctrading"]
-      interval: 5s
-      retries: 5
-    restart: unless-stopped
-
   app:
     build: .
     ports:
       - "3000:3000"
     environment:
-      DB_PROVIDER: ${DB_PROVIDER:-postgresql}
-      DATABASE_URL: "postgresql://scuser:${DB_PASSWORD:-scpassword}@postgres:5432/sctrading?schema=public"
+      DATABASE_URL: "file:/data/prod.db"
       UEX_API_BASE: ${UEX_API_BASE:-https://api.uexcorp.uk/2.0}
       UEX_API_TOKEN: ${UEX_API_TOKEN}
       PRICE_RETENTION_DAYS: ${PRICE_RETENTION_DAYS:-30}
       FETCH_INTERVAL_MINUTES: ${FETCH_INTERVAL_MINUTES:-30}
       CRON_SECRET: ${CRON_SECRET}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-    depends_on:
-      postgres:
-        condition: service_healthy
+    volumes:
+      - appdata:/data
     restart: unless-stopped
 
 volumes:
-  pgdata:
+  appdata:

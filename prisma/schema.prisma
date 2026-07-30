@@ -4,7 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = env("DB_PROVIDER")
+  provider = "sqlite"
 }
 
 model Commodity {
