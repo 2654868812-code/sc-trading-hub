@@ -49,38 +49,38 @@
 }
 
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(0 0% 10%);
-  --card: hsl(45 30% 98%);
-  --card-foreground: hsl(0 0% 10%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(0 0% 10%);
-  --primary: hsl(40 75% 42%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(45 30% 95%);
-  --secondary-foreground: hsl(0 0% 10%);
-  --muted: hsl(45 20% 94%);
-  --muted-foreground: hsl(0 0% 38%);
-  --accent: hsl(43 50% 92%);
-  --accent-foreground: hsl(0 0% 10%);
-  --destructive: hsl(0 72% 45%);
-  --border: hsl(40 40% 60%);
-  --input: hsl(40 25% 82%);
-  --ring: hsl(40 60% 50%);
-  --chart-1: hsl(40 75% 45%);
-  --chart-2: hsl(142 55% 38%);
-  --chart-3: hsl(0 65% 48%);
-  --chart-4: hsl(200 55% 42%);
-  --chart-5: hsl(280 50% 45%);
+  --background: #faf7f0;
+  --foreground: #2d2318;
+  --card: #ffffff;
+  --card-foreground: #2d2318;
+  --popover: #ffffff;
+  --popover-foreground: #2d2318;
+  --primary: #c9a94e;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f0e5;
+  --secondary-foreground: #2d2318;
+  --muted: #f0ebe0;
+  --muted-foreground: #8a8070;
+  --accent: #f5f0e5;
+  --accent-foreground: #2d2318;
+  --destructive: #c4554d;
+  --border: #e4dcc8;
+  --input: #e4dcc8;
+  --ring: #c9a94e;
+  --chart-1: #c9a94e;
+  --chart-2: #3b8258;
+  --chart-3: #c4554d;
+  --chart-4: #5a8db8;
+  --chart-5: #8b6bab;
   --radius: 0.5rem;
-  --sidebar: hsl(45 30% 98%);
-  --sidebar-foreground: hsl(0 0% 15%);
-  --sidebar-primary: hsl(40 75% 45%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(43 50% 92%);
-  --sidebar-accent-foreground: hsl(0 0% 15%);
-  --sidebar-border: hsl(40 35% 72%);
-  --sidebar-ring: hsl(40 60% 50%);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #2d2318;
+  --sidebar-primary: #c9a94e;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5f0e5;
+  --sidebar-accent-foreground: #2d2318;
+  --sidebar-border: #e4dcc8;
+  --sidebar-ring: #c9a94e;
 }
 
 @layer base {
@@ -88,7 +88,136 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: system-ui, -apple-system, sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-noto), "Noto Sans SC", "Microsoft YaHei UI", system-ui, sans-serif;
+    font-weight: 500;
   }
+}
+
+/* ── Logo serif ── */
+.logo-serif {
+  font-family: "Noto Serif SC", "STSong", "SimSun", "Songti SC", serif;
+}
+
+/* ── Gold shimmer header line ── */
+@keyframes gold-shimmer {
+  0%   { background-position: -200% 0; opacity: 0.4; }
+  50%  { opacity: 1; }
+  100% { background-position: 200% 0; opacity: 0.4; }
+}
+
+.gold-shimmer-line {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #c9a94e33 10%,
+    #c9a94e99 25%,
+    #e8c84a 40%,
+    #f5d86e 50%,
+    #e8c84a 60%,
+    #c9a94e99 75%,
+    #c9a94e33 90%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: gold-shimmer 3s ease-in-out infinite;
+  box-shadow: 0 1px 8px rgba(201, 169, 78, 0.25);
+}
+
+/* ── Data pulse dot ── */
+@keyframes data-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.3; }
+}
+
+.data-pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #3b8258;
+  animation: data-pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* ── Section card ── */
+.section-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+
+/* ── Table ── */
+.th-cell {
+  @apply text-left py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid var(--border);
+  background: var(--card);
+}
+.th-cell--right {
+  @apply text-right py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid var(--border);
+  background: var(--card);
+}
+.th-cell-last {
+  @apply text-center py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  color: var(--muted-foreground);
+  border-bottom: 2px solid var(--border);
+  background: var(--card);
+}
+
+.td-cell {
+  @apply py-2 px-3 text-[11px] border-b border-border/50;
+}
+.td-cell--right {
+  @apply py-2 px-3 text-[11px] text-right tabular-nums border-b border-border/50;
+}
+.td-cell-last {
+  @apply py-2 px-3 text-[11px] text-center border-b border-border/50;
+}
+
+.table-zebra tbody tr:nth-child(even) {
+  background: #faf7f0;
+}
+.table-zebra tbody tr:hover {
+  background: #f2ecda;
+}
+
+/* ── Nav tab glow ── */
+.nav-tab {
+  @apply relative px-4 py-1.5 text-sm rounded-md transition-colors;
+  color: var(--muted-foreground);
+}
+.nav-tab:hover {
+  color: var(--foreground);
+}
+.nav-tab.active {
+  color: var(--primary);
+}
+.nav-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 1px;
+  box-shadow: 0 0 6px var(--primary);
+}
+
+/* ── Commodity card (heatmap) ── */
+.commodity-card {
+  @apply h-[60px] flex flex-col items-start justify-center px-2 py-1 rounded-lg
+         border bg-card cursor-pointer
+         transition-all duration-150 text-left overflow-hidden;
+  border-color: var(--border);
+}
+.commodity-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 2px 8px rgba(201,169,78,0.15);
 }

@@ -3,8 +3,12 @@ import { prisma } from '@/lib/db';
 import type { TradeRoute } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
 
+// Ships that can ONLY dock at space stations (cannot land on ground)
+const SPACE_ONLY_SHIP_IDS = new Set([102, 104, 105, 106]); // Hull A, C, D, E
+
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+  try {
+    const { searchParams } = new URL(request.url);
   const commodityId = searchParams.get('commodityId')
     ? parseInt(searchParams.get('commodityId')!, 10) : undefined;
   const originSystem = searchParams.get('originSystem') || undefined;
@@ -13,10 +17,25 @@ export async function GET(request: NextRequest) {
     ? parseFloat(searchParams.get('maxInvestment')!) : undefined;
   const maxDistance = searchParams.get('maxDistance')
     ? parseFloat(searchParams.get('maxDistance')!) : undefined;
-  const autoLoadOnly = searchParams.get('autoLoadOnly') === 'true';
-  const excludeIllegal = searchParams.get('excludeIllegal') === 'true';
-  const sortBy = searchParams.get('sortBy') || 'roi';
+  const commodityType = searchParams.get('commodityType') as 'major' | 'minor' | null;
+  const autoLoadType = searchParams.get('autoLoadType') as 'full' | 'half' | 'manual' | null;
+  const sortBy = searchParams.get('sortBy') || 'profit';
   const sortOrder = searchParams.get('sortOrder') || 'desc';
+  const shipId = searchParams.get('shipId')
+    ? parseInt(searchParams.get('shipId')!, 10) : 0;
+
+  let shipScu = 0;
+  let spaceOnly = false;
+  if (shipId > 0) {
+    const ship = await prisma.vehicle.findUnique({
+      where: { id: shipId },
+      select: { id: true, scu: true },
+    });
+    if (ship) {
+      shipScu = ship.scu;
+      if (SPACE_ONLY_SHIP_IDS.has(ship.id)) spaceOnly = true;
+    }
+  }
 
   const latest = await prisma.priceSnapshot.findFirst({
     orderBy: { fetchedAt: 'desc' },
@@ -33,11 +52,11 @@ export async function GET(request: NextRequest) {
       fetchedAt: latest.fetchedAt,
       priceBuy: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
-      ...(maxInvestment ? { priceBuy: { gt: 0, lte: maxInvestment } } : {}),
+      ...(spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
     },
     include: {
       commodity: { select: { id: true, name: true, kind: true, isIllegal: true } },
-      terminal: { select: { id: true, name: true, starSystemName: true, planetName: true, moonName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
+      terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } },
     },
   });
 
@@ -47,9 +66,10 @@ export async function GET(request: NextRequest) {
       fetchedAt: latest.fetchedAt,
       priceSell: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
+      ...(spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
     },
     include: {
-      terminal: { select: { id: true, name: true, starSystemName: true, planetName: true, moonName: true, cityName: true, spaceStationName: true, isAutoLoad: true } },
+      terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } },
     },
   });
 
@@ -60,6 +80,54 @@ export async function GET(request: NextRequest) {
     sellByCommodity[s.commodityId].push(s);
   }
 
+  // Fetch commodity averages for max stock values (progress bar reference)
+  const allAverages = await prisma.commodityAverage.findMany({
+    select: { commodityId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true },
+  });
+  const avgByCommodity: Record<number, { scuBuyMax: number | null; scuSellMax: number | null; scuBuyAvg: number | null }> = {};
+  for (const a of allAverages) {
+    avgByCommodity[a.commodityId] = { scuBuyMax: a.scuBuyMax, scuSellMax: a.scuSellMax, scuBuyAvg: a.scuBuyAvg };
+  }
+
+  // Fetch per-terminal max stock for relevant commodities only
+  const relevantCommodityIds = [...new Set([
+    ...buySnapshots.map((s) => s.commodityId),
+    ...sellSnapshots.map((s) => s.commodityId),
+  ])];
+  const termMaxRows = await prisma.terminalCommodityMax.findMany({
+    where: { commodityId: { in: relevantCommodityIds } },
+    select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true },
+  });
+  const terminalMaxStock: Record<string, { scuBuyMax: number; scuSellMax: number; scuBuyAvg: number }> = {};
+  for (const t of termMaxRows) {
+    terminalMaxStock[`${t.commodityId}-${t.terminalId}`] = {
+      scuBuyMax: t.scuBuyMax ?? 0,
+      scuSellMax: t.scuSellMax ?? 0,
+      scuBuyAvg: t.scuBuyAvg ?? 0,
+    };
+  }
+
+  // Fetch cargo routes for distance + container sizes (only for relevant commodities)
+  const allCargoRoutes = await prisma.cargoRoute.findMany({
+    where: { commodityId: { in: relevantCommodityIds } },
+    select: {
+      commodityId: true,
+      originTerminalId: true,
+      destTerminalId: true,
+      distance: true,
+      containerSizesOrigin: true,
+      containerSizesDest: true,
+    },
+  });
+  const cargoRouteMap = new Map<string, { distance: number | null; containerSizesOrigin: string | null; containerSizesDest: string | null }>();
+  for (const cr of allCargoRoutes) {
+    cargoRouteMap.set(`${cr.commodityId}-${cr.originTerminalId}-${cr.destTerminalId}`, {
+      distance: cr.distance,
+      containerSizesOrigin: cr.containerSizesOrigin,
+      containerSizesDest: cr.containerSizesDest,
+    });
+  }
+
   const routes: TradeRoute[] = [];
 
   for (const buy of buySnapshots) {
@@ -68,14 +136,57 @@ export async function GET(request: NextRequest) {
 
     for (const sell of sells) {
       if (buy.terminalId === sell.terminalId) continue;
-      if (sell.priceSell! <= buy.priceBuy!) continue;
+
+      const buyPrice = buy.priceBuy!;
+      const sellPrice = sell.priceSell!;
+
+      if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0) continue;
+      if (sellPrice <= buyPrice) continue;
       if (originSystem && buy.terminal.starSystemName !== originSystem) continue;
       if (destSystem && sell.terminal.starSystemName !== destSystem) continue;
-      if (autoLoadOnly && (!buy.terminal.isAutoLoad || !sell.terminal.isAutoLoad)) continue;
-      if (excludeIllegal && buy.commodity.isIllegal) continue;
+      // Auto-load filter
+      if (autoLoadType) {
+        const origAuto = buy.terminal.isAutoLoad;
+        const destAuto = sell.terminal.isAutoLoad;
+        if (autoLoadType === 'full' && !(origAuto && destAuto)) continue;
+        if (autoLoadType === 'half' && !((origAuto && !destAuto) || (!origAuto && destAuto))) continue;
+        if (autoLoadType === 'manual' && (origAuto || destAuto)) continue;
+      }
 
-      const profitPerScu = sell.priceSell! - buy.priceBuy!;
-      const roi = (profitPerScu / buy.priceBuy!) * 100;
+      // 大宗: both must be space stations. 小宗: at least one must NOT be a space station.
+      if (commodityType) {
+        const originIsStation = !!(buy.terminal.spaceStationName);
+        const destIsStation = !!(sell.terminal.spaceStationName);
+        if (commodityType === 'major' && !(originIsStation && destIsStation)) continue;
+        if (commodityType === 'minor' && (originIsStation && destIsStation)) continue;
+      }
+
+      const profitPerScu = sellPrice - buyPrice;
+
+      // Strip prefix from terminal name for cleaner location display
+      const originLocFromName = buy.terminal.name.replace(/^(管理中心|白金湾)\s*[-—]\s*/, '');
+      const destLocFromName = sell.terminal.name.replace(/^(管理中心|白金湾)\s*[-—]\s*/, '');
+      // English versions — strip prefix same way
+      const originLocEnFromName = buy.terminal.nameEn.replace(/^(Admin|Platinum Bay)\s*[-—]\s*/, '');
+      const destLocEnFromName = sell.terminal.nameEn.replace(/^(Admin|Platinum Bay)\s*[-—]\s*/, '');
+
+      const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
+      const cargoInfo = cargoRouteMap.get(cargoKey);
+
+      // Origin: per-terminal avg for calc, terminal/commodity max for display
+      const originTerm = terminalMaxStock[`${buy.commodityId}-${buy.terminalId}`];
+      const destTerm = terminalMaxStock[`${sell.commodityId}-${sell.terminalId}`];
+      const commMax = avgByCommodity[buy.commodityId];
+      const originAvgStock = originTerm?.scuBuyAvg ?? avgByCommodity[buy.commodityId]?.scuBuyAvg ?? 0;
+      const originMaxStock = originTerm?.scuBuyMax ?? commMax?.scuBuyMax ?? 0;
+      const destMaxStock = destTerm?.scuSellMax ?? commMax?.scuSellMax ?? 0;
+      // Load SCU = min(ship cargo, terminal avg buy stock).
+      // Use nullish coalescing: 0 is a legitimate value (no stock), not missing data.
+      const loadScu = shipScu > 0 ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1) : 1;
+      // Sell SCU = min(ship cargo, terminal avg buy stock, dest max)
+      const sellScu = shipScu > 0
+        ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1, destMaxStock > 0 ? destMaxStock : 1)
+        : 1;
 
       routes.push({
         commodityId: buy.commodityId,
@@ -83,29 +194,49 @@ export async function GET(request: NextRequest) {
         commodityNameZh: buy.commodity.name,
         commodityKind: buy.commodity.kind,
         commodityKindZh: getZhKind(buy.commodity.kind),
+        // Origin
         originTerminalId: buy.terminalId,
         originTerminalName: buy.terminal.name,
         originTerminalNameZh: buy.terminal.name,
+        originTerminalNameEn: buy.terminal.nameEn,
         originLocation: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
-        originLocationZh: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
+        originLocationZh: buy.terminal.cityName || buy.terminal.spaceStationName || originLocFromName,
+        originLocationEn: buy.terminal.cityNameEn || buy.terminal.spaceStationNameEn || originLocEnFromName,
         originSystemName: buy.terminal.starSystemName || '',
+        originSystemNameEn: buy.terminal.starSystemNameEn || '',
         originPlanetName: buy.terminal.planetName || '',
+        originPlanetNameEn: buy.terminal.planetNameEn || '',
         originMoonName: buy.terminal.moonName || '',
-        buyPrice: buy.priceBuy!,
+        originMoonNameEn: buy.terminal.moonNameEn || '',
+        buyPrice,
+        // Dest
         destTerminalId: sell.terminalId,
         destTerminalName: sell.terminal.name,
         destTerminalNameZh: sell.terminal.name,
+        destTerminalNameEn: sell.terminal.nameEn,
         destLocation: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
-        destLocationZh: sell.terminal.cityName || sell.terminal.spaceStationName || sell.terminal.name,
+        destLocationZh: sell.terminal.cityName || sell.terminal.spaceStationName || destLocFromName,
+        destLocationEn: sell.terminal.cityNameEn || sell.terminal.spaceStationNameEn || destLocEnFromName,
         destSystemName: sell.terminal.starSystemName || '',
+        destSystemNameEn: sell.terminal.starSystemNameEn || '',
         destPlanetName: sell.terminal.planetName || '',
+        destPlanetNameEn: sell.terminal.planetNameEn || '',
         destMoonName: sell.terminal.moonName || '',
-        sellPrice: sell.priceSell!,
+        destMoonNameEn: sell.terminal.moonNameEn || '',
+        sellPrice,
+        // Computed
         profitPerScu,
-        roi: Math.round(roi * 10) / 10,
-        distanceGm: null,
-        originStock: buy.scuSellStock || 0,
+        roi: Math.round((profitPerScu / buyPrice) * 1000) / 10,
+        distanceGm: cargoInfo?.distance ?? null,
+        totalProfit: profitPerScu * sellScu,
+        totalInvestment: buyPrice * loadScu,
+        loadScu,
+        sellScu,
+        shipScu,
+        originStock: buy.scuBuyStock || 0,
         destStock: sell.scuSellStock || 0,
+        originStockMax: Math.round(originMaxStock),
+        destStockMax: Math.round(destMaxStock),
         originUpdatedAt: buy.uexModifiedAt
           ? new Date(buy.uexModifiedAt * 1000).toISOString()
           : buy.fetchedAt.toISOString(),
@@ -114,16 +245,38 @@ export async function GET(request: NextRequest) {
           : sell.fetchedAt.toISOString(),
         isAutoLoadOrigin: buy.terminal.isAutoLoad,
         isAutoLoadDest: sell.terminal.isAutoLoad,
+        containerSizesOrigin: cargoInfo?.containerSizesOrigin ?? null,
+        containerSizesDest: cargoInfo?.containerSizesDest ?? null,
+        isIllegal: buy.commodity.isIllegal,
       });
     }
   }
 
+  // Filter by maxInvestment (total budget)
+  let filtered = routes;
+  if (maxInvestment && maxInvestment > 0) {
+    filtered = filtered.filter((r) => r.totalInvestment <= maxInvestment);
+  }
+  // Filter by maxDistance
+  if (maxDistance && maxDistance > 0) {
+    filtered = filtered.filter((r) => r.distanceGm != null && r.distanceGm <= maxDistance);
+  }
+
   // Sort
-  routes.sort((a, b) => {
+  filtered.sort((a, b) => {
     const multiplier = sortOrder === 'asc' ? 1 : -1;
-    if (sortBy === 'profit') return (a.profitPerScu - b.profitPerScu) * multiplier;
-    return (a.roi - b.roi) * multiplier;
+    if (sortBy === 'profit') return (a.totalProfit - b.totalProfit) * multiplier;
+    if (sortBy === 'roi') return (a.roi - b.roi) * multiplier;
+    if (sortBy === 'distance') return ((a.distanceGm ?? 0) - (b.distanceGm ?? 0)) * multiplier;
+    return (a.totalProfit - b.totalProfit) * multiplier;
   });
 
-  return NextResponse.json(routes.slice(0, 500));
+  return NextResponse.json(filtered.slice(0, 50));
+  } catch (err) {
+    console.error('[routes] Error:', err);
+    return NextResponse.json(
+      { error: 'Failed to compute routes', message: String(err) },
+      { status: 500 }
+    );
+  }
 }
