@@ -360,40 +360,51 @@ export async function syncTerminalCommodityMax(): Promise<number> {
 }
 
 export async function updatePriceChanges(): Promise<number> {
-  // Get current and previous snapshot times
-  const times = await prisma.priceSnapshot.findMany({
-    distinct: ['fetchedAt'],
+  // Get latest snapshot time (always compute margin)
+  const latestTime = await prisma.priceSnapshot.findFirst({
     orderBy: { fetchedAt: 'desc' },
     select: { fetchedAt: true },
-    take: 2,
   });
-  if (times.length < 2) return 0;
+  if (!latestTime) return 0;
 
-  const [latest, prev] = times;
+  // Get previous snapshot time for change tracking (may not exist)
+  const prevTime = await prisma.priceSnapshot.findFirst({
+    orderBy: { fetchedAt: 'desc' },
+    where: { fetchedAt: { lt: latestTime.fetchedAt } },
+    select: { fetchedAt: true },
+  });
 
-  // Current and previous avg prices — filter zeros (terminal not buying/selling)
-  const [curBuy, curSell, prevBuy, prevSell] = await Promise.all([
+  // Current avg prices — filter zeros
+  const [curBuy, curSell] = await Promise.all([
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } },
+      where: { fetchedAt: latestTime.fetchedAt, priceBuy: { gt: 0 } },
       _avg: { priceBuy: true },
     }),
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } },
-      _avg: { priceSell: true },
-    }),
-    prisma.priceSnapshot.groupBy({
-      by: ['commodityId'],
-      where: { fetchedAt: prev.fetchedAt, priceBuy: { gt: 0 } },
-      _avg: { priceBuy: true },
-    }),
-    prisma.priceSnapshot.groupBy({
-      by: ['commodityId'],
-      where: { fetchedAt: prev.fetchedAt, priceSell: { gt: 0 } },
+      where: { fetchedAt: latestTime.fetchedAt, priceSell: { gt: 0 } },
       _avg: { priceSell: true },
     }),
   ]);
+
+  // Previous avg prices for change tracking
+  let prevBuy: typeof curBuy = [];
+  let prevSell: typeof curSell = [];
+  if (prevTime) {
+    [prevBuy, prevSell] = await Promise.all([
+      prisma.priceSnapshot.groupBy({
+        by: ['commodityId'],
+        where: { fetchedAt: prevTime.fetchedAt, priceBuy: { gt: 0 } },
+        _avg: { priceBuy: true },
+      }),
+      prisma.priceSnapshot.groupBy({
+        by: ['commodityId'],
+        where: { fetchedAt: prevTime.fetchedAt, priceSell: { gt: 0 } },
+        _avg: { priceSell: true },
+      }),
+    ]);
+  }
 
   const curMap: Record<number, { buy: number | null; sell: number | null }> = {};
   for (const c of curBuy) curMap[c.commodityId] = { buy: c._avg.priceBuy, sell: null };
@@ -403,22 +414,24 @@ export async function updatePriceChanges(): Promise<number> {
   }
 
   const prevMap: Record<number, { buy: number | null; sell: number | null }> = {};
-  for (const p of prevBuy) prevMap[p.commodityId] = { buy: p._avg.priceBuy, sell: null };
-  for (const s of prevSell) {
-    if (prevMap[s.commodityId]) prevMap[s.commodityId].sell = s._avg.priceSell;
-    else prevMap[s.commodityId] = { buy: null, sell: s._avg.priceSell };
+  if (prevTime) {
+    for (const p of prevBuy) prevMap[p.commodityId] = { buy: p._avg.priceBuy, sell: null };
+    for (const s of prevSell) {
+      if (prevMap[s.commodityId]) prevMap[s.commodityId].sell = s._avg.priceSell;
+      else prevMap[s.commodityId] = { buy: null, sell: s._avg.priceSell };
+    }
   }
 
   // Max profit margin: min buy price → max sell price across all terminals
   const [minBuyData, maxSellData] = await Promise.all([
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } },
+      where: { fetchedAt: latestTime.fetchedAt, priceBuy: { gt: 0 } },
       _min: { priceBuy: true },
     }),
     prisma.priceSnapshot.groupBy({
       by: ['commodityId'],
-      where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } },
+      where: { fetchedAt: latestTime.fetchedAt, priceSell: { gt: 0 } },
       _max: { priceSell: true },
     }),
   ]);
@@ -442,7 +455,7 @@ export async function updatePriceChanges(): Promise<number> {
       : null;
     // Unit profit for change tracking
     const curProfit = Math.round(cur.sell - cur.buy);
-    const prevProfit = prv.sell != null && prv.buy != null && prv.buy > 0
+    const prevProfit = prv?.sell != null && prv?.buy != null && prv.buy > 0
       ? Math.round(prv.sell - prv.buy)
       : null;
 
