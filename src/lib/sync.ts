@@ -352,7 +352,7 @@ export async function syncTerminalCommodityMax(): Promise<number> {
       console.warn(`[sync] Failed to fetch terminal prices for commodity ${c.id}:`, String(err));
     }
     // throttle to avoid rate limiting
-    await new Promise((r) => setTimeout(r, 200));
+    await new Promise((r) => setTimeout(r, 50));
   }
 
   console.log(`[sync] Upserted ${total} terminal-commodity max stock rows`);
