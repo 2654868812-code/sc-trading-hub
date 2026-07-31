@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 
-const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploads');
+// In Docker, uploads go to /data/uploads (volume) which is symlinked to public/uploads.
+// In local dev, uploads go directly to public/uploads/.
+const UPLOAD_DIR = process.env.UPLOADS_DIR
+  || path.join(process.cwd(), 'public', 'uploads');
 
 export async function POST(request: NextRequest) {
   try {
