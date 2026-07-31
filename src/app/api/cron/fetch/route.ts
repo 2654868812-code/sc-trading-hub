@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { fullSync } from '@/lib/sync';
 
-const CRON_SECRET = process.env.CRON_SECRET;
-if (!CRON_SECRET) throw new Error('CRON_SECRET environment variable is required');
-
 export async function GET(request: NextRequest) {
+  const secret = process.env.CRON_SECRET;
+  if (!secret) throw new Error('CRON_SECRET environment variable is required');
+
   const auth = request.headers.get('authorization');
-  if (auth !== `Bearer ${CRON_SECRET}`) {
+  if (auth !== `Bearer ${secret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
