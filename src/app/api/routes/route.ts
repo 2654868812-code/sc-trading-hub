@@ -4,7 +4,7 @@ import type { TradeRoute } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
 
 // Ships that can ONLY dock at space stations (cannot land on ground)
-const SPACE_ONLY_SHIP_IDS = new Set([102, 104, 105, 106]); // Hull A, C, D, E
+const SPACE_ONLY_SHIP_IDS = new Set([102, 104, 105, 106, 286]); // Hull A, C, D, E + Odin
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
   const autoLoadType = searchParams.get('autoLoadType') as 'full' | 'half' | 'manual' | null;
   const sortBy = searchParams.get('sortBy') || 'profit';
   const sortOrder = searchParams.get('sortOrder') || 'desc';
+  const roundTrip = searchParams.get('roundTrip') === '1';
   const shipId = searchParams.get('shipId')
     ? parseInt(searchParams.get('shipId')!, 10) : 0;
 
@@ -48,11 +49,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
-  // Fetch buy-side snapshots (use average prices for stability)
+  // Fetch buy-side snapshots
   const buySnapshots = await prisma.priceSnapshot.findMany({
     where: {
       fetchedAt: latest.fetchedAt,
-      priceBuyAvg: { gt: 0 },
+      priceBuy: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
       ...(originLocation ? { terminal: { OR: [{ cityName: originLocation }, { spaceStationName: originLocation }] } } : {}),
       ...(!originLocation && spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
@@ -63,11 +64,11 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Fetch sell-side snapshots (use average prices for stability)
+  // Fetch sell-side snapshots
   const sellSnapshots = await prisma.priceSnapshot.findMany({
     where: {
       fetchedAt: latest.fetchedAt,
-      priceSellAvg: { gt: 0 },
+      priceSell: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
       ...(destLocation ? { terminal: { OR: [{ cityName: destLocation }, { spaceStationName: destLocation }] } } : {}),
       ...(!destLocation && spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
@@ -86,11 +87,11 @@ export async function GET(request: NextRequest) {
 
   // Fetch commodity averages for max stock values (progress bar reference)
   const allAverages = await prisma.commodityAverage.findMany({
-    select: { commodityId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true },
+    select: { commodityId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true },
   });
-  const avgByCommodity: Record<number, { scuBuyMax: number | null; scuSellMax: number | null; scuBuyAvg: number | null }> = {};
+  const avgByCommodity: Record<number, { scuBuyMax: number | null; scuSellMax: number | null; scuBuyAvg: number | null; scuSellAvg: number | null }> = {};
   for (const a of allAverages) {
-    avgByCommodity[a.commodityId] = { scuBuyMax: a.scuBuyMax, scuSellMax: a.scuSellMax, scuBuyAvg: a.scuBuyAvg };
+    avgByCommodity[a.commodityId] = { scuBuyMax: a.scuBuyMax, scuSellMax: a.scuSellMax, scuBuyAvg: a.scuBuyAvg, scuSellAvg: a.scuSellAvg };
   }
 
   // Fetch per-terminal max stock for relevant commodities only
@@ -100,14 +101,17 @@ export async function GET(request: NextRequest) {
   ])];
   const termMaxRows = await prisma.terminalCommodityMax.findMany({
     where: { commodityId: { in: relevantCommodityIds } },
-    select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true },
+    select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true },
   });
-  const terminalMaxStock: Record<string, { scuBuyMax: number; scuSellMax: number; scuBuyAvg: number }> = {};
+  const terminalMaxStock: Record<string, { scuBuyMax: number; scuSellMax: number; scuBuyAvg: number; scuSellAvg: number; priceBuyAvg: number | null; priceSellAvg: number | null }> = {};
   for (const t of termMaxRows) {
     terminalMaxStock[`${t.commodityId}-${t.terminalId}`] = {
       scuBuyMax: t.scuBuyMax ?? 0,
       scuSellMax: t.scuSellMax ?? 0,
       scuBuyAvg: t.scuBuyAvg ?? 0,
+      scuSellAvg: t.scuSellAvg ?? 0,
+      priceBuyAvg: t.priceBuyAvg ?? null,
+      priceSellAvg: t.priceSellAvg ?? null,
     };
   }
 
@@ -141,11 +145,6 @@ export async function GET(request: NextRequest) {
     for (const sell of sells) {
       if (buy.terminalId === sell.terminalId) continue;
 
-      const buyPrice = buy.priceBuyAvg!;
-      const sellPrice = sell.priceSellAvg!;
-
-      if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0) continue;
-      if (sellPrice <= buyPrice) continue;
       if (originSystem && buy.terminal.starSystemName !== originSystem) continue;
       if (destSystem && sell.terminal.starSystemName !== destSystem) continue;
       // Auto-load filter
@@ -165,6 +164,16 @@ export async function GET(request: NextRequest) {
         if (commodityType === 'minor' && (originIsStation && destIsStation)) continue;
       }
 
+      // Look up terminal-level averages
+      const originTerm = terminalMaxStock[`${buy.commodityId}-${buy.terminalId}`];
+      const destTerm = terminalMaxStock[`${sell.commodityId}-${sell.terminalId}`];
+
+      const buyPrice = originTerm?.priceBuyAvg ?? buy.priceBuy ?? 0;
+      const sellPrice = destTerm?.priceSellAvg ?? sell.priceSell ?? 0;
+
+      if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0) continue;
+      if (sellPrice <= buyPrice) continue;
+
       const profitPerScu = sellPrice - buyPrice;
 
       // Strip prefix from terminal name for cleaner location display
@@ -176,10 +185,6 @@ export async function GET(request: NextRequest) {
 
       const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
       const cargoInfo = cargoRouteMap.get(cargoKey);
-
-      // Origin: per-terminal avg for calc, terminal/commodity max for display
-      const originTerm = terminalMaxStock[`${buy.commodityId}-${buy.terminalId}`];
-      const destTerm = terminalMaxStock[`${sell.commodityId}-${sell.terminalId}`];
       const commMax = avgByCommodity[buy.commodityId];
       const originAvgStock = originTerm?.scuBuyAvg ?? avgByCommodity[buy.commodityId]?.scuBuyAvg ?? 0;
       const originMaxStock = originTerm?.scuBuyMax ?? commMax?.scuBuyMax ?? 0;
@@ -237,8 +242,8 @@ export async function GET(request: NextRequest) {
         loadScu,
         sellScu,
         shipScu,
-        originStock: buy.scuBuyStock || 0,
-        destStock: sell.scuSellStock || 0,
+        originStock: Math.round(originTerm?.scuBuyAvg ?? 0),
+        destStock: Math.round(destTerm?.scuSellAvg ?? 0),
         originStockMax: Math.round(originMaxStock),
         destStockMax: Math.round(destMaxStock),
         originUpdatedAt: buy.uexModifiedAt
@@ -254,6 +259,20 @@ export async function GET(request: NextRequest) {
         isIllegal: buy.commodity.isIllegal,
       });
     }
+  }
+
+  // Round-trip filter: only keep routes where reverse also has profitable trade
+  // Build set of all profitable terminal pairs BEFORE truncation
+  if (roundTrip) {
+    const profitablePairs = new Set<string>();
+    for (const r of routes) {
+      profitablePairs.add(`${r.originTerminalId}-${r.destTerminalId}`);
+    }
+    const rtFiltered = routes.filter((r) =>
+      profitablePairs.has(`${r.destTerminalId}-${r.originTerminalId}`)
+    );
+    routes.length = 0;
+    routes.push(...rtFiltered);
   }
 
   // Filter by maxInvestment (total budget)

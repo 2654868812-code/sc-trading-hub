@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { getShipZh } from '@/lib/ship-zh';
 
-const SPACE_ONLY_IDS = new Set([102, 104, 105, 106]); // Hull A, C, D, E
+const SPACE_ONLY_IDS = new Set([102, 104, 105, 106, 286]); // Hull A, C, D, E + Odin
 
 export async function GET() {
   const vehicles = await prisma.vehicle.findMany({

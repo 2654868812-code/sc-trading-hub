@@ -7,8 +7,11 @@ export async function GET() {
   const terminals = await prisma.terminal.findMany({
     select: {
       name: true,
+      nameEn: true,
       cityName: true,
+      cityNameEn: true,
       spaceStationName: true,
+      spaceStationNameEn: true,
       starSystemName: true,
       planetName: true,
       moonName: true,
@@ -16,12 +19,13 @@ export async function GET() {
     orderBy: { name: 'asc' },
   });
 
-  const seen = new Map<string, { name: string; system: string; planet: string | null; moon: string | null }>();
+  const seen = new Map<string, { name: string; nameEn: string; system: string; planet: string | null; moon: string | null }>();
   for (const t of terminals) {
     const key = t.cityName || t.spaceStationName || t.name;
     if (!key || seen.has(key)) continue;
     seen.set(key, {
       name: key,
+      nameEn: t.cityNameEn || t.spaceStationNameEn || t.nameEn,
       system: t.starSystemName || '',
       planet: t.planetName || t.moonName,
       moon: t.moonName,

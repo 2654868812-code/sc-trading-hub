@@ -96,10 +96,10 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
               <th className="th-cell">商品</th>
               <th className="th-cell">购买地</th>
               <th className="th-cell--right">买价</th>
-              <th className="th-cell">库存</th>
+              <th className="th-cell">均/最大库存</th>
               <th className="th-cell">出售地</th>
               <th className="th-cell--right">卖价</th>
-              <th className="th-cell">库存</th>
+              <th className="th-cell">均/最大库存</th>
               <th className="th-cell--right">成本</th>
               <th className="th-cell--right">利润</th>
               <th className="th-cell--right">/SCU</th>

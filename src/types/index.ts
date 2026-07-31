@@ -100,6 +100,7 @@ export interface RouteFilters {
   autoLoadType?: 'full' | 'half' | 'manual';
   sortBy?: 'roi' | 'profit' | 'distance';
   sortOrder?: 'asc' | 'desc';
+  roundTrip?: boolean;
 }
 
 export interface ShipOption {

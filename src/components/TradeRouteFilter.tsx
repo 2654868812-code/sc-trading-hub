@@ -8,13 +8,20 @@ interface SystemOption {
   zh: string;
 }
 
+interface CommodityOption {
+  id: number;
+  nameZh: string;
+  nameEn: string;
+  kindZh: string;
+  isDazong: boolean;
+  isIllegal: boolean;
+}
+
 interface TradeRouteFilterProps {
   systems: SystemOption[];
   onFilterChange: (filters: RouteFilters) => void;
   loading?: boolean;
-  /** Commodity locked via ?commodityId= — shown as a removable chip */
-  lockedCommodity?: { id: number; nameZh: string } | null;
-  onClearCommodity?: () => void;
+  initialFilters?: RouteFilters;
 }
 
 function SelectField({ label, value, onChange, children }: {
@@ -98,6 +105,7 @@ function LogInputField({ label, value, onChange, placeholder, max }: {
 
 interface LocationOption {
   name: string;
+  nameEn: string;
   system: string;
   planet: string | null;
 }
@@ -106,30 +114,39 @@ export function TradeRouteFilter({
   systems,
   onFilterChange,
   loading,
-  lockedCommodity,
-  onClearCommodity,
+  initialFilters,
 }: TradeRouteFilterProps) {
+  const f = initialFilters || {};
   const [ships, setShips] = useState<ShipOption[]>([]);
-  const [shipId, setShipId] = useState('');
+  const [shipId, setShipId] = useState(f.shipId ? String(f.shipId) : '');
   const [shipSearch, setShipSearch] = useState('');
   const [shipOpen, setShipOpen] = useState(false);
   const shipRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [originSystem, setOriginSystem] = useState('');
-  const [destSystem, setDestSystem] = useState('');
-  const [maxInvestment, setMaxInvestment] = useState('');
-  const [maxDistance, setMaxDistance] = useState('');
-  const [commodityType, setCommodityType] = useState('');
-  const [autoLoadType, setAutoLoadType] = useState('');
-  const [sortBy, setSortBy] = useState('profit');
+
+  // Commodity selector
+  const [commodities, setCommodities] = useState<CommodityOption[]>([]);
+  const [commodityId, setCommodityId] = useState(f.commodityId ? String(f.commodityId) : '');
+  const [commoditySearch, setCommoditySearch] = useState('');
+  const [commodityOpen, setCommodityOpen] = useState(false);
+  const commodityRef = useRef<HTMLDivElement>(null);
+
+  const [originSystem, setOriginSystem] = useState(f.originSystem || '');
+  const [destSystem, setDestSystem] = useState(f.destSystem || '');
+  const [maxInvestment, setMaxInvestment] = useState(f.maxInvestment ? String(f.maxInvestment) : '');
+  const [maxDistance, setMaxDistance] = useState(f.maxDistance ? String(f.maxDistance) : '');
+  const [commodityType, setCommodityType] = useState(f.commodityType || '');
+  const [autoLoadType, setAutoLoadType] = useState(f.autoLoadType || '');
+  const [sortBy, setSortBy] = useState<string>(f.sortBy || 'profit');
+  const [roundTrip, setRoundTrip] = useState(f.roundTrip || false);
 
   // Location selectors
   const [locations, setLocations] = useState<LocationOption[]>([]);
-  const [originLocation, setOriginLocation] = useState('');
-  const [originLocSearch, setOriginLocSearch] = useState('');
+  const [originLocation, setOriginLocation] = useState(f.originLocation || '');
+  const [originLocSearch, setOriginLocSearch] = useState(f.originLocation || '');
   const [originLocOpen, setOriginLocOpen] = useState(false);
-  const [destLocation, setDestLocation] = useState('');
-  const [destLocSearch, setDestLocSearch] = useState('');
+  const [destLocation, setDestLocation] = useState(f.destLocation || '');
+  const [destLocSearch, setDestLocSearch] = useState(f.destLocation || '');
   const [destLocOpen, setDestLocOpen] = useState(false);
   const originLocRef = useRef<HTMLDivElement>(null);
   const destLocRef = useRef<HTMLDivElement>(null);
@@ -138,9 +155,14 @@ export function TradeRouteFilter({
     Promise.all([
       fetch('/api/vehicles').then((r) => r.json()),
       fetch('/api/locations').then((r) => r.json()),
-    ]).then(([shipsData, locsData]) => {
+      fetch('/api/commodities').then((r) => r.json()),
+    ]).then(([shipsData, locsData, commData]) => {
       setShips(shipsData);
       setLocations(locsData);
+      setCommodities(commData.map((c: any) => ({
+        id: c.id, nameZh: c.nameZh || c.name, nameEn: c.nameEn || c.name,
+        kindZh: c.kindZh || '', isDazong: c.isDazong || false, isIllegal: c.isIllegal || false,
+      })));
     }).catch(console.error);
   }, []);
 
@@ -149,6 +171,9 @@ export function TradeRouteFilter({
     function handleClick(e: MouseEvent) {
       if (shipRef.current && !shipRef.current.contains(e.target as Node)) {
         setShipOpen(false);
+      }
+      if (commodityRef.current && !commodityRef.current.contains(e.target as Node)) {
+        setCommodityOpen(false);
       }
       if (originLocRef.current && !originLocRef.current.contains(e.target as Node)) {
         setOriginLocOpen(false);
@@ -179,6 +204,23 @@ export function TradeRouteFilter({
     const ship = ships.find((s) => s.id === id);
     if (ship) setShipSearch(ship.name);
     setShipOpen(false);
+  }
+
+  const selectedCommodity = commodities.find((c) => c.id === parseInt(commodityId));
+
+  const filteredCommodities = useMemo(() => {
+    if (!commoditySearch.trim()) return commodities.slice(0, 30);
+    const q = commoditySearch.toLowerCase();
+    return commodities.filter(
+      (c) => c.nameZh.toLowerCase().includes(q) || c.nameEn.toLowerCase().includes(q) || c.kindZh.includes(q)
+    ).slice(0, 30);
+  }, [commodities, commoditySearch]);
+
+  function selectCommodity(id: number) {
+    setCommodityId(String(id));
+    const c = commodities.find((x) => x.id === id);
+    if (c) setCommoditySearch(c.nameZh);
+    setCommodityOpen(false);
   }
 
   // Filtered location lists
@@ -219,7 +261,7 @@ export function TradeRouteFilter({
   function apply() {
     if (!hasShip) return;
     onFilterChange({
-      commodityId: lockedCommodity?.id,
+      commodityId: commodityId ? parseInt(commodityId) : undefined,
       shipId: parseInt(shipId),
       originSystem: originSystem || undefined,
       destSystem: destSystem || undefined,
@@ -231,6 +273,7 @@ export function TradeRouteFilter({
       autoLoadType: (autoLoadType || undefined) as RouteFilters['autoLoadType'],
       sortBy: sortBy as RouteFilters['sortBy'],
       sortOrder: 'desc',
+      roundTrip,
     });
   }
 
@@ -240,30 +283,11 @@ export function TradeRouteFilter({
         <h2 className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
           贸易路线筛选器
         </h2>
-        {lockedCommodity && (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full
-                           border border-primary/40 bg-primary/10 text-primary
-                           text-[11px] whitespace-nowrap">
-            仅看 {lockedCommodity.nameZh}
-            {onClearCommodity && (
-              <button
-                type="button"
-                onClick={onClearCommodity}
-                aria-label={`取消仅看 ${lockedCommodity.nameZh}`}
-                className="ml-0.5 -mr-0.5 h-4 w-4 flex items-center justify-center rounded-full
-                           text-primary/70 hover:text-primary hover:bg-primary/20
-                           transition-colors leading-none"
-              >
-                ×
-              </button>
-            )}
-          </span>
-        )}
         <span className="h-px flex-1 bg-gradient-to-r from-border/40 via-border/20 to-transparent" />
       </div>
 
-      {/* Row 1: Ship selector */}
-      <div className="flex items-end gap-3" ref={shipRef}>
+      {/* Row 1: Ship + Commodity selectors */}
+      <div className="flex items-end gap-4" ref={shipRef}>
         <div className="flex flex-col gap-1 relative">
           <label className="text-[11px] tracking-wider text-primary/80 uppercase">
             选择货船
@@ -322,6 +346,64 @@ export function TradeRouteFilter({
             </div>
           )}
         </div>
+
+        {/* Commodity selector */}
+        <div className="flex flex-col gap-1 relative" ref={commodityRef}>
+          <label className="text-[11px] tracking-wider text-muted-foreground uppercase">
+            商品
+          </label>
+          <input
+            type="text"
+            value={commoditySearch}
+            onChange={(e) => {
+              setCommoditySearch(e.target.value);
+              setCommodityOpen(true);
+              if (e.target.value === '') setCommodityId('');
+            }}
+            onFocus={() => setCommodityOpen(true)}
+            placeholder={selectedCommodity ? selectedCommodity.nameZh : '不限'}
+            className="h-9 w-[220px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                       placeholder:text-muted-foreground/50
+                       focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
+            title={selectedCommodity?.nameEn}
+          />
+          {selectedCommodity && (
+            <span className="text-[10px] text-muted-foreground">
+              {selectedCommodity.kindZh}
+              {selectedCommodity.isDazong && <span className="text-chart-2/70 ml-1">大宗</span>}
+              {selectedCommodity.isIllegal && <span className="text-destructive/70 ml-1">违禁</span>}
+            </span>
+          )}
+          {commodityOpen && (
+            <div className="absolute top-full mt-1 left-0 w-[320px] max-h-[280px] overflow-y-auto
+                            rounded-md border border-border/40 bg-card shadow-lg z-50">
+              {filteredCommodities.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-muted-foreground">无匹配商品</div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => { setCommodityId(''); setCommoditySearch(''); setCommodityOpen(false); }}
+                    className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 border-b border-border/30"
+                  >不限</button>
+                  {filteredCommodities.map((c) => (
+                    <button key={c.id}
+                      onClick={() => selectCommodity(c.id)}
+                      className={`w-full text-left px-3 py-1.5 text-sm hover:bg-accent/80 transition-colors
+                                 ${parseInt(commodityId) === c.id ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
+                      title={c.nameEn}
+                    >
+                      <span className="truncate">{c.nameZh}</span>
+                      <span className="text-[10px] text-muted-foreground/60 ml-2">{c.nameEn}</span>
+                      <span className="text-[10px] text-muted-foreground/40 ml-1.5">{c.kindZh}</span>
+                      {c.isDazong && <span className="text-[9px] text-chart-2/60 ml-1">大宗</span>}
+                      {c.isIllegal && <span className="text-[9px] text-destructive/60 ml-1">违禁</span>}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Row 2: Origin group + Dest group */}
@@ -348,6 +430,7 @@ export function TradeRouteFilter({
                 }}
                 onFocus={() => setOriginLocOpen(true)}
                 placeholder={originLocation || '不限'}
+                title={locations.find(l => l.name === originLocation)?.nameEn}
                 className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
                            placeholder:text-muted-foreground/50
                            focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
@@ -366,6 +449,7 @@ export function TradeRouteFilter({
                       {filteredOriginLocs.map((l) => (
                         <button key={l.name}
                           onClick={() => selectOriginLoc(l.name)}
+                          title={l.nameEn}
                           className={`w-full text-left px-3 py-1.5 text-sm hover:bg-accent/80 transition-colors
                                      ${originLocation === l.name ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
                         >
@@ -405,6 +489,7 @@ export function TradeRouteFilter({
                 }}
                 onFocus={() => setDestLocOpen(true)}
                 placeholder={destLocation || '不限'}
+                title={locations.find(l => l.name === destLocation)?.nameEn}
                 className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
                            placeholder:text-muted-foreground/50
                            focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
@@ -423,6 +508,7 @@ export function TradeRouteFilter({
                       {filteredDestLocs.map((l) => (
                         <button key={l.name}
                           onClick={() => selectDestLoc(l.name)}
+                          title={l.nameEn}
                           className={`w-full text-left px-3 py-1.5 text-sm hover:bg-accent/80 transition-colors
                                      ${destLocation === l.name ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
                         >
@@ -461,6 +547,11 @@ export function TradeRouteFilter({
           <option value="roi">ROI</option>
           <option value="distance">距离</option>
         </SelectField>
+        <label className="flex items-center gap-1.5 h-9 px-3 rounded-md border border-border/40 bg-secondary cursor-pointer hover:border-primary/40 transition-colors select-none">
+          <input type="checkbox" checked={roundTrip} onChange={(e) => setRoundTrip(e.target.checked)}
+            className="w-3.5 h-3.5 rounded accent-primary cursor-pointer" />
+          <span className="text-[11px] tracking-wider text-muted-foreground uppercase">往返航线</span>
+        </label>
         <button onClick={apply} disabled={loading || !hasShip}
           className="h-9 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold
                      hover:bg-primary/90 hover:shadow-[0_2px_10px_hsl(42_65%_45%/0.3)]

@@ -73,19 +73,20 @@ export async function GET(
     },
   });
 
-  // Historical price stats per terminal-commodity
+  // Price stats from last 3 days per terminal-commodity
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
   const commodityIds = [...new Set(snapshots.map((s) => s.commodityId))];
   const [buyStats, sellStats] = await Promise.all([
     prisma.priceSnapshot.groupBy({
       by: ['commodityId', 'terminalId'],
-      where: { terminalId: { in: terminalIds }, commodityId: { in: commodityIds }, priceBuy: { gt: 0 } },
+      where: { terminalId: { in: terminalIds }, commodityId: { in: commodityIds }, priceBuy: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } },
       _max: { priceBuy: true },
       _min: { priceBuy: true },
       _avg: { priceBuy: true },
     }),
     prisma.priceSnapshot.groupBy({
       by: ['commodityId', 'terminalId'],
-      where: { terminalId: { in: terminalIds }, commodityId: { in: commodityIds }, priceSell: { gt: 0 } },
+      where: { terminalId: { in: terminalIds }, commodityId: { in: commodityIds }, priceSell: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } },
       _max: { priceSell: true },
       _min: { priceSell: true },
       _avg: { priceSell: true },

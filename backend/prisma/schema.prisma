@@ -130,6 +130,8 @@ model TerminalCommodityMax {
   scuSellMax   Int?
   scuBuyAvg    Float?
   scuSellAvg   Float?
+  priceBuyAvg  Float?
+  priceSellAvg Float?
   dateModified Int?
   fetchedAt    DateTime
 

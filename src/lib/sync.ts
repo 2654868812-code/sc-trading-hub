@@ -159,9 +159,9 @@ export async function syncPrices(): Promise<number> {
       commodityId: p.id_commodity,
       terminalId: p.id_terminal,
       priceBuy: p.price_buy,
-      priceBuyAvg: p.price_buy_avg,
+      priceBuyAvg: null, // computed later by computeAverages3d
       priceSell: p.price_sell,
-      priceSellAvg: p.price_sell_avg,
+      priceSellAvg: null, // computed later by computeAverages3d
       scuBuyStock: p.scu_buy,
       scuSellStock: p.scu_sell_stock,
       scuSellMax: p.scu_sell,
@@ -191,12 +191,9 @@ export async function syncCommodityAverages(): Promise<number> {
       await prisma.commodityAverage.upsert({
         where: { commodityId: c.id },
         update: {
-          priceBuyAvg: a.price_buy_avg,
-          priceSellAvg: a.price_sell_avg,
+          // priceBuyAvg/priceSellAvg/scuBuyAvg/scuSellAvg computed later by computeAverages3d
           scuBuyMax: a.scu_buy_max,
-          scuBuyAvg: a.scu_buy_avg,
           scuSellMax: a.scu_sell_max,
-          scuSellAvg: a.scu_sell_avg,
           statusBuyAvg: a.status_buy_avg,
           statusSellAvg: a.status_sell_avg,
           caxScore: a.cax_score,
@@ -206,12 +203,9 @@ export async function syncCommodityAverages(): Promise<number> {
         },
         create: {
           commodityId: c.id,
-          priceBuyAvg: a.price_buy_avg,
-          priceSellAvg: a.price_sell_avg,
+          // avg fields left null, filled by computeAverages3d
           scuBuyMax: a.scu_buy_max,
-          scuBuyAvg: a.scu_buy_avg,
           scuSellMax: a.scu_sell_max,
-          scuSellAvg: a.scu_sell_avg,
           statusBuyAvg: a.status_buy_avg,
           statusSellAvg: a.status_sell_avg,
           caxScore: a.cax_score,
@@ -357,6 +351,81 @@ export async function syncTerminalCommodityMax(): Promise<number> {
 
   console.log(`[sync] Upserted ${total} terminal-commodity max stock rows`);
   return total;
+}
+
+/** Compute 3-day rolling averages from PriceSnapshot for:
+ *  - TerminalCommodityMax: priceBuyAvg, priceSellAvg, scuBuyAvg, scuSellAvg
+ *  - CommodityAverage:      priceBuyAvg, priceSellAvg, scuBuyAvg, scuSellAvg
+ *  Replaces all UEX all-time averages. */
+export async function computeAverages3d(): Promise<number> {
+  const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+  // Per-terminal averages
+  const rows = await prisma.priceSnapshot.groupBy({
+    by: ['commodityId', 'terminalId'],
+    where: { fetchedAt: { gte: threeDaysAgo } },
+    _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+  });
+
+  let updated = 0;
+  for (const r of rows) {
+    await prisma.terminalCommodityMax.upsert({
+      where: { commodityId_terminalId: { commodityId: r.commodityId, terminalId: r.terminalId } },
+      update: {
+        priceBuyAvg: r._avg.priceBuy ?? null,
+        priceSellAvg: r._avg.priceSell ?? null,
+        scuBuyAvg: r._avg.scuBuyStock ?? null,
+        scuSellAvg: r._avg.scuSellStock ?? null,
+      },
+      create: {
+        commodityId: r.commodityId,
+        terminalId: r.terminalId,
+        priceBuyAvg: r._avg.priceBuy ?? null,
+        priceSellAvg: r._avg.priceSell ?? null,
+        scuBuyAvg: r._avg.scuBuyStock ?? null,
+        scuSellAvg: r._avg.scuSellStock ?? null,
+        fetchedAt: new Date(),
+      },
+    });
+    updated++;
+  }
+
+  // Per-commodity aggregates: average of terminal-level averages + max stock
+  const commRows = await prisma.priceSnapshot.groupBy({
+    by: ['commodityId'],
+    where: { fetchedAt: { gte: threeDaysAgo } },
+    _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+    _max: { scuBuyStock: true, scuSellStock: true },
+  });
+
+  let commUpdated = 0;
+  for (const r of commRows) {
+    await prisma.commodityAverage.upsert({
+      where: { commodityId: r.commodityId },
+      update: {
+        priceBuyAvg: r._avg.priceBuy ?? null,
+        priceSellAvg: r._avg.priceSell ?? null,
+        scuBuyAvg: r._avg.scuBuyStock ?? null,
+        scuSellAvg: r._avg.scuSellStock ?? null,
+        scuBuyMax: r._max.scuBuyStock ?? null,
+        scuSellMax: r._max.scuSellStock ?? null,
+      },
+      create: {
+        commodityId: r.commodityId,
+        priceBuyAvg: r._avg.priceBuy ?? null,
+        priceSellAvg: r._avg.priceSell ?? null,
+        scuBuyAvg: r._avg.scuBuyStock ?? null,
+        scuSellAvg: r._avg.scuSellStock ?? null,
+        scuBuyMax: r._max.scuBuyStock ?? null,
+        scuSellMax: r._max.scuSellStock ?? null,
+        fetchedAt: new Date(),
+      },
+    });
+    commUpdated++;
+  }
+
+  console.log(`[sync] Computed 3d averages: ${updated} terminal pairs, ${commUpdated} commodities`);
+  return updated;
 }
 
 export async function updatePriceChanges(): Promise<number> {
@@ -527,6 +596,9 @@ export async function fullSync(): Promise<void> {
     }
     try { await syncTerminalCommodityMax(); } catch (err) {
       console.error('[sync] syncTerminalCommodityMax failed:', err);
+    }
+    try { await computeAverages3d(); } catch (err) {
+      console.error('[sync] computeAverages3d failed:', err);
     }
 
     await cleanupOldSnapshots(

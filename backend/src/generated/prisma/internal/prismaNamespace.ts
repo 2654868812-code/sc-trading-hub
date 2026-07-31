@@ -1098,6 +1098,8 @@ export const TerminalCommodityMaxScalarFieldEnum = {
   scuSellMax: 'scuSellMax',
   scuBuyAvg: 'scuBuyAvg',
   scuSellAvg: 'scuSellAvg',
+  priceBuyAvg: 'priceBuyAvg',
+  priceSellAvg: 'priceSellAvg',
   dateModified: 'dateModified',
   fetchedAt: 'fetchedAt'
 } as const
