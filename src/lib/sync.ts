@@ -407,8 +407,7 @@ export async function computeAverages3d(): Promise<number> {
         priceSellAvg: r._avg.priceSell ?? null,
         scuBuyAvg: r._avg.scuBuyStock ?? null,
         scuSellAvg: r._avg.scuSellStock ?? null,
-        scuBuyMax: r._max.scuBuyStock ?? null,
-        scuSellMax: r._max.scuSellStock ?? null,
+        // Keep UEX all-time max; don't overwrite with 3-day max
       },
       create: {
         commodityId: r.commodityId,
@@ -416,8 +415,7 @@ export async function computeAverages3d(): Promise<number> {
         priceSellAvg: r._avg.priceSell ?? null,
         scuBuyAvg: r._avg.scuBuyStock ?? null,
         scuSellAvg: r._avg.scuSellStock ?? null,
-        scuBuyMax: r._max.scuBuyStock ?? null,
-        scuSellMax: r._max.scuSellStock ?? null,
+        // keep scuBuyMax/scuSellMax null on first create — filled by UEX sync
         fetchedAt: new Date(),
       },
     });

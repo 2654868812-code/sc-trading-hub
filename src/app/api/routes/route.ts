@@ -238,7 +238,7 @@ export async function GET(request: NextRequest) {
         roi: Math.round((profitPerScu / buyPrice) * 1000) / 10,
         distanceGm: cargoInfo?.distance ?? null,
         totalProfit: profitPerScu * sellScu,
-        totalInvestment: buyPrice * loadScu,
+        totalInvestment: buyPrice * sellScu,
         loadScu,
         sellScu,
         shipScu,
@@ -290,7 +290,13 @@ export async function GET(request: NextRequest) {
     const multiplier = sortOrder === 'asc' ? 1 : -1;
     if (sortBy === 'profit') return (a.totalProfit - b.totalProfit) * multiplier;
     if (sortBy === 'roi') return (a.roi - b.roi) * multiplier;
-    if (sortBy === 'distance') return ((a.distanceGm ?? 0) - (b.distanceGm ?? 0)) * multiplier;
+    if (sortBy === 'distance') {
+      // Push null distances to the end regardless of sort order
+      if (a.distanceGm == null && b.distanceGm == null) return 0;
+      if (a.distanceGm == null) return 1;
+      if (b.distanceGm == null) return -1;
+      return (a.distanceGm - b.distanceGm) * multiplier;
+    }
     return (a.totalProfit - b.totalProfit) * multiplier;
   });
 

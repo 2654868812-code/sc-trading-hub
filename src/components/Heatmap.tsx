@@ -77,8 +77,10 @@ export function Heatmap({ commodities, loading, search, sort = 'name', onCommodi
   function sortFn(a: CommodityWithChange, b: CommodityWithChange): number {
     if (sort === 'margin') return (b.profitMargin ?? -Infinity) - (a.profitMargin ?? -Infinity);
     if (sort === 'profit') {
-      const unitProfit = (c: CommodityWithChange) =>
-        (c.currentSellAvg ?? 0) - (c.currentBuyAvg ?? 0);
+      const unitProfit = (c: CommodityWithChange): number => {
+        if (c.currentSellAvg == null || c.currentBuyAvg == null) return -Infinity;
+        return c.currentSellAvg - c.currentBuyAvg;
+      };
       return unitProfit(b) - unitProfit(a);
     }
     return a.name.localeCompare(b.name);

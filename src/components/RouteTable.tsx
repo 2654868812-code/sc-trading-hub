@@ -158,7 +158,7 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                 <td className="td-cell--right">{fmtM(r.sellPrice)}</td>
                 <td className="td-cell"><StockBar stock={r.destStock} max={r.destStockMax} /></td>
                 <td className="td-cell--right">
-                  <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`买价(${fmtM(r.buyPrice)}) × 装载量(${r.loadScu}) = ${fmtM(r.totalInvestment)}`}>{fmtM(r.totalInvestment)}</span>
+                  <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`买价(${fmtM(r.buyPrice)}) × 可售量(${r.sellScu}) = ${fmtM(r.totalInvestment)}`}>{fmtM(r.totalInvestment)}</span>
                 </td>
                 <td className="td-cell--right text-chart-2 font-semibold">
                   <span className="cursor-help border-b border-dotted border-chart-2/30" title={`${fmtM(r.profitPerScu)}/SCU × ${r.sellScu} = ${fmtM(r.totalProfit)}`}>+{fmtM(r.totalProfit)}</span>
