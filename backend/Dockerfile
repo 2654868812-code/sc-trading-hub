@@ -21,6 +21,8 @@ COPY --from=builder /app/src/generated ./src/generated
 COPY --from=builder /app/src/generated ./dist/generated
 COPY --from=builder /app/src/lib ./src/lib
 COPY --from=builder /app/data ./data
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./
 
 EXPOSE 4000
 CMD ["sh", "-c", "./node_modules/.bin/prisma db push --accept-data-loss && mkdir -p /data/uploads && cp -n /app/data/reports.json /data/reports.json 2>/dev/null || true && node dist/main.js"]
