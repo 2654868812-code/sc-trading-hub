@@ -1,0 +1,11 @@
+import * as Prisma from './internal/prismaNamespaceBrowser';
+export { Prisma };
+export * as $Enums from './enums';
+export * from './enums';
+export type Commodity = Prisma.CommodityModel;
+export type Terminal = Prisma.TerminalModel;
+export type PriceSnapshot = Prisma.PriceSnapshotModel;
+export type CargoRoute = Prisma.CargoRouteModel;
+export type Vehicle = Prisma.VehicleModel;
+export type CommodityAverage = Prisma.CommodityAverageModel;
+export type TerminalCommodityMax = Prisma.TerminalCommodityMaxModel;

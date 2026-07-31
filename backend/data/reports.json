@@ -1,0 +1,22 @@
+{
+  "news": [
+    {
+      "date": "2026-08-01",
+      "title": "示例：派罗局势升温",
+      "body": "派罗星系近期冲突加剧，武器和弹药需求暴涨，相关商品利润空间扩大。\n\n建议关注以下商品：\n- 舰船弹药\n- 个人武器\n- 医疗用品",
+      "image": "/uploads/1785413248493-fgwkl8.jpg",
+      "imagePosition": "left",
+      "imageScale": 20
+    }
+  ],
+  "routes": [
+    {
+      "commodity": "铝",
+      "origin": "HDMS-安德森站",
+      "dest": "TDD-新巴贝奇",
+      "profit": "+120k",
+      "note": "稳定路线，低风险",
+      "ship": "巴商"
+    }
+  ]
+}

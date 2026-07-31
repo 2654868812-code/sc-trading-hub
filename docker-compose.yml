@@ -1,21 +1,54 @@
 services:
-  app:
-    build: .
-    ports:
-      - "3000:3000"
+  backend:
+    build: ./backend
     environment:
-      DATABASE_URL: "file:/data/prod.db"
+      DATABASE_URL: "postgresql://trading:${DB_PASSWORD:-trading123}@postgres:5432/trading"
       REPORTS_DATA_FILE: "/data/reports.json"
       UPLOADS_DIR: "/data/uploads"
       UEX_API_BASE: ${UEX_API_BASE:-https://api.uexcorp.uk/2.0}
       UEX_API_TOKEN: ${UEX_API_TOKEN}
       PRICE_RETENTION_DAYS: ${PRICE_RETENTION_DAYS:-30}
-      FETCH_INTERVAL_MINUTES: ${FETCH_INTERVAL_MINUTES:-30}
+      CRON_SECRET: ${CRON_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      CORS_ORIGIN: "http://localhost:3000"
+    volumes:
+      - appdata:/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      BACKEND_URL: "http://backend:4000"
+      REPORTS_DATA_FILE: "/data/reports.json"
+      UPLOADS_DIR: "/data/uploads"
       CRON_SECRET: ${CRON_SECRET}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     volumes:
       - appdata:/data
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: trading
+      POSTGRES_USER: trading
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-trading123}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trading -d trading"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
 volumes:
   appdata:
+  pgdata:

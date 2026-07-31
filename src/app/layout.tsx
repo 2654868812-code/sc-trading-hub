@@ -15,7 +15,7 @@ const notoSans = Noto_Sans_SC({
 export const metadata: Metadata = {
   title: '泛天贸易',
   description: '星际公民交易数据平台',
-  icons: { icon: '/logo.png' },
+  icons: { icon: '/logo-square.png' },
 };
 
 export default function RootLayout({

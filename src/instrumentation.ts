@@ -1,6 +1,4 @@
 export async function register() {
-  if (process.env.NEXT_RUNTIME === 'nodejs') {
-    const { startCron } = await import('./lib/cron');
-    startCron();
-  }
+  // Cron sync now runs in the NestJS backend service.
+  // Frontend only serves UI — all data operations go through backend API.
 }

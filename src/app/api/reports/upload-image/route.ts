@@ -10,8 +10,9 @@ const UPLOAD_DIR = process.env.UPLOADS_DIR
 export async function POST(request: NextRequest) {
   // Auth check
   const auth = request.headers.get('authorization');
-  const expected = `Bearer ${process.env.ADMIN_PASSWORD || 'admin123'}`;
-  if (!expected || auth !== expected) {
+  const pwd = process.env.ADMIN_PASSWORD;
+  if (!pwd) throw new Error('ADMIN_PASSWORD environment variable is required');
+  if (auth !== `Bearer ${pwd}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

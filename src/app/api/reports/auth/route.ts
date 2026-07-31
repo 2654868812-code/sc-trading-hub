@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+import { signToken } from '@/lib/auth';
 
 export async function POST(request: NextRequest) {
+  const pwd = process.env.ADMIN_PASSWORD;
+  if (!pwd) throw new Error('ADMIN_PASSWORD environment variable is required');
+
   const { password } = await request.json();
-  if (password === ADMIN_PASSWORD) {
-    return NextResponse.json({ ok: true });
+  if (password === pwd) {
+    const token = await signToken();
+    return NextResponse.json({ ok: true, token });
   }
   return NextResponse.json({ ok: false }, { status: 401 });
 }

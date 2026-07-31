@@ -1,0 +1,140 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Commodity {
+  id              Int              @id
+  name            String
+  nameEn          String           @default("")
+  code            String
+  kind            String?
+  weightScu       Float?
+  isBuyable       Boolean          @default(false)
+  isSellable      Boolean          @default(false)
+  isIllegal       Boolean          @default(false)
+  isRaw           Boolean          @default(false)
+  isRefined       Boolean          @default(false)
+  dateAdded       Int?
+  dateModified    Int?
+  prevBuyAvg       Float?
+  changePercent    Float?
+  profitMargin     Float?
+  profitChange     Float?
+  maxProfitMargin  Float?
+  priceSnapshots   PriceSnapshot[]
+  average          CommodityAverage?
+  cargoRoutes      CargoRoute[]
+  terminalMax      TerminalCommodityMax[]
+}
+
+model Terminal {
+  id                 Int              @id
+  name               String
+  nameEn             String           @default("")
+  code               String?
+  type               String?
+  starSystemName     String?
+  starSystemNameEn   String           @default("")
+  planetName         String?
+  planetNameEn       String           @default("")
+  moonName           String?
+  moonNameEn         String           @default("")
+  cityName           String?
+  cityNameEn         String           @default("")
+  spaceStationName   String?
+  spaceStationNameEn String           @default("")
+  hasCargoCenter     Boolean          @default(false)
+  hasDockingPort     Boolean          @default(false)
+  hasFreightElevator Boolean          @default(false)
+  isAutoLoad         Boolean          @default(false)
+  priceSnapshots     PriceSnapshot[]
+  cargoRoutesOrigin  CargoRoute[]     @relation("CargoRouteOrigin")
+  cargoRoutesDest    CargoRoute[]     @relation("CargoRouteDest")
+  terminalMax        TerminalCommodityMax[]
+}
+
+model PriceSnapshot {
+  id           Int        @id @default(autoincrement())
+  commodityId  Int
+  terminalId   Int
+  priceBuy     Float?
+  priceBuyAvg  Float?
+  priceSell    Float?
+  priceSellAvg Float?
+  scuBuyStock   Int?
+  scuSellStock  Int?
+  scuSellMax    Int?
+  uexModifiedAt Int?
+  fetchedAt    DateTime
+
+  commodity    Commodity  @relation(fields: [commodityId], references: [id], onDelete: Cascade)
+  terminal     Terminal   @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+
+  @@unique([commodityId, terminalId, fetchedAt])
+  @@index([commodityId, terminalId, fetchedAt])
+  @@index([fetchedAt])
+}
+
+model CargoRoute {
+  commodityId           Int
+  originTerminalId      Int
+  destTerminalId        Int
+  distance              Float?
+  containerSizesOrigin  String?
+  containerSizesDest    String?
+
+  commodity             Commodity      @relation(fields: [commodityId], references: [id], onDelete: Cascade)
+  originTerminal        Terminal       @relation("CargoRouteOrigin", fields: [originTerminalId], references: [id], onDelete: Cascade)
+  destTerminal          Terminal       @relation("CargoRouteDest", fields: [destTerminalId], references: [id], onDelete: Cascade)
+
+  @@id([commodityId, originTerminalId, destTerminalId])
+}
+
+model Vehicle {
+  id          Int     @id
+  name        String
+  scu         Int     @default(0)
+  companyName String  @default("")
+  isCargo     Boolean @default(false)
+  padType     String  @default("")
+  updatedAt   DateTime
+}
+
+model CommodityAverage {
+  commodityId    Int     @id
+  priceBuyAvg    Float?
+  priceSellAvg   Float?
+  scuBuyMax      Int?
+  scuBuyAvg      Float?
+  scuSellMax     Int?
+  scuSellAvg     Float?
+  statusBuyAvg   Float?
+  statusSellAvg  Float?
+  caxScore       Int?
+  gameVersion    String?
+  dateModified   Int?
+  fetchedAt      DateTime
+
+  commodity      Commodity @relation(fields: [commodityId], references: [id], onDelete: Cascade)
+}
+
+model TerminalCommodityMax {
+  commodityId  Int
+  terminalId   Int
+  scuBuyMax    Int?
+  scuSellMax   Int?
+  scuBuyAvg    Float?
+  scuSellAvg   Float?
+  dateModified Int?
+  fetchedAt    DateTime
+
+  commodity    Commodity      @relation(fields: [commodityId], references: [id], onDelete: Cascade)
+  terminal     Terminal       @relation(fields: [terminalId], references: [id], onDelete: Cascade)
+
+  @@id([commodityId, terminalId])
+}

@@ -33,9 +33,12 @@ function emptyRoute(): RouteItem {
   return { ship: '', commodity: '', origin: '', dest: '', profit: '', note: '' };
 }
 
+function getPassword(): string {
+  if (typeof sessionStorage === 'undefined') return '';
+  return sessionStorage.getItem('admin_password') || '';
+}
+
 export default function ReportsEditPage() {
-  const [password, setPassword] = useState('');
-  const [authed, setAuthed] = useState(false);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -57,20 +60,6 @@ export default function ReportsEditPage() {
     }).catch(console.error);
   }, []);
 
-  function tryAuth() {
-    fetch('/api/reports/auth', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-      .then((r) => r.json())
-      .then((res) => {
-        if (res.ok) setAuthed(true);
-        else setMsg('密码错误');
-      })
-      .catch(() => setMsg('验证失败'));
-  }
-
   async function handleImageUpload(idx: number, file: File) {
     setUploadingIdx(idx);
     const formData = new FormData();
@@ -78,7 +67,7 @@ export default function ReportsEditPage() {
     try {
       const res = await fetch('/api/reports/upload-image', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${password}` },
+        headers: { Authorization: `Bearer ${getPassword()}` },
         body: formData,
       });
       const data = await res.json();
@@ -108,7 +97,7 @@ export default function ReportsEditPage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${password}`,
+        Authorization: `Bearer ${getPassword()}`,
       },
       body: JSON.stringify({ news: nonEmptyNews, routes: nonEmptyRoutes }),
     })
@@ -123,31 +112,6 @@ export default function ReportsEditPage() {
 
   if (!loaded) {
     return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
-  }
-
-  if (!authed) {
-    return (
-      <div className="max-w-sm mx-auto mt-20">
-        <h1 className="text-xl font-bold mb-6 text-center">维护验证</h1>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && tryAuth()}
-          placeholder="输入维护密码"
-          className="w-full h-10 rounded-lg border border-border bg-card px-4 text-sm outline-none
-                     focus:border-primary/50 transition-colors mb-3"
-        />
-        <button
-          onClick={tryAuth}
-          className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold
-                     hover:bg-primary/90 transition-colors"
-        >
-          进入维护
-        </button>
-        {msg && <p className="text-xs text-destructive text-center mt-3">{msg}</p>}
-      </div>
-    );
   }
 
   return (
