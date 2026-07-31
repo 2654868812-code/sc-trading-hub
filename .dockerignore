@@ -1,0 +1,9 @@
+node_modules
+.git
+dev.db
+dev.db-journal
+.next
+backend/node_modules
+backend/dist
+*.md
+.env

@@ -9,7 +9,7 @@ FROM base AS builder
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 RUN npm run build
 
 FROM base
@@ -22,4 +22,4 @@ COPY --from=builder /app/src/lib ./src/lib
 COPY --from=builder /app/data ./data
 
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma db push --accept-data-loss && mkdir -p /data/uploads && cp -n /app/data/reports.json /data/reports.json 2>/dev/null || true && node dist/main.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma db push --accept-data-loss && mkdir -p /data/uploads && cp -n /app/data/reports.json /data/reports.json 2>/dev/null || true && node dist/main.js"]
