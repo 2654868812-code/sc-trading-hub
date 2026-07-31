@@ -38,9 +38,11 @@ export class PricesController {
     });
 
     const tids = [...new Set(snapshots.map(s => s.terminalId))];
+    const avgDays = 15;
+    const cutoff = new Date(Date.now() - avgDays * 24 * 60 * 60 * 1000);
     const [buyStats, sellStats, termMax] = await Promise.all([
-      this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceBuy: { gt: 0 } }, _max: { priceBuy: true }, _min: { priceBuy: true }, _avg: { priceBuy: true } }),
-      this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceSell: { gt: 0 } }, _max: { priceSell: true }, _min: { priceSell: true }, _avg: { priceSell: true } }),
+      this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceBuy: { gt: 0 }, fetchedAt: { gte: cutoff } }, _max: { priceBuy: true }, _min: { priceBuy: true }, _avg: { priceBuy: true } }),
+      this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceSell: { gt: 0 }, fetchedAt: { gte: cutoff } }, _max: { priceSell: true }, _min: { priceSell: true }, _avg: { priceSell: true } }),
       this.prisma.terminalCommodityMax.findMany({ where: { commodityId: cid }, select: { terminalId: true, scuBuyMax: true, scuSellMax: true } }),
     ]);
 
