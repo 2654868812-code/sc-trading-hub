@@ -16,12 +16,14 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const auth = request.headers['authorization'];
-    const pwd = process.env.ADMIN_PASSWORD;
-    if (!pwd) throw new Error('ADMIN_PASSWORD environment variable is required');
+    if (!auth) throw new UnauthorizedException('Unauthorized');
 
-    if (!auth || auth !== `Bearer ${pwd}`) {
-      throw new UnauthorizedException('Unauthorized');
-    }
-    return true;
+    // Check both secrets — admin password OR cron secret
+    const adminPwd = process.env.ADMIN_PASSWORD;
+    const cronSecret = process.env.CRON_SECRET;
+    if (adminPwd && auth === `Bearer ${adminPwd}`) return true;
+    if (cronSecret && auth === `Bearer ${cronSecret}`) return true;
+
+    throw new UnauthorizedException('Unauthorized');
   }
 }
