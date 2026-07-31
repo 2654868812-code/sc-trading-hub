@@ -78,6 +78,7 @@ export default function ReportsEditPage() {
     try {
       const res = await fetch('/api/reports/upload-image', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${password}` },
         body: formData,
       });
       const data = await res.json();
@@ -105,7 +106,10 @@ export default function ReportsEditPage() {
     setMsg('');
     fetch('/api/reports', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${password}`,
+      },
       body: JSON.stringify({ news: nonEmptyNews, routes: nonEmptyRoutes }),
     })
       .then((r) => r.json())

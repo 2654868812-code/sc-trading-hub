@@ -8,6 +8,13 @@ const UPLOAD_DIR = process.env.UPLOADS_DIR
   || path.join(process.cwd(), 'public', 'uploads');
 
 export async function POST(request: NextRequest) {
+  // Auth check
+  const auth = request.headers.get('authorization');
+  const expected = `Bearer ${process.env.ADMIN_PASSWORD || 'admin123'}`;
+  if (!expected || auth !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File | null;

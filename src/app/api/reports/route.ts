@@ -33,6 +33,13 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  // Auth check — password required for writes
+  const auth = request.headers.get('authorization');
+  const expected = `Bearer ${process.env.ADMIN_PASSWORD || 'admin123'}`;
+  if (!expected || auth !== expected) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     ensureDataDir();
