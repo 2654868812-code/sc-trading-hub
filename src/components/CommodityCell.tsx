@@ -11,10 +11,10 @@ interface CommodityCellProps {
   onClick: () => void;
 }
 
-function fmtProfit(n: number): string {
-  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}m`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return n.toLocaleString();
+function fmtChange(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1000) return `${(abs / 1000).toFixed(1)}k`;
+  return abs.toLocaleString();
 }
 
 function marginColor(margin: number): string {
@@ -42,23 +42,29 @@ export function CommodityCell({
         onClick={onClick}
         onMouseEnter={() => setTooltip(true)}
         onMouseLeave={() => setTooltip(false)}
-        className="commodity-card w-full"
+        className="w-full text-left px-2 py-1.5 rounded border border-border/20 bg-white
+                   hover:bg-accent/60 hover:border-border/50 transition-all
+                   active:scale-[0.97]
+                   dark:bg-white dark:text-gray-900"
       >
-        <div className="flex items-center gap-1.5 w-full">
-          <span className="text-[12px] truncate leading-tight">
+        <div className="flex items-center justify-between gap-1">
+          <span className="text-[11px] truncate leading-tight font-medium">
             {nameZh}
           </span>
           {profitMargin != null && (
-            <span className="text-[10px] tabular-nums font-semibold ml-auto flex-shrink-0" style={{ color: marginColor(profitMargin) }}>
+            <span
+              className="text-[10px] tabular-nums font-bold flex-shrink-0"
+              style={{ color: marginColor(profitMargin) }}
+            >
               {profitMargin >= 0 ? '+' : ''}{profitMargin}%
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5 w-full">
+        <div className="flex items-center justify-between gap-1 mt-0.5">
           <span className="text-[10px] text-muted-foreground/55">{kindZh}</span>
           {hasChange && (
-            <span className={`text-[10px] tabular-nums font-medium ml-auto ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
-              {profitChange! >= 0 ? '▲' : '▼'}{fmtProfit(Math.abs(profitChange!))}
+            <span className={`text-[10px] tabular-nums font-medium flex-shrink-0 ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+              {profitChange! >= 0 ? '▲' : '▼'}{fmtChange(Math.abs(profitChange!))}
             </span>
           )}
         </div>
@@ -67,9 +73,17 @@ export function CommodityCell({
       {tooltip && (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-1.5 z-50
                         px-3 py-2 rounded-lg bg-foreground text-background
-                        text-xs whitespace-nowrap shadow-xl pointer-events-none">
+                        text-xs shadow-xl pointer-events-none space-y-1 whitespace-nowrap">
           <div className="font-semibold">{nameZh}</div>
-          <div className="text-[10px] opacity-55 mt-0.5">{nameEn}</div>
+          <div className="text-[10px] opacity-55">{nameEn}</div>
+          <div className="text-[10px] opacity-80">
+            平均单位利润率: {profitMargin != null ? `${profitMargin >= 0 ? '+' : ''}${profitMargin}%` : '—'}
+          </div>
+          <div className="text-[10px] opacity-80">
+            平均单位利润变化: {profitChange != null && profitChange !== 0
+              ? `${profitChange >= 0 ? '+' : ''}${profitChange.toLocaleString()} aUEC`
+              : '—'}
+          </div>
         </div>
       )}
     </div>

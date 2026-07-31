@@ -159,12 +159,22 @@ export function TradeRouteFilter({
     ]).then(([shipsData, locsData, commData]) => {
       setShips(shipsData);
       setLocations(locsData);
-      setCommodities(commData.map((c: any) => ({
+      const commList = commData.map((c: any) => ({
         id: c.id, nameZh: c.nameZh || c.name, nameEn: c.nameEn || c.name,
         kindZh: c.kindZh || '', isDazong: c.isDazong || false, isIllegal: c.isIllegal || false,
-      })));
+      }));
+      setCommodities(commList);
+      // Restore search text from preselected IDs (e.g. from URL/sessionStorage)
+      if (shipId) {
+        const s = shipsData.find((x: ShipOption) => x.id === parseInt(shipId));
+        if (s) setShipSearch(s.name);
+      }
+      if (commodityId) {
+        const c = commList.find((x: CommodityOption) => x.id === parseInt(commodityId));
+        if (c) setCommoditySearch(c.nameZh);
+      }
     }).catch(console.error);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -287,8 +297,8 @@ export function TradeRouteFilter({
       </div>
 
       {/* Row 1: Ship + Commodity selectors */}
-      <div className="flex items-end gap-4" ref={shipRef}>
-        <div className="flex flex-col gap-1 relative">
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col gap-1 relative" ref={shipRef}>
           <label className="text-[11px] tracking-wider text-primary/80 uppercase">
             选择货船
           </label>

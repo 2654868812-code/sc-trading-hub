@@ -6,20 +6,10 @@ import { TradeRouteFilter } from '@/components/TradeRouteFilter';
 import { RouteTable } from '@/components/RouteTable';
 import type { TradeRoute, RouteFilters } from '@/types';
 
-function RoutesContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
+const FILTER_STORAGE_KEY = 'sc-trade-filters';
 
-  const [systems, setSystems] = useState<{ en: string; zh: string }[]>([]);
-  const [routes, setRoutes] = useState<TradeRoute[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-  const [dataUpdated, setDataUpdated] = useState(false);
-  const lastFetchedAtRef = useRef<string | null>(null);
-  const currentFiltersRef = useRef<RouteFilters | null>(null);
-
-  // Read initial filters from URL
-  const initialFilters: RouteFilters = {
+function readFiltersFromParams(searchParams: URLSearchParams): RouteFilters {
+  return {
     shipId: searchParams.get('shipId') ? parseInt(searchParams.get('shipId')!) : undefined,
     commodityId: searchParams.get('commodityId') ? parseInt(searchParams.get('commodityId')!) : undefined,
     originSystem: searchParams.get('originSystem') || undefined,
@@ -34,6 +24,46 @@ function RoutesContent() {
     sortOrder: (searchParams.get('sortOrder') || undefined) as RouteFilters['sortOrder'],
     roundTrip: searchParams.get('roundTrip') === '1' || undefined,
   };
+}
+
+function readFiltersFromStorage(): RouteFilters | null {
+  try {
+    const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as RouteFilters;
+  } catch {
+    return null;
+  }
+}
+
+function saveFiltersToStorage(filters: RouteFilters): void {
+  try {
+    sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
+  } catch { /* ignore */ }
+}
+
+function RoutesContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const [systems, setSystems] = useState<{ en: string; zh: string }[]>([]);
+  const [routes, setRoutes] = useState<TradeRoute[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [searched, setSearched] = useState(false);
+  const [dataUpdated, setDataUpdated] = useState(false);
+  const lastFetchedAtRef = useRef<string | null>(null);
+  const currentFiltersRef = useRef<RouteFilters | null>(null);
+
+  // Read initial filters: URL first, fallback to sessionStorage
+  function getInitialFilters(): RouteFilters {
+    const fromUrl = readFiltersFromParams(searchParams);
+    // Check if URL has any filter params
+    const hasUrlParams = searchParams.toString().length > 0;
+    if (hasUrlParams) return fromUrl;
+    // No URL params — try sessionStorage
+    return readFiltersFromStorage() || fromUrl;
+  }
+  const initialFilters = getInitialFilters();
 
   // Load systems list
   useEffect(() => {
@@ -128,6 +158,7 @@ function RoutesContent() {
     if (filters.roundTrip) params.set('roundTrip', '1');
     router.replace(`/routes?${params.toString()}`, { scroll: false });
 
+    saveFiltersToStorage(filters);
     currentFiltersRef.current = filters;
     await doSearch(filters);
   }, [router, doSearch]);

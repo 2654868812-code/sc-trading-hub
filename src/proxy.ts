@@ -4,7 +4,7 @@ import { verifyToken } from '@/lib/auth';
 
 // In-memory rate limiter (per-IP, sliding window)
 const rateMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 30;     // requests
+const RATE_LIMIT = 60;     // requests
 const RATE_WINDOW = 10000; // 10 seconds
 
 function checkRate(ip: string): boolean {
@@ -24,7 +24,7 @@ export async function proxy(request: NextRequest) {
 
   // Rate limit all requests
   if (!checkRate(ip)) {
-    return new NextResponse('Too Many Requests', { status: 429 });
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
   }
 
   // Protect /reports/edit — require valid signed auth token
