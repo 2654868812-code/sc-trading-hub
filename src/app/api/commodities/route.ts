@@ -110,7 +110,7 @@ export async function GET() {
   } catch (err) {
     console.error('[commodities] Error:', err);
     return NextResponse.json(
-      { error: 'Failed to fetch commodities', message: String(err) },
+      { error: 'Failed to fetch commodities' },
       { status: 500 }
     );
   }

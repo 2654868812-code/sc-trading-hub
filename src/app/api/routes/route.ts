@@ -304,7 +304,7 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error('[routes] Error:', err);
     return NextResponse.json(
-      { error: 'Failed to compute routes', message: String(err) },
+      { error: 'Failed to compute routes' },
       { status: 500 }
     );
   }

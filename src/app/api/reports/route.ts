@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 import { z } from 'zod';
+import { verifyToken } from '@/lib/auth';
 
 const NewsItemSchema = z.object({
   date: z.string().max(20).optional().default(''),
@@ -57,11 +58,13 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
-  // Auth check — password required for writes
+  // Auth check — valid signed token required for writes
   const auth = request.headers.get('authorization');
-  const pwd = process.env.ADMIN_PASSWORD;
-  if (!pwd) throw new Error('ADMIN_PASSWORD environment variable is required');
-  if (auth !== `Bearer ${pwd}`) {
+  if (!auth?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const token = auth.slice(7);
+  if (!await verifyToken(token)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -72,6 +75,7 @@ export async function POST(request: NextRequest) {
     fs.writeFileSync(DATA_FILE, JSON.stringify(body, null, 2), 'utf-8');
     return NextResponse.json({ ok: true });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[reports] POST error:', err);
+    return NextResponse.json({ error: 'Failed to save reports' }, { status: 500 });
   }
 }

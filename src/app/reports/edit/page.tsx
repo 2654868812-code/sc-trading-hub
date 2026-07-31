@@ -33,9 +33,9 @@ function emptyRoute(): RouteItem {
   return { ship: '', commodity: '', origin: '', dest: '', profit: '', note: '' };
 }
 
-function getPassword(): string {
+function getToken(): string {
   if (typeof sessionStorage === 'undefined') return '';
-  return sessionStorage.getItem('admin_password') || '';
+  return sessionStorage.getItem('auth_token') || '';
 }
 
 export default function ReportsEditPage() {
@@ -67,7 +67,7 @@ export default function ReportsEditPage() {
     try {
       const res = await fetch('/api/reports/upload-image', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${getPassword()}` },
+        headers: { Authorization: `Bearer ${getToken()}` },
         body: formData,
       });
       const data = await res.json();
@@ -97,7 +97,7 @@ export default function ReportsEditPage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${getPassword()}`,
+        Authorization: `Bearer ${getToken()}`,
       },
       body: JSON.stringify({ news: nonEmptyNews, routes: nonEmptyRoutes }),
     })

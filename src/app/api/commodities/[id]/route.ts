@@ -76,7 +76,7 @@ export async function GET(
   } catch (err) {
     console.error('[commodity] Error:', err);
     return NextResponse.json(
-      { error: 'Failed to fetch commodity', message: String(err) },
+      { error: 'Failed to fetch commodity' },
       { status: 500 }
     );
   }

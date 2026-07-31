@@ -6,7 +6,8 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const commodityId = parseInt(searchParams.get('commodityId') || '0', 10);
   const terminalIdsParam = searchParams.get('terminalIds');
-  const hours = parseInt(searchParams.get('hours') || '24', 10);
+  const hoursRaw = parseInt(searchParams.get('hours') || '24', 10);
+  const hours = Math.min(Math.max(hoursRaw || 24, 1), 168); // clamp 1–168 (7 days max)
 
   if (!commodityId) {
     return NextResponse.json({ error: 'commodityId required' }, { status: 400 });

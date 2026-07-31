@@ -17,10 +17,10 @@ export default function LoginPage() {
       .then((r) => r.json())
       .then((res) => {
         if (res.ok && res.token) {
-          // Cookie: signed token for proxy validation (HttpOnly-compatible)
+          // Cookie: signed token for proxy page-access validation
           document.cookie = `auth_token=${res.token}; path=/; SameSite=Strict; Secure`;
-          // Session storage: password for API Bearer auth (tab-scoped, cleared on close)
-          sessionStorage.setItem('admin_password', password);
+          // Session storage: signed token for API Bearer auth (never store raw password)
+          sessionStorage.setItem('auth_token', res.token);
           router.push('/reports/edit');
         } else {
           setMsg('密码错误');

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { verifyToken } from '@/lib/auth';
 
 // In Docker, uploads go to /data/uploads (volume) which is symlinked to public/uploads.
 // In local dev, uploads go directly to public/uploads/.
@@ -8,11 +9,13 @@ const UPLOAD_DIR = process.env.UPLOADS_DIR
   || path.join(process.cwd(), 'public', 'uploads');
 
 export async function POST(request: NextRequest) {
-  // Auth check
+  // Auth check — valid signed token required
   const auth = request.headers.get('authorization');
-  const pwd = process.env.ADMIN_PASSWORD;
-  if (!pwd) throw new Error('ADMIN_PASSWORD environment variable is required');
-  if (auth !== `Bearer ${pwd}`) {
+  if (!auth?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  const token = auth.slice(7);
+  if (!await verifyToken(token)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -39,8 +42,14 @@ export async function POST(request: NextRequest) {
     // Ensure upload dir exists
     await mkdir(UPLOAD_DIR, { recursive: true });
 
-    // Generate unique filename
-    const ext = file.name.split('.').pop() || 'png';
+    // Generate safe filename — derive extension from validated MIME type
+    const mimeToExt: Record<string, string> = {
+      'image/png': 'png',
+      'image/jpeg': 'jpg',
+      'image/webp': 'webp',
+      'image/gif': 'gif',
+    };
+    const ext = mimeToExt[file.type] || 'png';
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
     const filename = `${timestamp}-${random}.${ext}`;
@@ -52,6 +61,7 @@ export async function POST(request: NextRequest) {
     const url = `/uploads/${filename}`;
     return NextResponse.json({ ok: true, url });
   } catch (err) {
-    return NextResponse.json({ error: String(err) }, { status: 500 });
+    console.error('[upload-image] Error:', err);
+    return NextResponse.json({ error: 'Failed to upload image' }, { status: 500 });
   }
 }
