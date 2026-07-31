@@ -50,11 +50,51 @@ export async function GET(request: NextRequest) {
   // Get per-terminal max stock
   const termMaxRows = await prisma.terminalCommodityMax.findMany({
     where: { commodityId },
-    select: { terminalId: true, scuBuyMax: true, scuSellMax: true },
+    select: { terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true },
   });
-  const maxMap: Record<number, { buyMax: number; sellMax: number }> = {};
+  const maxMap: Record<number, { buyMax: number; sellMax: number; buyAvg: number; sellAvg: number }> = {};
   for (const m of termMaxRows) {
-    maxMap[m.terminalId] = { buyMax: m.scuBuyMax ?? 0, sellMax: m.scuSellMax ?? 0 };
+    maxMap[m.terminalId] = {
+      buyMax: m.scuBuyMax ?? 0,
+      sellMax: m.scuSellMax ?? 0,
+      buyAvg: m.scuBuyAvg ?? 0,
+      sellAvg: m.scuSellAvg ?? 0,
+    };
+  }
+
+  // Historical price stats: min/max across all snapshots per terminal
+  const [buyStats, sellStats] = await Promise.all([
+    prisma.priceSnapshot.groupBy({
+      by: ['terminalId'],
+      where: { commodityId, priceBuy: { gt: 0 } },
+      _max: { priceBuy: true },
+      _min: { priceBuy: true },
+      _avg: { priceBuy: true },
+    }),
+    prisma.priceSnapshot.groupBy({
+      by: ['terminalId'],
+      where: { commodityId, priceSell: { gt: 0 } },
+      _max: { priceSell: true },
+      _min: { priceSell: true },
+      _avg: { priceSell: true },
+    }),
+  ]);
+
+  const buyStatsMap: Record<number, { max: number | null; min: number | null; avg: number | null }> = {};
+  for (const r of buyStats) {
+    buyStatsMap[r.terminalId] = {
+      max: r._max.priceBuy,
+      min: r._min.priceBuy,
+      avg: r._avg.priceBuy,
+    };
+  }
+  const sellStatsMap: Record<number, { max: number | null; min: number | null; avg: number | null }> = {};
+  for (const r of sellStats) {
+    sellStatsMap[r.terminalId] = {
+      max: r._max.priceSell,
+      min: r._min.priceSell,
+      avg: r._avg.priceSell,
+    };
   }
 
   const seen = new Set<number>();
@@ -63,6 +103,8 @@ export async function GET(request: NextRequest) {
     if (seen.has(s.terminal.id)) continue;
     seen.add(s.terminal.id);
     const mx = maxMap[s.terminal.id];
+    const bStat = buyStatsMap[s.terminal.id];
+    const sStat = sellStatsMap[s.terminal.id];
     terminals.push({
       id: s.terminal.id,
       name: s.terminal.name,
@@ -83,12 +125,23 @@ export async function GET(request: NextRequest) {
       hasDockingPort: s.terminal.hasDockingPort,
       hasFreightElevator: s.terminal.hasFreightElevator,
       isAutoLoad: s.terminal.isAutoLoad,
+      // Latest prices
       priceBuy: s.priceBuy,
       priceSell: s.priceSell,
+      // Historical price stats
+      priceBuyAvg: bStat?.avg ?? null,
+      priceBuyMax: bStat?.max ?? null,
+      priceBuyMin: bStat?.min ?? null,
+      priceSellAvg: sStat?.avg ?? null,
+      priceSellMax: sStat?.max ?? null,
+      priceSellMin: sStat?.min ?? null,
+      // Stock
       scuBuyStock: s.scuBuyStock,
       scuSellStock: s.scuSellStock,
       scuBuyMax: mx?.buyMax ?? null,
       scuSellMax: mx?.sellMax ?? null,
+      scuBuyAvg: mx?.buyAvg ?? null,
+      scuSellAvg: mx?.sellAvg ?? null,
       updatedAt: s.uexModifiedAt
         ? new Date(s.uexModifiedAt * 1000).toISOString()
         : s.fetchedAt.toISOString(),

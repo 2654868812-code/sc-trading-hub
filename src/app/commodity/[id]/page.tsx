@@ -148,7 +148,8 @@ export default function CommodityDetailPage() {
         ))}
       </div>
 
-      {/* Buy price chart */}
+      {/* Buy / Sell price charts — side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="section-card p-5">
         <h3 className="text-xs font-semibold tracking-[0.2em] text-chart-2 uppercase mb-3">
           买价趋势
@@ -245,60 +246,76 @@ export default function CommodityDetailPage() {
           </ResponsiveContainer>
         )}
       </div>
+      </div>
 
       {/* Buy / Sell lists */}
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="section-card p-5">
           <h3 className="text-xs font-semibold tracking-[0.2em] text-chart-2 uppercase mb-4">
             可购买地点
           </h3>
-          <div className="space-y-0.5 max-h-[400px] overflow-y-auto">
+          <div className="space-y-1 max-h-[500px] overflow-y-auto">
             {buyTerminals.map((t: any) => {
               const location = t.cityName || t.spaceStationName || (t.nameZh || t.name);
+              const hasStats = t.priceBuyAvg != null || t.priceBuyMax != null || t.priceBuyMin != null;
               return (
                 <div
                   key={t.id}
-                  className="flex justify-between items-center text-sm py-2 px-3 rounded-md
-                             hover:bg-accent/50 transition-colors relative group"
+                  className="py-2 px-3 rounded-md hover:bg-accent/50 transition-colors relative group cursor-pointer"
+                  onClick={() => router.push(`/location/${encodeURIComponent(t.cityName || t.spaceStationName || (t.nameZh || t.name))}`)}
                 >
-                  <div>
-                    <span className="text-foreground/90">{location}</span>
-                    <div className="text-[10px] text-muted-foreground/60">
-                      {[t.starSystemName, t.planetName, t.moonName]
-                        .filter(Boolean)
-                        .join(' · ')}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-foreground/90 truncate hover:text-primary transition-colors">{location}</span>
+                        {(t.cityName || t.spaceStationName) &&
+                          (t.nameZh || t.name) !== location && (
+                            <span className="hidden group-hover:inline-block absolute left-0 bottom-full mb-1
+                                            px-2 py-1 rounded-md bg-card border border-border/40
+                                            text-xs text-foreground shadow-lg whitespace-nowrap z-10">
+                              {t.nameZh || t.name}
+                            </span>
+                          )}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground/60">
+                        {[t.starSystemName, t.planetName, t.moonName]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] tabular-nums text-muted-foreground/50">
+                          库存: {t.scuBuyStock != null ? t.scuBuyStock.toLocaleString() : '—'}
+                          {t.scuBuyMax ? ` / ${t.scuBuyMax.toLocaleString()}` : ''}
+                        </span>
+                        {t.updatedAt && (
+                          <span className="text-[9px] text-muted-foreground/30">
+                            {(() => {
+                              const diff = Date.now() - new Date(t.updatedAt).getTime();
+                              const mins = Math.floor(diff / 60000);
+                              if (mins < 1) return '刚刚';
+                              if (mins < 60) return `${mins}分钟前`;
+                              const hrs = Math.floor(mins / 60);
+                              if (hrs < 24) return `${hrs}小时前`;
+                              return `${Math.floor(hrs / 24)}天前`;
+                            })()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {(t.cityName || t.spaceStationName) &&
-                      (t.nameZh || t.name) !== location && (
-                        <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block
-                                        px-2 py-1 rounded-md bg-card border border-border/40
-                                        text-xs text-foreground shadow-lg whitespace-nowrap z-10">
-                          {t.nameZh || t.name}
+                    <div className="text-right shrink-0">
+                      {t.priceBuy > 0 && (
+                        <div className="text-sm tabular-nums text-chart-2 font-medium">
+                          {t.priceBuy.toLocaleString()} aUEC
                         </div>
                       )}
-                    {t.updatedAt && (
-                      <div className="text-[9px] text-muted-foreground/40 mt-0.5">
-                        {(() => {
-                          const diff = Date.now() - new Date(t.updatedAt).getTime();
-                          const mins = Math.floor(diff / 60000);
-                          if (mins < 1) return '刚刚更新';
-                          if (mins < 60) return `${mins} 分钟前`;
-                          const hrs = Math.floor(mins / 60);
-                          if (hrs < 24) return `${hrs} 小时前`;
-                          return `${Math.floor(hrs / 24)} 天前`;
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
-                      {t.scuBuyStock != null ? `${t.scuBuyStock.toLocaleString()}${t.scuBuyMax ? ` / ${t.scuBuyMax.toLocaleString()}` : ''}` : '—'}
-                    </span>
-                    {t.priceBuy > 0 && (
-                      <span className="text-chart-2 text-sm tabular-nums">
-                        {t.priceBuy.toLocaleString()} aUEC
-                      </span>
-                    )}
+                      {hasStats && (
+                        <div className="text-[10px] tabular-nums text-muted-foreground/70 flex gap-1.5 justify-end mt-0.5">
+                          {t.priceBuyAvg != null && <span title="历史均价">均{t.priceBuyAvg.toFixed(0)}</span>}
+                          {t.priceBuyMax != null && <span title="历史最高">高{t.priceBuyMax.toFixed(0)}</span>}
+                          {t.priceBuyMin != null && <span title="历史最低">低{t.priceBuyMin.toFixed(0)}</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -310,53 +327,68 @@ export default function CommodityDetailPage() {
           <h3 className="text-xs font-semibold tracking-[0.2em] text-destructive uppercase mb-4">
             可售出地点
           </h3>
-          <div className="space-y-0.5 max-h-[400px] overflow-y-auto">
+          <div className="space-y-1 max-h-[500px] overflow-y-auto">
             {sellTerminals.map((t: any) => {
               const location = t.cityName || t.spaceStationName || (t.nameZh || t.name);
+              const hasStats = t.priceSellAvg != null || t.priceSellMax != null || t.priceSellMin != null;
               return (
                 <div
                   key={t.id}
-                  className="flex justify-between items-center text-sm py-2 px-3 rounded-md
-                             hover:bg-accent/50 transition-colors relative group"
+                  className="py-2 px-3 rounded-md hover:bg-accent/50 transition-colors relative group cursor-pointer"
+                  onClick={() => router.push(`/location/${encodeURIComponent(t.cityName || t.spaceStationName || (t.nameZh || t.name))}`)}
                 >
-                  <div>
-                    <span className="text-foreground/90">{location}</span>
-                    <div className="text-[10px] text-muted-foreground/60">
-                      {[t.starSystemName, t.planetName, t.moonName]
-                        .filter(Boolean)
-                        .join(' · ')}
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm text-foreground/90 truncate hover:text-primary transition-colors">{location}</span>
+                        {(t.cityName || t.spaceStationName) &&
+                          (t.nameZh || t.name) !== location && (
+                            <span className="hidden group-hover:inline-block absolute left-0 bottom-full mb-1
+                                            px-2 py-1 rounded-md bg-card border border-border/40
+                                            text-xs text-foreground shadow-lg whitespace-nowrap z-10">
+                              {t.nameZh || t.name}
+                            </span>
+                          )}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground/60">
+                        {[t.starSystemName, t.planetName, t.moonName]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="text-[10px] tabular-nums text-muted-foreground/50">
+                          库存: {t.scuSellStock != null ? t.scuSellStock.toLocaleString() : '—'}
+                          {t.scuSellMax ? ` / ${t.scuSellMax.toLocaleString()}` : ''}
+                        </span>
+                        {t.updatedAt && (
+                          <span className="text-[9px] text-muted-foreground/30">
+                            {(() => {
+                              const diff = Date.now() - new Date(t.updatedAt).getTime();
+                              const mins = Math.floor(diff / 60000);
+                              if (mins < 1) return '刚刚';
+                              if (mins < 60) return `${mins}分钟前`;
+                              const hrs = Math.floor(mins / 60);
+                              if (hrs < 24) return `${hrs}小时前`;
+                              return `${Math.floor(hrs / 24)}天前`;
+                            })()}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    {(t.cityName || t.spaceStationName) &&
-                      (t.nameZh || t.name) !== location && (
-                        <div className="absolute left-0 bottom-full mb-1 hidden group-hover:block
-                                        px-2 py-1 rounded-md bg-card border border-border/40
-                                        text-xs text-foreground shadow-lg whitespace-nowrap z-10">
-                          {t.nameZh || t.name}
+                    <div className="text-right shrink-0">
+                      {t.priceSell > 0 && (
+                        <div className="text-sm tabular-nums text-destructive font-medium">
+                          {t.priceSell.toLocaleString()} aUEC
                         </div>
                       )}
-                    {t.updatedAt && (
-                      <div className="text-[9px] text-muted-foreground/40 mt-0.5">
-                        {(() => {
-                          const diff = Date.now() - new Date(t.updatedAt).getTime();
-                          const mins = Math.floor(diff / 60000);
-                          if (mins < 1) return '刚刚更新';
-                          if (mins < 60) return `${mins} 分钟前`;
-                          const hrs = Math.floor(mins / 60);
-                          if (hrs < 24) return `${hrs} 小时前`;
-                          return `${Math.floor(hrs / 24)} 天前`;
-                        })()}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
-                      {t.scuSellStock != null ? `${t.scuSellStock.toLocaleString()}${t.scuSellMax ? ` / ${t.scuSellMax.toLocaleString()}` : ''}` : '—'}
-                    </span>
-                    {t.priceSell > 0 && (
-                      <span className="text-destructive text-sm tabular-nums">
-                        {t.priceSell.toLocaleString()} aUEC
-                      </span>
-                    )}
+                      {hasStats && (
+                        <div className="text-[10px] tabular-nums text-muted-foreground/70 flex gap-1.5 justify-end mt-0.5">
+                          {t.priceSellAvg != null && <span title="历史均价">均{t.priceSellAvg.toFixed(0)}</span>}
+                          {t.priceSellMax != null && <span title="历史最高">高{t.priceSellMax.toFixed(0)}</span>}
+                          {t.priceSellMin != null && <span title="历史最低">低{t.priceSellMin.toFixed(0)}</span>}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               );

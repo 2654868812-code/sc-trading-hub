@@ -42,17 +42,19 @@ export default function ReportsEditPage() {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+  const [gameVersion, setGameVersion] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch('/api/reports')
-      .then((r) => r.json())
-      .then((d: ReportsData) => {
-        setNews(d.news?.length ? d.news : [emptyNews()]);
-        setRoutes(d.routes?.length ? d.routes : [emptyRoute()]);
-        setLoaded(true);
-      })
-      .catch(console.error);
+    Promise.all([
+      fetch('/api/reports').then((r) => r.json()),
+      fetch('/api/version').then((r) => r.json()),
+    ]).then(([d, ver]) => {
+      setNews((d as ReportsData).news?.length ? (d as ReportsData).news : [emptyNews()]);
+      setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
+      setGameVersion(ver.gameVersion);
+      setLoaded(true);
+    }).catch(console.error);
   }, []);
 
   function tryAuth() {
@@ -152,6 +154,11 @@ export default function ReportsEditPage() {
           <h1 className="text-xl font-bold">维护商报</h1>
           <p className="text-xs text-muted-foreground mt-1">
             编辑每周商业新闻与推荐跑商路线
+            {gameVersion && (
+              <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary/80">
+                {gameVersion}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-3">

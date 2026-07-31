@@ -76,6 +76,8 @@ function RoutesContent() {
     if (filters.commodityId) params.set('commodityId', String(filters.commodityId));
     if (filters.originSystem) params.set('originSystem', filters.originSystem);
     if (filters.destSystem) params.set('destSystem', filters.destSystem);
+    if (filters.originLocation) params.set('originLocation', filters.originLocation);
+    if (filters.destLocation) params.set('destLocation', filters.destLocation);
     if (filters.maxInvestment) params.set('maxInvestment', String(filters.maxInvestment));
     if (filters.maxDistance) params.set('maxDistance', String(filters.maxDistance));
     if (filters.autoLoadType) params.set('autoLoadType', filters.autoLoadType);

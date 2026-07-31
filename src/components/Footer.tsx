@@ -26,9 +26,11 @@ export function Footer() {
           </p>
         </div>
 
-        {/* UEX credit */}
-        <div className="flex items-center justify-center gap-3">
-          <span className="text-[11px] text-muted-foreground/60">技术支持</span>
+        {/* Data credits */}
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <span className="text-[11px] text-muted-foreground/50">感谢星际公民汉化盒子提供的中英对照支持</span>
+          <span className="text-border/40">|</span>
+          <span className="text-[11px] text-muted-foreground/50">感谢UEX提供的数据</span>
           <a
             href="https://uexcorp.space"
             target="_blank"
@@ -38,18 +40,14 @@ export function Footer() {
             <img
               src="/uex-badge.png"
               alt="Powered by UEX"
-              className="h-8 object-contain"
+              className="h-7 object-contain"
             />
           </a>
         </div>
 
         {/* Disclaimer */}
         <p className="text-center text-[11px] text-muted-foreground/40">
-          泛天贸易为非官方工具，游戏数据来自{' '}
-          <a href="https://uexcorp.space" target="_blank" rel="noopener noreferrer" className="hover:text-muted-foreground transition-colors">
-            UEX Corp
-          </a>
-          {' '}公开 API
+          泛天TRADING HUB非官方工具，与CIG无任何关联
         </p>
       </div>
     </footer>

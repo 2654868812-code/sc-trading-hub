@@ -27,12 +27,16 @@ interface ReportsData {
 
 export default function ReportsPage() {
   const [data, setData] = useState<ReportsData | null>(null);
+  const [gameVersion, setGameVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/reports')
-      .then((r) => r.json())
-      .then(setData)
-      .catch(console.error);
+    Promise.all([
+      fetch('/api/reports').then((r) => r.json()),
+      fetch('/api/version').then((r) => r.json()),
+    ]).then(([reports, ver]) => {
+      setData(reports);
+      setGameVersion(ver.gameVersion);
+    }).catch(console.error);
   }, []);
 
   if (!data) {
@@ -46,7 +50,14 @@ export default function ReportsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">泛天商报</h1>
-        <p className="text-sm text-muted-foreground mt-1">每周商业新闻与推荐跑商路线</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          每周商业新闻与推荐跑商路线
+          {gameVersion && (
+            <span className="ml-2.5 px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary/80">
+              {gameVersion}
+            </span>
+          )}
+        </p>
       </div>
 
       {/* Weekly News */}

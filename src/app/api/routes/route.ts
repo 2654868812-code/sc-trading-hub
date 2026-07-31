@@ -13,6 +13,8 @@ export async function GET(request: NextRequest) {
     ? parseInt(searchParams.get('commodityId')!, 10) : undefined;
   const originSystem = searchParams.get('originSystem') || undefined;
   const destSystem = searchParams.get('destSystem') || undefined;
+  const originLocation = searchParams.get('originLocation') || undefined;
+  const destLocation = searchParams.get('destLocation') || undefined;
   const maxInvestment = searchParams.get('maxInvestment')
     ? parseFloat(searchParams.get('maxInvestment')!) : undefined;
   const maxDistance = searchParams.get('maxDistance')
@@ -46,13 +48,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([]);
   }
 
-  // Fetch buy-side snapshots
+  // Fetch buy-side snapshots (use average prices for stability)
   const buySnapshots = await prisma.priceSnapshot.findMany({
     where: {
       fetchedAt: latest.fetchedAt,
-      priceBuy: { gt: 0 },
+      priceBuyAvg: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
-      ...(spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
+      ...(originLocation ? { terminal: { OR: [{ cityName: originLocation }, { spaceStationName: originLocation }] } } : {}),
+      ...(!originLocation && spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
     },
     include: {
       commodity: { select: { id: true, name: true, kind: true, isIllegal: true } },
@@ -60,13 +63,14 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  // Fetch sell-side snapshots
+  // Fetch sell-side snapshots (use average prices for stability)
   const sellSnapshots = await prisma.priceSnapshot.findMany({
     where: {
       fetchedAt: latest.fetchedAt,
-      priceSell: { gt: 0 },
+      priceSellAvg: { gt: 0 },
       ...(commodityId ? { commodityId } : {}),
-      ...(spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
+      ...(destLocation ? { terminal: { OR: [{ cityName: destLocation }, { spaceStationName: destLocation }] } } : {}),
+      ...(!destLocation && spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
     },
     include: {
       terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } },
@@ -137,8 +141,8 @@ export async function GET(request: NextRequest) {
     for (const sell of sells) {
       if (buy.terminalId === sell.terminalId) continue;
 
-      const buyPrice = buy.priceBuy!;
-      const sellPrice = sell.priceSell!;
+      const buyPrice = buy.priceBuyAvg!;
+      const sellPrice = sell.priceSellAvg!;
 
       if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0) continue;
       if (sellPrice <= buyPrice) continue;

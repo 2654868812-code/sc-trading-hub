@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type { TradeRoute } from '@/types';
 
 interface RouteTableProps {
@@ -67,6 +68,8 @@ function StockBar({ stock, max }: { stock: number; max: number }) {
 }
 
 export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProps) {
+  const router = useRouter();
+
   if (loading) return <Skeleton />;
 
   if (routes.length === 0) {
@@ -127,9 +130,12 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                   <div className="text-[9px] text-muted-foreground/55">{r.commodityKindZh}</div>
                 </td>
                 <td className="td-cell">
-                  <span className="leading-tight">
+                  <button
+                    onClick={() => router.push(`/location/${encodeURIComponent(r.originLocationZh || r.originTerminalNameZh || r.originTerminalName)}`)}
+                    className="hover:text-primary transition-colors text-left leading-tight"
+                  >
                     {r.originLocationZh || r.originTerminalNameZh || r.originTerminalName}
-                  </span>
+                  </button>
                   <div className="text-[9px] text-muted-foreground/50">
                     {[r.originSystemName, r.originPlanetName, r.originMoonName].filter(Boolean).join(' · ')}
                   </div>
@@ -138,9 +144,12 @@ export function RouteTable({ routes, loading, onCommodityClick }: RouteTableProp
                 <td className="td-cell--right">{fmtM(r.buyPrice)}</td>
                 <td className="td-cell"><StockBar stock={r.originStock} max={r.originStockMax} /></td>
                 <td className="td-cell">
-                  <span className="leading-tight">
+                  <button
+                    onClick={() => router.push(`/location/${encodeURIComponent(r.destLocationZh || r.destTerminalNameZh || r.destTerminalName)}`)}
+                    className="hover:text-primary transition-colors text-left leading-tight"
+                  >
                     {r.destLocationZh || r.destTerminalNameZh || r.destTerminalName}
-                  </span>
+                  </button>
                   <div className="text-[9px] text-muted-foreground/50">
                     {[r.destSystemName, r.destPlanetName, r.destMoonName].filter(Boolean).join(' · ')}
                   </div>

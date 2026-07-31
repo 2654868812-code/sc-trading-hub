@@ -96,6 +96,12 @@ function LogInputField({ label, value, onChange, placeholder, max }: {
   );
 }
 
+interface LocationOption {
+  name: string;
+  system: string;
+  planet: string | null;
+}
+
 export function TradeRouteFilter({
   systems,
   onFilterChange,
@@ -113,22 +119,42 @@ export function TradeRouteFilter({
   const [destSystem, setDestSystem] = useState('');
   const [maxInvestment, setMaxInvestment] = useState('');
   const [maxDistance, setMaxDistance] = useState('');
-  const [commodityType, setCommodityType] = useState(''); // ''|'major'|'minor'
-  const [autoLoadType, setAutoLoadType] = useState(''); // ''|'full'|'half'|'manual'
+  const [commodityType, setCommodityType] = useState('');
+  const [autoLoadType, setAutoLoadType] = useState('');
   const [sortBy, setSortBy] = useState('profit');
 
+  // Location selectors
+  const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [originLocation, setOriginLocation] = useState('');
+  const [originLocSearch, setOriginLocSearch] = useState('');
+  const [originLocOpen, setOriginLocOpen] = useState(false);
+  const [destLocation, setDestLocation] = useState('');
+  const [destLocSearch, setDestLocSearch] = useState('');
+  const [destLocOpen, setDestLocOpen] = useState(false);
+  const originLocRef = useRef<HTMLDivElement>(null);
+  const destLocRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    fetch('/api/vehicles')
-      .then((r) => r.json())
-      .then((data: ShipOption[]) => setShips(data))
-      .catch(console.error);
+    Promise.all([
+      fetch('/api/vehicles').then((r) => r.json()),
+      fetch('/api/locations').then((r) => r.json()),
+    ]).then(([shipsData, locsData]) => {
+      setShips(shipsData);
+      setLocations(locsData);
+    }).catch(console.error);
   }, []);
 
-  // Close dropdown on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (shipRef.current && !shipRef.current.contains(e.target as Node)) {
         setShipOpen(false);
+      }
+      if (originLocRef.current && !originLocRef.current.contains(e.target as Node)) {
+        setOriginLocOpen(false);
+      }
+      if (destLocRef.current && !destLocRef.current.contains(e.target as Node)) {
+        setDestLocOpen(false);
       }
     }
     document.addEventListener('mousedown', handleClick);
@@ -155,6 +181,39 @@ export function TradeRouteFilter({
     setShipOpen(false);
   }
 
+  // Filtered location lists
+  const filteredOriginLocs = useMemo(() => {
+    if (!originLocSearch.trim()) return locations.slice(0, 30);
+    const q = originLocSearch.toLowerCase();
+    return locations.filter(
+      (l) => l.name.toLowerCase().includes(q) ||
+        l.system.toLowerCase().includes(q) ||
+        (l.planet || '').toLowerCase().includes(q)
+    ).slice(0, 30);
+  }, [locations, originLocSearch]);
+
+  const filteredDestLocs = useMemo(() => {
+    if (!destLocSearch.trim()) return locations.slice(0, 30);
+    const q = destLocSearch.toLowerCase();
+    return locations.filter(
+      (l) => l.name.toLowerCase().includes(q) ||
+        l.system.toLowerCase().includes(q) ||
+        (l.planet || '').toLowerCase().includes(q)
+    ).slice(0, 30);
+  }, [locations, destLocSearch]);
+
+  function selectOriginLoc(name: string) {
+    setOriginLocation(name);
+    setOriginLocSearch(name);
+    setOriginLocOpen(false);
+  }
+
+  function selectDestLoc(name: string) {
+    setDestLocation(name);
+    setDestLocSearch(name);
+    setDestLocOpen(false);
+  }
+
   const hasShip = shipId !== '';
 
   function apply() {
@@ -164,6 +223,8 @@ export function TradeRouteFilter({
       shipId: parseInt(shipId),
       originSystem: originSystem || undefined,
       destSystem: destSystem || undefined,
+      originLocation: originLocation || undefined,
+      destLocation: destLocation || undefined,
       maxInvestment: maxInvestment ? parseFloat(maxInvestment) : undefined,
       maxDistance: maxDistance ? parseFloat(maxDistance) : undefined,
       commodityType: (commodityType || undefined) as RouteFilters['commodityType'],
@@ -263,26 +324,131 @@ export function TradeRouteFilter({
         </div>
       </div>
 
-      {/* Row 2: Filters + button — all on one line */}
+      {/* Row 2: Origin group + Dest group */}
+      <div className="flex flex-wrap gap-x-6 gap-y-2.5 items-end">
+        {/* Origin group */}
+        <div className="flex items-end gap-2">
+          <div className="border-l-[3px] border-chart-2/40 pl-2.5 flex items-end gap-2">
+            <span className="text-[10px] tracking-[0.15em] text-chart-2/70 uppercase mb-2">起点</span>
+            <SelectField label="星系" value={originSystem} onChange={setOriginSystem}>
+              <option value="">全部</option>
+              {systems.map((s) => (
+                <option key={s.en} value={s.en}>{s.zh}</option>
+              ))}
+            </SelectField>
+            <div className="flex flex-col gap-1 relative" ref={originLocRef}>
+              <label className="text-[11px] tracking-wider text-muted-foreground uppercase">地点</label>
+              <input
+                type="text"
+                value={originLocSearch}
+                onChange={(e) => {
+                  setOriginLocSearch(e.target.value);
+                  setOriginLocOpen(true);
+                  if (e.target.value === '') setOriginLocation('');
+                }}
+                onFocus={() => setOriginLocOpen(true)}
+                placeholder={originLocation || '不限'}
+                className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                           placeholder:text-muted-foreground/50
+                           focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
+              />
+              {originLocOpen && (
+                <div className="absolute top-full mt-1 left-0 w-[300px] max-h-[280px] overflow-y-auto
+                                rounded-md border border-border/40 bg-card shadow-lg z-50">
+                  {filteredOriginLocs.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">无匹配地点</div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setOriginLocation(''); setOriginLocSearch(''); setOriginLocOpen(false); }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 border-b border-border/30"
+                      >不限</button>
+                      {filteredOriginLocs.map((l) => (
+                        <button key={l.name}
+                          onClick={() => selectOriginLoc(l.name)}
+                          className={`w-full text-left px-3 py-1.5 text-sm hover:bg-accent/80 transition-colors
+                                     ${originLocation === l.name ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
+                        >
+                          <span className="truncate">{l.name}</span>
+                          <span className="text-[10px] text-muted-foreground/60 ml-2">
+                            {[l.system, l.planet].filter(Boolean).join(' · ')}
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Dest group */}
+        <div className="flex items-end gap-2">
+          <div className="border-l-[3px] border-destructive/40 pl-2.5 flex items-end gap-2">
+            <span className="text-[10px] tracking-[0.15em] text-destructive/70 uppercase mb-2">终点</span>
+            <SelectField label="星系" value={destSystem} onChange={setDestSystem}>
+              <option value="">全部</option>
+              {systems.map((s) => (
+                <option key={s.en} value={s.en}>{s.zh}</option>
+              ))}
+            </SelectField>
+            <div className="flex flex-col gap-1 relative" ref={destLocRef}>
+              <label className="text-[11px] tracking-wider text-muted-foreground uppercase">地点</label>
+              <input
+                type="text"
+                value={destLocSearch}
+                onChange={(e) => {
+                  setDestLocSearch(e.target.value);
+                  setDestLocOpen(true);
+                  if (e.target.value === '') setDestLocation('');
+                }}
+                onFocus={() => setDestLocOpen(true)}
+                placeholder={destLocation || '不限'}
+                className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                           placeholder:text-muted-foreground/50
+                           focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
+              />
+              {destLocOpen && (
+                <div className="absolute top-full mt-1 left-0 w-[300px] max-h-[280px] overflow-y-auto
+                                rounded-md border border-border/40 bg-card shadow-lg z-50">
+                  {filteredDestLocs.length === 0 ? (
+                    <div className="px-3 py-2 text-xs text-muted-foreground">无匹配地点</div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => { setDestLocation(''); setDestLocSearch(''); setDestLocOpen(false); }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/50 border-b border-border/30"
+                      >不限</button>
+                      {filteredDestLocs.map((l) => (
+                        <button key={l.name}
+                          onClick={() => selectDestLoc(l.name)}
+                          className={`w-full text-left px-3 py-1.5 text-sm hover:bg-accent/80 transition-colors
+                                     ${destLocation === l.name ? 'bg-primary/10 text-primary' : 'text-foreground'}`}
+                        >
+                          <span className="truncate">{l.name}</span>
+                          <span className="text-[10px] text-muted-foreground/60 ml-2">
+                            {[l.system, l.planet].filter(Boolean).join(' · ')}
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Constraints + sort + button */}
       <div className="flex flex-wrap gap-2.5 items-end">
-        <SelectField label="起点星系" value={originSystem} onChange={setOriginSystem}>
-          <option value="">全部</option>
-          {systems.map((s) => (
-            <option key={s.en} value={s.en}>{s.zh}</option>
-          ))}
-        </SelectField>
-        <SelectField label="终点星系" value={destSystem} onChange={setDestSystem}>
-          <option value="">全部</option>
-          {systems.map((s) => (
-            <option key={s.en} value={s.en}>{s.zh}</option>
-          ))}
-        </SelectField>
         <LogInputField label="最大投资" value={maxInvestment} onChange={setMaxInvestment} placeholder="aUEC" max={100000000} />
         <LogInputField label="最大距离" value={maxDistance} onChange={setMaxDistance} placeholder="GM" max={1000} />
-        <SelectField label="排序" value={sortBy} onChange={setSortBy}>
-          <option value="profit">总利润</option>
-          <option value="roi">ROI</option>
-          <option value="distance">距离</option>
+        <SelectField label="商品类型" value={commodityType} onChange={setCommodityType}>
+          <option value="">全部</option>
+          <option value="major">大宗商品</option>
+          <option value="minor">小宗商品</option>
         </SelectField>
         <SelectField label="自动装卸" value={autoLoadType} onChange={setAutoLoadType}>
           <option value="">全部</option>
@@ -290,10 +456,10 @@ export function TradeRouteFilter({
           <option value="half">半程自动</option>
           <option value="manual">全手动</option>
         </SelectField>
-        <SelectField label="商品类型" value={commodityType} onChange={setCommodityType}>
-          <option value="">全部</option>
-          <option value="major">大宗商品</option>
-          <option value="minor">小宗商品</option>
+        <SelectField label="排序" value={sortBy} onChange={setSortBy}>
+          <option value="profit">总利润</option>
+          <option value="roi">ROI</option>
+          <option value="distance">距离</option>
         </SelectField>
         <button onClick={apply} disabled={loading || !hasShip}
           className="h-9 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold

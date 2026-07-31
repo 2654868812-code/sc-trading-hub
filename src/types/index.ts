@@ -92,6 +92,8 @@ export interface RouteFilters {
   shipId?: number;
   originSystem?: string;
   destSystem?: string;
+  originLocation?: string;
+  destLocation?: string;
   maxInvestment?: number;
   maxDistance?: number;
   commodityType?: 'major' | 'minor';
