@@ -27,13 +27,15 @@ let AuthGuard = class AuthGuard {
             return true;
         const request = context.switchToHttp().getRequest();
         const auth = request.headers['authorization'];
-        const pwd = process.env.ADMIN_PASSWORD;
-        if (!pwd)
-            throw new Error('ADMIN_PASSWORD environment variable is required');
-        if (!auth || auth !== `Bearer ${pwd}`) {
+        if (!auth)
             throw new common_1.UnauthorizedException('Unauthorized');
-        }
-        return true;
+        const adminPwd = process.env.ADMIN_PASSWORD;
+        const cronSecret = process.env.CRON_SECRET;
+        if (adminPwd && auth === `Bearer ${adminPwd}`)
+            return true;
+        if (cronSecret && auth === `Bearer ${cronSecret}`)
+            return true;
+        throw new common_1.UnauthorizedException('Unauthorized');
     }
 };
 exports.AuthGuard = AuthGuard;

@@ -7,3 +7,8 @@ backend/node_modules
 backend/dist
 *.md
 .env
+src/app/api/
+src/lib/db.ts
+src/lib/sync.ts
+src/lib/cron.ts
+src/instrumentation.ts

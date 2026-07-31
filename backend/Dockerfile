@@ -9,7 +9,7 @@ FROM base AS builder
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN ./node_modules/.bin/prisma generate
+RUN rm -rf src/generated/prisma && ./node_modules/.bin/prisma generate
 RUN npm run build
 
 FROM base

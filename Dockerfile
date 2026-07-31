@@ -6,6 +6,8 @@ COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 FROM base AS builder
+ARG BACKEND_URL=http://backend:4000
+ENV BACKEND_URL=${BACKEND_URL}
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .

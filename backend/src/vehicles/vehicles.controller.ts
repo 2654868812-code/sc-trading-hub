@@ -9,7 +9,15 @@ export class VehiclesController {
   @Get()
   @Public()
   async findAll() {
+    const { getShipZh } = require('../lib/ship-zh');
     const ships = await this.prisma.vehicle.findMany({ orderBy: { name: 'asc' } });
-    return ships.map(v => ({ id: v.id, name: v.name, nameEn: v.name, scu: v.scu, companyName: v.companyName, spaceOnly: false }));
+    return ships.map(v => ({
+      id: v.id,
+      name: getShipZh(v.name),
+      nameEn: v.name,
+      scu: v.scu,
+      companyName: v.companyName,
+      spaceOnly: false,
+    }));
   }
 }
