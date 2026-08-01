@@ -11,6 +11,7 @@ const NewsItemSchema = z.object({
   image: z.string().max(500).optional().default(''),
   imagePosition: z.enum(['left', 'right']).optional().default('left'),
   imageScale: z.number().min(10).max(100).optional().default(45),
+  style: z.enum(['default', 'left-half', 'right-half', 'flash']).optional().default('default'),
 });
 
 const RouteItemSchema = z.object({

@@ -221,3 +221,17 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 1px var(--primary), 0 2px 8px rgba(201,169,78,0.15);
 }
+
+@keyframes cellFlip {
+  0%   { transform: scaleX(1);     opacity: 1; }
+  40%  { transform: scaleX(0.15);  opacity: 0.2; }
+  60%  { transform: scaleX(0.15);  opacity: 0.2; }
+  100% { transform: scaleX(1);     opacity: 1; }
+}
+
+@keyframes rowFlip {
+  0%   { opacity: 1; }
+  40%  { opacity: 0.1; }
+  60%  { opacity: 0.1; }
+  100% { opacity: 1; }
+}

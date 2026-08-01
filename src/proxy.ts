@@ -66,3 +66,12 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = { matcher: ['/reports/edit', '/api/:path*'] };
+
+// Periodic cleanup of expired rate-limit entries (every 5 minutes)
+if (typeof setInterval !== 'undefined') {
+  setInterval(() => {
+    const now = Date.now();
+    for (const [ip, entry] of rateMap) { if (now > entry.resetAt) rateMap.delete(ip); }
+    for (const [ip, entry] of loginRateMap) { if (now > entry.resetAt) loginRateMap.delete(ip); }
+  }, 300_000);
+}

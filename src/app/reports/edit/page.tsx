@@ -9,6 +9,7 @@ interface NewsItem {
   image: string;
   imagePosition: 'left' | 'right';
   imageScale: number;
+  style: 'default' | 'left-half' | 'right-half' | 'flash';
 }
 
 interface RouteItem {
@@ -26,7 +27,7 @@ interface ReportsData {
 }
 
 function emptyNews(): NewsItem {
-  return { date: '', title: '', body: '', image: '', imagePosition: 'left', imageScale: 45 };
+  return { date: '', title: '', body: '', image: '', imagePosition: 'left', imageScale: 45, style: 'default' };
 }
 
 function emptyRoute(): RouteItem {
@@ -42,6 +43,7 @@ export default function ReportsEditPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
@@ -57,7 +59,10 @@ export default function ReportsEditPage() {
       setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
       setGameVersion(ver.gameVersion);
       setLoaded(true);
-    }).catch(console.error);
+    }).catch((err) => {
+      console.error(err);
+      setLoadError(true);
+    });
   }, []);
 
   async function handleImageUpload(idx: number, file: File) {
@@ -108,6 +113,10 @@ export default function ReportsEditPage() {
       })
       .catch(() => setMsg('保存失败'))
       .finally(() => setSaving(false));
+  }
+
+  if (loadError) {
+    return <div className="text-center py-16 text-muted-foreground">数据加载失败，请刷新重试</div>;
   }
 
   if (!loaded) {
@@ -212,8 +221,8 @@ export default function ReportsEditPage() {
                            focus:border-primary/50 transition-colors resize-y"
               />
 
-              <span className="text-xs text-muted-foreground self-center">配图</span>
-              <div className="space-y-2">
+              <span className={`text-xs text-muted-foreground self-center ${(item.style || 'default') === 'flash' ? 'hidden' : ''}`}>配图</span>
+              <div className={`space-y-2 ${(item.style || 'default') === 'flash' ? 'hidden' : ''}`}>
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
@@ -293,6 +302,26 @@ export default function ReportsEditPage() {
                     </div>
                   </div>
                 )}
+
+                {/* Style selector */}
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-[11px] text-muted-foreground w-10">样式</span>
+                  <select
+                    value={item.style || 'default'}
+                    onChange={(e) => {
+                      const next = [...news];
+                      next[idx] = { ...next[idx], style: e.target.value as NewsItem['style'] };
+                      setNews(next);
+                    }}
+                    className="h-7 rounded-md border border-border/40 bg-secondary px-2 text-xs outline-none
+                               focus:border-primary/50 transition-colors"
+                  >
+                    <option value="default">默认</option>
+                    <option value="left-half">左半格</option>
+                    <option value="right-half">右半格</option>
+                    <option value="flash">快讯</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>

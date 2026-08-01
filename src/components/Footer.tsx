@@ -6,9 +6,7 @@ export function Footer() {
       <div className="max-w-[1280px] mx-auto px-6 py-6 space-y-4">
         {/* Links */}
         <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/60">
-          <Link href="/help" className="hover:text-foreground transition-colors">帮助</Link>
-          <Link href="/join" className="hover:text-foreground transition-colors">加入我们</Link>
-          <Link href="/reports" className="hover:text-foreground transition-colors">泛天商报</Link>
+          <Link href="/help" className="hover:text-foreground transition-colors">帮助中心</Link>
         </div>
 
         {/* Copyright + logo */}
@@ -26,9 +24,26 @@ export function Footer() {
           </p>
         </div>
 
+        {/* Dev thanks */}
+        <p className="text-center text-[11px] text-muted-foreground/50">
+          开发者是 SCM 开发组一员，非常感谢 SCM 开发组 Rookie 和 Starryeye 大佬对本网站开发提供的支持
+        </p>
+
         {/* Data credits */}
         <div className="flex items-center justify-center gap-4 flex-wrap">
           <span className="text-[11px] text-muted-foreground/50">感谢星际公民汉化盒子提供的中英对照支持</span>
+          <a
+            href="https://apps.microsoft.com/detail/9nf3swfwnkl1?launch=false&mode=mini&hl=zh-CN&gl=CN"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="transition-opacity hover:opacity-100"
+          >
+            <img
+              src="/hanhua-logo.png"
+              alt="汉化盒子"
+              className="h-7 object-contain opacity-75 hover:opacity-100"
+            />
+          </a>
           <span className="text-border/40">|</span>
           <span className="text-[11px] text-muted-foreground/50">感谢UEX提供的数据</span>
           <a

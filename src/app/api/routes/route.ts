@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       ...(!originLocation && spaceOnly ? { terminal: { AND: [{ spaceStationName: { not: null } }, { spaceStationName: { not: '' } }] } } : {}),
     },
     include: {
-      commodity: { select: { id: true, name: true, kind: true, isIllegal: true } },
+      commodity: { select: { id: true, name: true, nameEn: true, kind: true, isIllegal: true } },
       terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } },
     },
   });
@@ -186,20 +186,18 @@ export async function GET(request: NextRequest) {
       const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
       const cargoInfo = cargoRouteMap.get(cargoKey);
       const commMax = avgByCommodity[buy.commodityId];
-      const originAvgStock = originTerm?.scuBuyAvg ?? avgByCommodity[buy.commodityId]?.scuBuyAvg ?? 0;
       const originMaxStock = originTerm?.scuBuyMax ?? commMax?.scuBuyMax ?? 0;
       const destMaxStock = destTerm?.scuSellMax ?? commMax?.scuSellMax ?? 0;
-      // Load SCU = min(ship cargo, terminal avg buy stock).
-      // Use nullish coalescing: 0 is a legitimate value (no stock), not missing data.
-      const loadScu = shipScu > 0 ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1) : 1;
-      // Sell SCU = min(ship cargo, terminal avg buy stock, dest max)
+      // Load SCU = min(ship cargo, origin max buy stock)
+      const loadScu = shipScu > 0 ? Math.min(shipScu, originMaxStock > 0 ? originMaxStock : 1) : 1;
+      // Sell SCU = min(ship cargo, origin max buy stock, dest max sell stock)
       const sellScu = shipScu > 0
-        ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1, destMaxStock > 0 ? destMaxStock : 1)
+        ? Math.min(shipScu, originMaxStock > 0 ? originMaxStock : 1, destMaxStock > 0 ? destMaxStock : 1)
         : 1;
 
       routes.push({
         commodityId: buy.commodityId,
-        commodityName: buy.commodity.name,
+        commodityName: buy.commodity.nameEn || buy.commodity.name,
         commodityNameZh: buy.commodity.name,
         commodityKind: buy.commodity.kind,
         commodityKindZh: getZhKind(buy.commodity.kind),
@@ -261,20 +259,71 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Round-trip filter: only keep routes where reverse also has profitable trade
-  // Build set of all profitable terminal pairs BEFORE truncation
+  // Round-trip: pair routes by terminal pair, return paired result
   if (roundTrip) {
-    const profitablePairs = new Set<string>();
+    // Build reverse lookup map: "destTerminalId-originTerminalId" → route
+    const revMap = new Map<string, TradeRoute>();
     for (const r of routes) {
-      profitablePairs.add(`${r.originTerminalId}-${r.destTerminalId}`);
+      const revKey = `${r.destTerminalId}-${r.originTerminalId}`;
+      if (!revMap.has(revKey)) revMap.set(revKey, r);
     }
-    const rtFiltered = routes.filter((r) =>
-      profitablePairs.has(`${r.destTerminalId}-${r.originTerminalId}`)
-    );
-    routes.length = 0;
-    routes.push(...rtFiltered);
+
+    // Filter by maxInvestment / maxDistance
+    const qualified = routes.filter((r) => {
+      if (maxInvestment && maxInvestment > 0 && r.totalInvestment > maxInvestment) return false;
+      if (maxDistance && maxDistance > 0 && (r.distanceGm == null || r.distanceGm > maxDistance)) return false;
+      return true;
+    });
+
+    // Pair: match each route with its reverse
+    const used = new Set<string>();
+    const pairs: Array<{ outward: TradeRoute; return_: TradeRoute; roundTripProfit: number; roundTripInvestment: number }> = [];
+
+    for (const r of qualified) {
+      const key = `${r.originTerminalId}-${r.destTerminalId}`;
+      const revKey = `${r.destTerminalId}-${r.originTerminalId}`;
+      if (used.has(key) || used.has(revKey)) continue;
+
+      const rev = revMap.get(key);
+      if (rev) {
+        used.add(key);
+        used.add(revKey);
+        // Also apply investment/distance filter to reverse
+        let revOk = true;
+        if (maxInvestment && maxInvestment > 0 && rev.totalInvestment > maxInvestment) revOk = false;
+        if (maxDistance && maxDistance > 0 && (rev.distanceGm == null || rev.distanceGm > maxDistance)) revOk = false;
+        if (revOk) {
+          pairs.push({
+            outward: r,
+            return_: rev,
+            roundTripProfit: r.totalProfit + rev.totalProfit,
+            roundTripInvestment: r.totalInvestment + rev.totalInvestment,
+          });
+        }
+      }
+    }
+
+    // Sort pairs by combined profit
+    pairs.sort((a, b) => {
+      if (sortBy === 'profit') return (b.roundTripProfit - a.roundTripProfit);
+      if (sortBy === 'roi') {
+        const roiA = a.roundTripInvestment > 0 ? a.roundTripProfit / a.roundTripInvestment : 0;
+        const roiB = b.roundTripInvestment > 0 ? b.roundTripProfit / b.roundTripInvestment : 0;
+        return roiB - roiA;
+      }
+      // distance: use outward distance
+      if (sortBy === 'distance') {
+        const dA = a.outward.distanceGm ?? Infinity;
+        const dB = b.outward.distanceGm ?? Infinity;
+        return dA - dB;
+      }
+      return b.roundTripProfit - a.roundTripProfit;
+    });
+
+    return NextResponse.json({ roundTrip: true, pairs: pairs.slice(0, 25) });
   }
 
+  // Non-round-trip: normal route list
   // Filter by maxInvestment (total budget)
   let filtered = routes;
   if (maxInvestment && maxInvestment > 0) {

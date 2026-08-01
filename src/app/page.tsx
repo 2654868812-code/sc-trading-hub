@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Heatmap } from '@/components/Heatmap';
 import type { CommodityWithChange } from '@/types';
@@ -23,25 +23,54 @@ export default function HomePage() {
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [gameVersion, setGameVersion] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'name' | 'margin' | 'profit'>('name');
+  const [flipKey, setFlipKey] = useState(1);
   const router = useRouter();
 
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/commodities').then((r) => {
-        setLastUpdated(r.headers.get('X-LastUpdated'));
-        return r.json();
-      }),
-      fetch('/api/version').then((r) => r.json()),
-    ])
-      .then(([data, ver]) => {
-        setCommodities(data);
-        setGameVersion(ver.gameVersion);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
+  const lastCommoditySyncRef = useRef<string | null>(null);
+
+  const fetchCommodities = useCallback(async () => {
+    try {
+      const [dataRes, verRes] = await Promise.all([
+        fetch('/api/commodities'),
+        fetch('/api/version'),
+      ]);
+      if (!dataRes.ok) throw new Error(`HTTP ${dataRes.status}`);
+      const lastUpd = dataRes.headers.get('X-LastUpdated');
+      setLastUpdated(lastUpd);
+      if (lastUpd) lastCommoditySyncRef.current = lastUpd;
+      const [data, ver] = await Promise.all([dataRes.json(), verRes.json()]);
+      setCommodities(data);
+      setGameVersion(ver.gameVersion);
+      setError(null);
+    } catch (err) {
+      console.error(err);
+      setError('数据加载失败，请稍后刷新重试');
+      throw err;
+    }
   }, []);
+
+  useEffect(() => {
+    fetchCommodities().finally(() => setLoading(false));
+  }, [fetchCommodities]);
+
+  // Poll for data sync every 60s, auto-refresh commodities
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch('/api/data-freshness');
+        const { latestFetchedAt } = await res.json();
+        if (latestFetchedAt && lastCommoditySyncRef.current && lastCommoditySyncRef.current !== latestFetchedAt) {
+          await fetchCommodities();
+          setFlipKey((k) => k + 1);
+        }
+        if (latestFetchedAt) lastCommoditySyncRef.current = latestFetchedAt;
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => clearInterval(timer);
+  }, [fetchCommodities]);
 
   const handleCommodityClick = useCallback(
     (commodityId: number) => {
@@ -84,13 +113,26 @@ export default function HomePage() {
         />
       </div>
 
-      <Heatmap
-        commodities={commodities}
-        loading={loading}
+      {error && (
+        <div className="text-center py-8">
+          <p className="text-sm text-destructive">{error}</p>
+          <button onClick={() => window.location.reload()}
+            className="mt-2 text-xs px-4 py-1.5 rounded-md border border-border/40 bg-secondary
+                       hover:bg-accent transition-colors">
+            刷新页面
+          </button>
+        </div>
+      )}
+      {!error && (
+        <Heatmap
+          commodities={commodities}
+          loading={loading}
+        flipKey={flipKey}
         search={search}
         sort={sort}
         onCommodityClick={handleCommodityClick}
       />
+      )}
     </>
   );
 }

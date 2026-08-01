@@ -8,6 +8,8 @@ interface CommodityCellProps {
   kindZh: string;
   profitMargin: number | null;
   profitChange: number | null;
+  flipKey?: number;
+  flipIndex?: number;
   onClick: () => void;
 }
 
@@ -31,6 +33,8 @@ export function CommodityCell({
   kindZh,
   profitMargin,
   profitChange,
+  flipKey,
+  flipIndex = 0,
   onClick,
 }: CommodityCellProps) {
   const [tooltip, setTooltip] = useState(false);
@@ -44,8 +48,11 @@ export function CommodityCell({
         onMouseLeave={() => setTooltip(false)}
         className="w-full text-left px-2 py-1.5 rounded border border-border/20 bg-white
                    hover:bg-accent/60 hover:border-border/50 transition-all
-                   active:scale-[0.97]
+                   active:scale-[0.97] overflow-hidden
                    dark:bg-white dark:text-gray-900"
+        style={{
+          animation: (flipKey && flipKey > 1) ? `cellFlip 0.1s ease-in-out ${flipIndex * 100}ms both` : undefined,
+        }}
       >
         <div className="flex items-center justify-between gap-1">
           <span className="text-[11px] truncate leading-tight font-medium">

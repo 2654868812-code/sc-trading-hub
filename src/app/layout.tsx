@@ -4,6 +4,7 @@ import { Noto_Sans_SC } from 'next/font/google';
 import './globals.css';
 import { NavHeader } from '@/components/NavHeader';
 import { Footer } from '@/components/Footer';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const notoSans = Noto_Sans_SC({
   subsets: ['latin'],
@@ -40,7 +41,9 @@ export default function RootLayout({
           </div>
           <div className="gold-shimmer-line" />
         </header>
-        <main className="max-w-[1280px] mx-auto px-6 py-4">{children}</main>
+        <main className="max-w-[1280px] mx-auto px-6 py-4">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
         <Footer />
       </body>
     </html>

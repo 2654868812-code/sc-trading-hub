@@ -7,8 +7,8 @@ const TABS = [
   { href: '/', label: '商品总览' },
   { href: '/routes', label: '贸易路线' },
   { href: '/reports', label: '泛天商报' },
+  { href: '/trade', label: '玩家交易与合约' },
   { href: '/join', label: '加入我们' },
-  { href: '/help', label: '帮助中心' },
 ];
 
 export function NavHeader() {

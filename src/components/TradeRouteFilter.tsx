@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react';
 import type { RouteFilters, ShipOption } from '@/types';
+import { readFiltersFromStorage, buildFilterParams } from '@/lib/filter-storage';
 
 interface SystemOption {
   en: string;
@@ -20,6 +21,7 @@ interface CommodityOption {
 interface TradeRouteFilterProps {
   systems: SystemOption[];
   onFilterChange: (filters: RouteFilters) => void;
+  onFiltersPersist?: (filters: RouteFilters) => void;
   loading?: boolean;
   initialFilters?: RouteFilters;
 }
@@ -113,6 +115,7 @@ interface LocationOption {
 export function TradeRouteFilter({
   systems,
   onFilterChange,
+  onFiltersPersist,
   loading,
   initialFilters,
 }: TradeRouteFilterProps) {
@@ -151,7 +154,10 @@ export function TradeRouteFilter({
   const originLocRef = useRef<HTMLDivElement>(null);
   const destLocRef = useRef<HTMLDivElement>(null);
 
+  // Load data + restore from sessionStorage if URL is empty (after hydration)
   useEffect(() => {
+    const hasUrlParams = !!(f.shipId || f.commodityId || f.originSystem || f.destSystem);
+
     Promise.all([
       fetch('/api/vehicles').then((r) => r.json()),
       fetch('/api/locations').then((r) => r.json()),
@@ -164,17 +170,73 @@ export function TradeRouteFilter({
         kindZh: c.kindZh || '', isDazong: c.isDazong || false, isIllegal: c.isIllegal || false,
       }));
       setCommodities(commList);
-      // Restore search text from preselected IDs (e.g. from URL/sessionStorage)
-      if (shipId) {
-        const s = shipsData.find((x: ShipOption) => x.id === parseInt(shipId));
+
+      // Determine effective shipId/commodityId: URL first, fallback to sessionStorage
+      let effectiveShipId = shipId;
+      let effectiveCommodityId = commodityId;
+      let stored: RouteFilters | null = null;
+
+      if (!hasUrlParams) {
+        stored = readFiltersFromStorage();
+      }
+
+      if (stored?.shipId) {
+        effectiveShipId = String(stored.shipId);
+        effectiveCommodityId = stored.commodityId ? String(stored.commodityId) : '';
+
+        setShipId(effectiveShipId);
+        if (stored.commodityId) setCommodityId(String(stored.commodityId));
+        if (stored.originSystem) setOriginSystem(stored.originSystem);
+        if (stored.destSystem) setDestSystem(stored.destSystem);
+        if (stored.originLocation) { setOriginLocation(stored.originLocation); setOriginLocSearch(stored.originLocation); }
+        if (stored.destLocation) { setDestLocation(stored.destLocation); setDestLocSearch(stored.destLocation); }
+        if (stored.maxInvestment) setMaxInvestment(String(stored.maxInvestment));
+        if (stored.maxDistance) setMaxDistance(String(stored.maxDistance));
+        if (stored.commodityType) setCommodityType(stored.commodityType);
+        if (stored.autoLoadType) setAutoLoadType(stored.autoLoadType);
+        if (stored.sortBy) setSortBy(stored.sortBy);
+        if (stored.roundTrip) setRoundTrip(stored.roundTrip);
+      }
+
+      // Restore search text from effective IDs (works for both URL and sessionStorage)
+      if (effectiveShipId) {
+        const s = shipsData.find((x: ShipOption) => x.id === parseInt(effectiveShipId));
         if (s) setShipSearch(s.name);
       }
-      if (commodityId) {
-        const c = commList.find((x: CommodityOption) => x.id === parseInt(commodityId));
+      if (effectiveCommodityId) {
+        const c = commList.find((x: CommodityOption) => x.id === parseInt(effectiveCommodityId));
         if (c) setCommoditySearch(c.nameZh);
       }
+
+      // Auto-search if sessionStorage had filters (URL case handled by parent)
+      if (stored?.shipId) {
+        onFilterChange({ ...stored, sortOrder: 'desc' });
+      }
     }).catch(console.error);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Auto-persist filter changes to URL/sessionStorage without triggering search
+  useEffect(() => {
+    if (!hasShip || !onFiltersPersist) return;
+    onFiltersPersist({
+      shipId: parseInt(shipId),
+      commodityId: commodityId ? parseInt(commodityId) : undefined,
+      originSystem: originSystem || undefined,
+      destSystem: destSystem || undefined,
+      originLocation: originLocation || undefined,
+      destLocation: destLocation || undefined,
+      maxInvestment: maxInvestment ? parseFloat(maxInvestment) : undefined,
+      maxDistance: maxDistance ? parseFloat(maxDistance) : undefined,
+      commodityType: (commodityType || undefined) as RouteFilters['commodityType'],
+      autoLoadType: (autoLoadType || undefined) as RouteFilters['autoLoadType'],
+      sortBy: sortBy as RouteFilters['sortBy'],
+      sortOrder: 'desc',
+      roundTrip: roundTrip || undefined,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipId, commodityId, originSystem, destSystem, originLocation, destLocation,
+      maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, roundTrip]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -557,10 +619,13 @@ export function TradeRouteFilter({
           <option value="roi">ROI</option>
           <option value="distance">距离</option>
         </SelectField>
-        <label className="flex items-center gap-1.5 h-9 px-3 rounded-md border border-border/40 bg-secondary cursor-pointer hover:border-primary/40 transition-colors select-none">
-          <input type="checkbox" checked={roundTrip} onChange={(e) => setRoundTrip(e.target.checked)}
-            className="w-3.5 h-3.5 rounded accent-primary cursor-pointer" />
+        <label className="flex items-center gap-2 h-9 px-3 rounded-md border border-border/40 bg-secondary cursor-pointer hover:border-primary/40 transition-colors select-none">
           <span className="text-[11px] tracking-wider text-muted-foreground uppercase">往返航线</span>
+          <div className="relative w-8 h-[18px] flex items-center">
+            <div className={`w-8 h-[18px] rounded-full transition-colors ${roundTrip ? 'bg-primary' : 'bg-muted-foreground/25'}`} />
+            <div className={`absolute w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform ${roundTrip ? 'translate-x-[15px]' : 'translate-x-[1px]'}`} />
+          </div>
+          <input type="checkbox" checked={roundTrip} onChange={(e) => setRoundTrip(e.target.checked)} className="sr-only" />
         </label>
         <button onClick={apply} disabled={loading || !hasShip}
           className="h-9 px-6 rounded-lg bg-primary text-primary-foreground text-sm font-semibold

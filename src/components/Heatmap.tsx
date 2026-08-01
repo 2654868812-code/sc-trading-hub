@@ -9,6 +9,7 @@ interface HeatmapProps {
   loading?: boolean;
   search?: string;
   sort?: 'name' | 'margin' | 'profit';
+  flipKey?: number;
   onCommodityClick: (commodityId: number) => void;
 }
 
@@ -60,7 +61,7 @@ function Skeleton() {
   );
 }
 
-export function Heatmap({ commodities, loading, search, sort = 'name', onCommodityClick }: HeatmapProps) {
+export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, onCommodityClick }: HeatmapProps) {
   if (loading) return <Skeleton />;
 
   const q = (search || '').toLowerCase();
@@ -90,19 +91,30 @@ export function Heatmap({ commodities, loading, search, sort = 'name', onCommodi
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
+  if (sorted.length === 0) {
+    return (
+      <div className="text-center py-16 text-muted-foreground">
+        <p>没有找到匹配的商品</p>
+        <p className="text-sm mt-1 text-muted-foreground/50">尝试修改搜索条件</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <section>
         <SectionHeader title="大宗商品" help={`历史最大买量 ≥ 2,000 SCU\n流通量大、供需稳定的主流贸易品`} />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
-          {major.map((c) => (
+          {major.map((c, i) => (
             <CommodityCell
-              key={c.id}
+              key={`${flipKey || 0}-${c.id}`}
               nameEn={c.nameEn}
               nameZh={c.nameZh}
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              flipKey={flipKey}
+              flipIndex={i}
               onClick={() => onCommodityClick(c.id)}
             />
           ))}
@@ -112,14 +124,16 @@ export function Heatmap({ commodities, loading, search, sort = 'name', onCommodi
       <section>
         <SectionHeader title="小宗商品" help={`历史最大买量 ＜ 2,000 SCU\n流通量小、零散交易的小众商品`} />
         <div className="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
-          {minor.map((c) => (
+          {minor.map((c, i) => (
             <CommodityCell
-              key={c.id}
+              key={`${flipKey || 0}-${c.id}`}
               nameEn={c.nameEn}
               nameZh={c.nameZh}
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              flipKey={flipKey}
+              flipIndex={major.length + i}
               onClick={() => onCommodityClick(c.id)}
             />
           ))}

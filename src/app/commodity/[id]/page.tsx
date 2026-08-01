@@ -49,7 +49,11 @@ export default function CommodityDetailPage() {
   }, [terminals]);
 
   useEffect(() => {
-    if (chartTerminalIds.length === 0) return;
+    if (chartTerminalIds.length === 0) {
+      setPriceData([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     fetch(`/api/prices?commodityId=${commodityId}&terminalIds=${chartTerminalIds.join(',')}&hours=${hours}`)
       .then((r) => r.json())

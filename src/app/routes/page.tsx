@@ -5,8 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { TradeRouteFilter } from '@/components/TradeRouteFilter';
 import { RouteTable } from '@/components/RouteTable';
 import type { TradeRoute, RouteFilters } from '@/types';
-
-const FILTER_STORAGE_KEY = 'sc-trade-filters';
+import { saveFiltersToStorage, buildFilterParams } from '@/lib/filter-storage';
 
 function readFiltersFromParams(searchParams: URLSearchParams): RouteFilters {
   return {
@@ -26,44 +25,25 @@ function readFiltersFromParams(searchParams: URLSearchParams): RouteFilters {
   };
 }
 
-function readFiltersFromStorage(): RouteFilters | null {
-  try {
-    const raw = sessionStorage.getItem(FILTER_STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as RouteFilters;
-  } catch {
-    return null;
-  }
-}
-
-function saveFiltersToStorage(filters: RouteFilters): void {
-  try {
-    sessionStorage.setItem(FILTER_STORAGE_KEY, JSON.stringify(filters));
-  } catch { /* ignore */ }
-}
-
 function RoutesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [systems, setSystems] = useState<{ en: string; zh: string }[]>([]);
   const [routes, setRoutes] = useState<TradeRoute[]>([]);
+  const [routePairs, setRoutePairs] = useState<Array<{ outward: TradeRoute; return_: TradeRoute; roundTripProfit: number; roundTripInvestment: number }>>([]);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
-  const [dataUpdated, setDataUpdated] = useState(false);
-  const lastFetchedAtRef = useRef<string | null>(null);
+  const [flipKey, setFlipKey] = useState(1);
+  const [roundTrip, setRoundTrip] = useState(
+    searchParams.get('roundTrip') === '1'
+  );
   const currentFiltersRef = useRef<RouteFilters | null>(null);
+  const lastSyncRef = useRef<string | null>(null);
 
-  // Read initial filters: URL first, fallback to sessionStorage
-  function getInitialFilters(): RouteFilters {
-    const fromUrl = readFiltersFromParams(searchParams);
-    // Check if URL has any filter params
-    const hasUrlParams = searchParams.toString().length > 0;
-    if (hasUrlParams) return fromUrl;
-    // No URL params — try sessionStorage
-    return readFiltersFromStorage() || fromUrl;
-  }
-  const initialFilters = getInitialFilters();
+  // Read initial filters from URL only (sessionStorage handled client-side after mount)
+  const initialFilters = readFiltersFromParams(searchParams);
 
   // Load systems list
   useEffect(() => {
@@ -75,8 +55,8 @@ function RoutesContent() {
       .catch(console.error);
   }, []);
 
-  const doSearch = useCallback(async (filters: RouteFilters) => {
-    setLoading(true);
+  const doSearch = useCallback(async (filters: RouteFilters, silent?: boolean) => {
+    if (!silent) setLoading(true);
     setSearched(true);
     const params = new URLSearchParams();
     if (filters.shipId) params.set('shipId', String(filters.shipId));
@@ -95,12 +75,23 @@ function RoutesContent() {
 
     try {
       const res = await fetch(`/api/routes?${params.toString()}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      setRoutes(data);
+      if (data.roundTrip) {
+        setRoutePairs(data.pairs || []);
+        setRoutes([]);
+      } else {
+        setRoutes(Array.isArray(data) ? data : []);
+        setRoutePairs([]);
+      }
+      setSearchError(null);
     } catch (err) {
       console.error(err);
+      setSearchError('查询失败，请稍后重试');
+      setRoutes([]);
+      setRoutePairs([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -113,55 +104,26 @@ function RoutesContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Poll for data freshness every 60s
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    async function checkFreshness() {
-      try {
-        const res = await fetch('/api/data-freshness');
-        const { latestFetchedAt } = await res.json();
-        if (!latestFetchedAt) return;
-        if (lastFetchedAtRef.current && lastFetchedAtRef.current !== latestFetchedAt) {
-          setDataUpdated(true);
-        }
-        lastFetchedAtRef.current = latestFetchedAt;
-      } catch { /* ignore */ }
-    }
-    checkFreshness();
-    timer = setInterval(checkFreshness, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // When data updates, re-search with current filters
-  useEffect(() => {
-    if (dataUpdated && currentFiltersRef.current) {
-      doSearch(currentFiltersRef.current);
-      setDataUpdated(false);
-    }
-  }, [dataUpdated, doSearch]);
-
   const handleFilterChange = useCallback(async (filters: RouteFilters) => {
     // Persist to URL
-    const params = new URLSearchParams();
-    if (filters.shipId) params.set('shipId', String(filters.shipId));
-    if (filters.commodityId) params.set('commodityId', String(filters.commodityId));
-    if (filters.originSystem) params.set('originSystem', filters.originSystem);
-    if (filters.destSystem) params.set('destSystem', filters.destSystem);
-    if (filters.originLocation) params.set('originLocation', filters.originLocation);
-    if (filters.destLocation) params.set('destLocation', filters.destLocation);
-    if (filters.maxInvestment) params.set('maxInvestment', String(filters.maxInvestment));
-    if (filters.maxDistance) params.set('maxDistance', String(filters.maxDistance));
-    if (filters.autoLoadType) params.set('autoLoadType', filters.autoLoadType);
-    if (filters.commodityType) params.set('commodityType', filters.commodityType);
-    if (filters.sortBy) params.set('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.set('sortOrder', filters.sortOrder || 'desc');
-    if (filters.roundTrip) params.set('roundTrip', '1');
+    const params = buildFilterParams(filters);
     router.replace(`/routes?${params.toString()}`, { scroll: false });
 
     saveFiltersToStorage(filters);
     currentFiltersRef.current = filters;
+    setRoundTrip(filters.roundTrip || false);
     await doSearch(filters);
   }, [router, doSearch]);
+
+  // Persist filters to URL/storage without search (called on every filter change)
+  const handleFiltersPersist = useCallback((filters: RouteFilters) => {
+    if (!filters.shipId) return;
+    const params = buildFilterParams(filters);
+    router.replace(`/routes?${params.toString()}`, { scroll: false });
+    saveFiltersToStorage(filters);
+    currentFiltersRef.current = filters;
+    setRoundTrip(filters.roundTrip || false);
+  }, [router]);
 
   const handleCommodityClick = useCallback(
     (commodityId: number) => {
@@ -170,25 +132,48 @@ function RoutesContent() {
     [router]
   );
 
+  // Check for data sync every 2 minutes, auto-refresh if new data available
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+    async function check() {
+      try {
+        const res = await fetch('/api/data-freshness');
+        const { latestFetchedAt } = await res.json();
+        if (!latestFetchedAt) return;
+        if (lastSyncRef.current && lastSyncRef.current !== latestFetchedAt && currentFiltersRef.current) {
+          await doSearch(currentFiltersRef.current, true);
+          setFlipKey((k) => k + 1);
+        }
+        lastSyncRef.current = latestFetchedAt;
+      } catch { /* ignore */ }
+    }
+    check();
+    timer = setInterval(check, 60_000);
+    return () => clearInterval(timer);
+  }, [doSearch]);
+
   return (
     <div className="space-y-4">
       <TradeRouteFilter
         systems={systems}
         onFilterChange={handleFilterChange}
+        onFiltersPersist={handleFiltersPersist}
         loading={loading}
         initialFilters={initialFilters}
       />
 
-      {dataUpdated && searched && (
-        <div className="px-4 py-2 rounded-md border border-chart-2/30 bg-chart-2/5 text-xs text-chart-2/80 animate-pulse">
-          检测到新数据，正在刷新...
+      {searchError && (
+        <div className="text-center py-8">
+          <p className="text-sm text-destructive">{searchError}</p>
         </div>
       )}
-
-      {searched && (
+      {searched && !searchError && (
         <RouteTable
           routes={routes}
+          routePairs={routePairs}
           loading={loading}
+          roundTrip={roundTrip}
+          flipKey={flipKey}
           onCommodityClick={handleCommodityClick}
         />
       )}

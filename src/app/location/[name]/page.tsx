@@ -121,19 +121,28 @@ export default function LocationDetailPage() {
 
   const [data, setData] = useState<LocationData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   useEffect(() => {
+    setFetchError(false);
     fetch(`/api/locations/${encodeURIComponent(locationName)}`)
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d: LocationData & { error?: string }) => {
-        if ('error' in d) { console.error(d.error); return; }
+        if ('error' in d) { setFetchError(true); return; }
         setData(d);
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        setFetchError(true);
+      })
       .finally(() => setLoading(false));
   }, [locationName]);
 
   if (loading) return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
+  if (fetchError) return <div className="text-center py-16 text-muted-foreground">数据加载失败，请稍后刷新重试</div>;
   if (!data) return <div className="text-center py-16 text-muted-foreground">地点不存在</div>;
 
   const loc = data.location;
