@@ -17,20 +17,12 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   readonly $transaction: any;
 
   constructor() {
-    const url = process.env.DATABASE_URL || 'file:./dev.db';
-    const isPostgres = url.startsWith('postgres');
-
-    if (isPostgres) {
-      const { PrismaPg } = require('@prisma/adapter-pg');
-      const { Pool } = require('pg');
-      const pool = new Pool({ connectionString: url });
-      this.client = new PrismaClient({ adapter: new PrismaPg(pool) }) as any;
-      this.logger.log('Using PostgreSQL adapter');
-    } else {
-      const { PrismaLibSql } = require('@prisma/adapter-libsql');
-      this.client = new PrismaClient({ adapter: new PrismaLibSql({ url }) }) as any;
-      this.logger.log('Using LibSQL/SQLite adapter');
-    }
+    const url = process.env.DATABASE_URL || 'postgresql://trading:trading@localhost:5432/trading';
+    const { PrismaPg } = require('@prisma/adapter-pg');
+    const { Pool } = require('pg');
+    const pool = new Pool({ connectionString: url });
+    this.client = new PrismaClient({ adapter: new PrismaPg(pool) }) as any;
+    this.logger.log('Using PostgreSQL adapter');
 
     this.commodity = this.client.commodity;
     this.terminal = this.client.terminal;

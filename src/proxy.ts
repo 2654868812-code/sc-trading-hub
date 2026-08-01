@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyToken } from '@/lib/auth';
 
 // In-memory rate limiter (per-IP, sliding window)
 const rateMap = new Map<string, { count: number; resetAt: number }>();
@@ -48,17 +47,6 @@ export async function proxy(request: NextRequest) {
     // General rate limit
     if (!checkRate(ip)) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-    }
-  }
-
-  // Protect /reports/edit — require valid signed auth token
-  if (request.nextUrl.pathname === '/reports/edit') {
-    const token = request.cookies.get('auth_token')?.value;
-    const valid = await verifyToken(token);
-    if (!valid) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/reports/login';
-      return NextResponse.redirect(url);
     }
   }
 
