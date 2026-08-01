@@ -18,36 +18,12 @@ function checkRate(ip: string): boolean {
   return true;
 }
 
-// Stricter rate limiter for login endpoint (brute-force protection)
-const loginRateMap = new Map<string, { count: number; resetAt: number }>();
-const LOGIN_RATE_LIMIT = 5;      // attempts
-const LOGIN_RATE_WINDOW = 60000; // 1 minute
-
-function checkLoginRate(ip: string): boolean {
-  const now = Date.now();
-  const entry = loginRateMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    loginRateMap.set(ip, { count: 1, resetAt: now + LOGIN_RATE_WINDOW });
-    return true;
-  }
-  if (entry.count >= LOGIN_RATE_LIMIT) return false;
-  entry.count++;
-  return true;
-}
-
 export async function proxy(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 
-  // Strict rate limit for login endpoint
-  if (request.nextUrl.pathname === '/api/reports/auth') {
-    if (!checkLoginRate(ip)) {
-      return NextResponse.json({ error: 'Too many login attempts, try again later' }, { status: 429 });
-    }
-  } else {
-    // General rate limit
-    if (!checkRate(ip)) {
-      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-    }
+  // General rate limit (NestJS backend has its own ThrottlerGuard)
+  if (!checkRate(ip)) {
+    return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
   }
 
   // Protect /reports/edit page — require valid auth_token cookie
@@ -73,6 +49,5 @@ if (typeof setInterval !== 'undefined') {
   setInterval(() => {
     const now = Date.now();
     for (const [ip, entry] of rateMap) { if (now > entry.resetAt) rateMap.delete(ip); }
-    for (const [ip, entry] of loginRateMap) { if (now > entry.resetAt) loginRateMap.delete(ip); }
   }, 300_000);
 }
