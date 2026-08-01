@@ -11,7 +11,6 @@ ENV BACKEND_URL=${BACKEND_URL}
 COPY package.json package-lock.json* ./
 RUN npm ci
 COPY . .
-RUN npx prisma generate
 RUN npm run build
 
 FROM base
