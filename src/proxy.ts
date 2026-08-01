@@ -35,7 +35,7 @@ function checkLoginRate(ip: string): boolean {
   return true;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 
   // Strict rate limit for login endpoint
