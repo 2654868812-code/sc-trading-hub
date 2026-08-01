@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { verifyToken } from '../../lib/auth';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 
@@ -16,13 +17,16 @@ export class AuthGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const auth = request.headers['authorization'];
-    if (!auth) throw new UnauthorizedException('Unauthorized');
+    if (!auth?.startsWith('Bearer ')) throw new UnauthorizedException('Unauthorized');
 
-    // Check both secrets — admin password OR cron secret
-    const adminPwd = process.env.ADMIN_PASSWORD;
+    const token = auth.slice(7);
+
+    // CRON_SECRET for cron endpoints
     const cronSecret = process.env.CRON_SECRET;
-    if (adminPwd && auth === `Bearer ${adminPwd}`) return true;
-    if (cronSecret && auth === `Bearer ${cronSecret}`) return true;
+    if (cronSecret && token === cronSecret) return true;
+
+    // Signed HMAC token for admin operations
+    if (verifyToken(token)) return true;
 
     throw new UnauthorizedException('Unauthorized');
   }

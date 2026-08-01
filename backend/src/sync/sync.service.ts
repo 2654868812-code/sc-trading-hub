@@ -12,7 +12,6 @@ export class SyncService {
     await this.syncCommodities();
     await this.syncTerminals();
     await this.syncPrices();
-    await this.updatePriceChanges();
     // Non-critical — don't fail the whole sync if these error
     await Promise.allSettled([
       this.syncCommodityAverages(),
@@ -20,6 +19,9 @@ export class SyncService {
       this.syncVehicles(),
       this.syncTerminalCommodityMax(),
     ]);
+    // Compute 3-day averages (must run after syncPrices + syncTerminalCommodityMax)
+    await this.computeAverages3d();
+    await this.updatePriceChanges();
     await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
     this.logger.log('Full sync complete');
   }
@@ -63,10 +65,52 @@ export class SyncService {
     for (const p of data) {
       if (!p.id_commodity || !p.id_terminal) continue;
       const k = `${p.id_commodity}-${p.id_terminal}`; if (seen.has(k)) continue; seen.add(k);
-      batch.push({ commodityId: p.id_commodity, terminalId: p.id_terminal, priceBuy: p.price_buy, priceBuyAvg: p.price_buy_avg, priceSell: p.price_sell, priceSellAvg: p.price_sell_avg, scuBuyStock: p.scu_buy, scuSellStock: p.scu_sell_stock, scuSellMax: p.scu_sell, uexModifiedAt: p.date_modified, fetchedAt });
+      // Store null for priceBuyAvg/priceSellAvg — computed later by computeAverages3d
+      batch.push({ commodityId: p.id_commodity, terminalId: p.id_terminal, priceBuy: p.price_buy, priceBuyAvg: null, priceSell: p.price_sell, priceSellAvg: null, scuBuyStock: p.scu_buy, scuSellStock: p.scu_sell_stock, scuSellMax: p.scu_sell, uexModifiedAt: p.date_modified, fetchedAt });
     }
     for (let i = 0; i < batch.length; i += 1000) await this.prisma.priceSnapshot.createMany({ data: batch.slice(i, i + 1000) });
     this.logger.log(`Inserted ${batch.length} price snapshots`);
+  }
+
+  // Compute 3-day rolling averages (matches Next.js computeAverages3d)
+  private async computeAverages3d() {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+
+    // Per-terminal averages
+    const rows = await (this.prisma as any).priceSnapshot.groupBy({
+      by: ['commodityId', 'terminalId'],
+      where: { fetchedAt: { gte: threeDaysAgo } },
+      _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+    });
+
+    let updated = 0;
+    for (const r of rows) {
+      await (this.prisma as any).terminalCommodityMax.upsert({
+        where: { commodityId_terminalId: { commodityId: r.commodityId, terminalId: r.terminalId } },
+        update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null },
+        create: { commodityId: r.commodityId, terminalId: r.terminalId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, fetchedAt: new Date() },
+      });
+      updated++;
+    }
+
+    // Per-commodity average (keep UEX max, only update avg fields)
+    const commRows = await (this.prisma as any).priceSnapshot.groupBy({
+      by: ['commodityId'],
+      where: { fetchedAt: { gte: threeDaysAgo } },
+      _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+    });
+
+    let commUpdated = 0;
+    for (const r of commRows) {
+      await (this.prisma as any).commodityAverage.upsert({
+        where: { commodityId: r.commodityId },
+        update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null },
+        create: { commodityId: r.commodityId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, fetchedAt: new Date() },
+      });
+      commUpdated++;
+    }
+
+    this.logger.log(`Computed 3d averages: ${updated} terminal pairs, ${commUpdated} commodities`);
   }
 
   private async updatePriceChanges() {
@@ -107,10 +151,11 @@ export class SyncService {
       try {
         const a = await uexFetch<any[]>(`/commodities_averages?id_commodity=${c.id}`);
         if (!a?.[0]) continue;
+        // Only set UEX all-time max + meta; avg fields filled by computeAverages3d
         await this.prisma.commodityAverage.upsert({
           where: { commodityId: c.id },
-          update: { priceBuyAvg: a[0].price_buy_avg, priceSellAvg: a[0].price_sell_avg, scuBuyMax: a[0].scu_buy_max, scuBuyAvg: a[0].scu_buy_avg, scuSellMax: a[0].scu_sell_max, scuSellAvg: a[0].scu_sell_avg, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
-          create: { commodityId: c.id, priceBuyAvg: a[0].price_buy_avg, priceSellAvg: a[0].price_sell_avg, scuBuyMax: a[0].scu_buy_max, scuBuyAvg: a[0].scu_buy_avg, scuSellMax: a[0].scu_sell_max, scuSellAvg: a[0].scu_sell_avg, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
+          update: { scuBuyMax: a[0].scu_buy_max, scuSellMax: a[0].scu_sell_max, statusBuyAvg: a[0].status_buy_avg, statusSellAvg: a[0].status_sell_avg, caxScore: a[0].cax_score, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
+          create: { commodityId: c.id, scuBuyMax: a[0].scu_buy_max, scuSellMax: a[0].scu_sell_max, statusBuyAvg: a[0].status_buy_avg, statusSellAvg: a[0].status_sell_avg, caxScore: a[0].cax_score, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
         });
       } catch { /* skip failures */ }
       await new Promise(r => setTimeout(r, 100));

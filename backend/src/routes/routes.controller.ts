@@ -216,7 +216,13 @@ export class RoutesController {
     filtered.sort((a, b) => {
       if (sort === 'profit') return (a.totalProfit - b.totalProfit) * order;
       if (sort === 'roi') return (a.roi - b.roi) * order;
-      return ((a.distanceGm ?? 0) - (b.distanceGm ?? 0)) * order;
+      if (sort === 'distance') {
+        if (a.distanceGm == null && b.distanceGm == null) return 0;
+        if (a.distanceGm == null) return 1;
+        if (b.distanceGm == null) return -1;
+        return (a.distanceGm - b.distanceGm) * order;
+      }
+      return (a.totalProfit - b.totalProfit) * order;
     });
 
     return filtered.slice(0, 50);
