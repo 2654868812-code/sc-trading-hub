@@ -30,7 +30,7 @@ const ReportsSchema = z.object({
 });
 
 const DATA_FILE = process.env.REPORTS_DATA_FILE || path.join(process.cwd(), '..', 'data', 'reports.json');
-const UPLOAD_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), '..', 'data', 'uploads');
+const UPLOAD_DIR = process.env.UPLOADS_DIR || path.join(process.cwd(), '..', 'public', 'uploads');
 
 function ensureDir(filePath: string) {
   const dir = path.dirname(filePath);
@@ -55,15 +55,15 @@ export class ReportsController {
 
   @Post()
   @UseGuards(AuthGuard)
-  save(@Body() body: any) {
+  save(@Body() body: any, @Res() res: Response) {
     try {
       const data = ReportsSchema.parse(body);
       ensureDir(DATA_FILE);
       fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-      return { ok: true };
+      return res.status(200).json({ ok: true });
     } catch (err: any) {
       this.logger.error('Failed to save reports', err);
-      return { error: 'Failed to save reports' };
+      return res.status(400).json({ error: 'Failed to save reports' });
     }
   }
 
@@ -84,45 +84,46 @@ export class ReportsController {
     try {
       await require('fs/promises').mkdir(UPLOAD_DIR, { recursive: true });
 
-      // Handle multipart form data inline
       const contentType = req.headers['content-type'] || '';
       if (!contentType.includes('multipart/form-data')) {
         return res.status(400).json({ error: 'Expected multipart/form-data' });
       }
 
-      // Parse the multipart body
       const busboy = require('busboy');
       const bb = busboy({ headers: req.headers, limits: { fileSize: 5 * 1024 * 1024 } });
       const allowedTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/gif'];
 
-      let uploaded = false;
-      bb.on('file', (fieldname: string, file: NodeJS.ReadableStream, info: { filename: string; mimeType: string }) => {
+      let sent = false;
+      const send = (status: number, body: any) => {
+        if (!sent) { sent = true; res.status(status).json(body); }
+      };
+
+      let fileReceived = false;
+
+      bb.on('file', (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string; mimeType: string }) => {
         if (!allowedTypes.includes(info.mimeType)) {
           file.resume();
+          send(400, { error: 'Invalid file type' });
           return;
         }
+        fileReceived = true;
         const mimeToExt: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
         const ext = mimeToExt[info.mimeType] || 'png';
-        const ts = Date.now();
-        const rnd = Math.random().toString(36).substring(2, 8);
-        const filename = `${ts}-${rnd}.${ext}`;
+        const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
         const ws = fs.createWriteStream(path.join(UPLOAD_DIR, filename));
         file.pipe(ws);
-        ws.on('finish', () => {
-          uploaded = true;
-          res.json({ url: `/uploads/${filename}` });
-        });
-        ws.on('error', () => res.status(500).json({ error: 'Failed to upload image' }));
+        ws.on('finish', () => send(200, { ok: true, url: `/uploads/${filename}` }));
+        ws.on('error', () => send(500, { error: 'Failed to upload image' }));
       });
 
-      bb.on('error', () => res.status(500).json({ error: 'Failed to upload image' }));
-      bb.on('finish', () => { if (!uploaded) res.status(400).json({ error: 'No file uploaded' }); });
+      bb.on('error', () => send(500, { error: 'Failed to upload image' }));
+      bb.on('close', () => { if (!fileReceived && !sent) send(400, { error: 'No file uploaded' }); });
 
       req.pipe(bb);
     } catch (err: any) {
       this.logger.error('Upload error', err);
-      res.status(500).json({ error: 'Failed to upload image' });
+      if (!res.headersSent) res.status(500).json({ error: 'Failed to upload image' });
     }
   }
 }

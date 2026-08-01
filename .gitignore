@@ -33,6 +33,13 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# uploaded images
+public/uploads/
+data/uploads/
+
+# NestJS build output
+backend/dist/
+
 # vercel
 .vercel
 

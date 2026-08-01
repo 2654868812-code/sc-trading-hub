@@ -35,7 +35,7 @@ function checkLoginRate(ip: string): boolean {
   return true;
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 
   // Strict rate limit for login endpoint
@@ -47,6 +47,19 @@ export async function proxy(request: NextRequest) {
     // General rate limit
     if (!checkRate(ip)) {
       return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+    }
+  }
+
+  // Protect /reports/edit page — require valid auth_token cookie
+  if (request.nextUrl.pathname === '/reports/edit') {
+    const token = request.cookies.get('auth_token')?.value;
+    if (!token || !/^\d+:[a-f0-9]{64}$/.test(token)) {
+      return NextResponse.redirect(new URL('/reports/login', request.url));
+    }
+    // Check token expiry
+    const expiry = parseInt(token.split(':')[0], 10);
+    if (Date.now() > expiry) {
+      return NextResponse.redirect(new URL('/reports/login', request.url));
     }
   }
 

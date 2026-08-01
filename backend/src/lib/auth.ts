@@ -1,6 +1,6 @@
 import * as crypto from 'crypto';
 
-const TOKEN_TTL = 12 * 60 * 60 * 1000; // 12 hours
+const TOKEN_TTL = 30 * 60 * 1000; // 30 minutes
 
 function getSecret(): string {
   const pwd = process.env.ADMIN_PASSWORD;
