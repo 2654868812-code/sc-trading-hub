@@ -21,7 +21,7 @@ let TerminalsController = class TerminalsController {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findAll(distinctSystems) {
+    async findAll(distinctSystems, type) {
         if (distinctSystems === 'true') {
             const rows = await this.prisma.terminal.findMany({
                 where: { starSystemName: { not: null } },
@@ -31,7 +31,11 @@ let TerminalsController = class TerminalsController {
             });
             return rows.map(r => r.starSystemName);
         }
+        const where = {};
+        if (type)
+            where.type = type;
         return this.prisma.terminal.findMany({
+            where,
             orderBy: { name: 'asc' },
             select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, type: true, hasCargoCenter: true, hasDockingPort: true, hasFreightElevator: true, isAutoLoad: true },
         });
@@ -42,8 +46,9 @@ __decorate([
     (0, common_1.Get)(),
     (0, public_decorator_1.Public)(),
     __param(0, (0, common_1.Query)('distinctSystems')),
+    __param(1, (0, common_1.Query)('type')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], TerminalsController.prototype, "findAll", null);
 exports.TerminalsController = TerminalsController = __decorate([

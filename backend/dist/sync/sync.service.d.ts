@@ -7,6 +7,7 @@ export declare class SyncService {
     private syncCommodities;
     private syncTerminals;
     private syncPrices;
+    private computeAverages3d;
     private updatePriceChanges;
     private syncCommodityAverages;
     private syncCargoRoutes;

@@ -832,6 +832,8 @@ export declare const TerminalCommodityMaxScalarFieldEnum: {
     readonly scuSellMax: "scuSellMax";
     readonly scuBuyAvg: "scuBuyAvg";
     readonly scuSellAvg: "scuSellAvg";
+    readonly priceBuyAvg: "priceBuyAvg";
+    readonly priceSellAvg: "priceSellAvg";
     readonly dateModified: "dateModified";
     readonly fetchedAt: "fetchedAt";
 };

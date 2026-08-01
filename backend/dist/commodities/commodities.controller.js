@@ -28,6 +28,7 @@ let CommoditiesController = class CommoditiesController {
             kindZh: (0, commodity_zh_1.getZhKind)(c.kind), totalSellStock: 0, totalBuyStock: 0, changePercent: c.changePercent,
             currentBuyAvg: null, currentSellAvg: null, profitMargin: null, profitChange: null, maxProfitMargin: null, isDazong: false };
     }
+    DAZONG_THRESHOLD = 2000;
     async findAll(res) {
         const commodities = await this.prisma.commodity.findMany({ orderBy: { name: 'asc' } });
         const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
@@ -35,57 +36,70 @@ let CommoditiesController = class CommoditiesController {
             res.setHeader('X-LastUpdated', latest.fetchedAt.toISOString());
         if (!latest)
             return commodities.map(c => this.emptyCommodity(c));
+        const [buyPrices, sellPrices, sellStock, buyStock, averages] = await Promise.all([
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } }, _avg: { priceBuy: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } }, _avg: { priceSell: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, scuSellStock: { gt: 0 } }, _sum: { scuSellStock: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, scuBuyStock: { gt: 0 } }, _sum: { scuBuyStock: true } }),
+            this.prisma.commodityAverage.findMany({ select: { commodityId: true, scuBuyMax: true } }),
+        ]);
+        const buyMap = {};
+        for (const c of buyPrices)
+            buyMap[c.commodityId] = c._avg.priceBuy;
+        const sellMap = {};
+        for (const s of sellPrices)
+            sellMap[s.commodityId] = s._avg.priceSell;
+        const sellStockMap = {};
+        for (const s of sellStock)
+            sellStockMap[s.commodityId] = s._sum.scuSellStock || 0;
+        const buyStockMap = {};
+        for (const b of buyStock)
+            buyStockMap[b.commodityId] = b._sum.scuBuyStock || 0;
         const dazongMap = {};
-        const allMax = await this.prisma.terminalCommodityMax.findMany({ select: { commodityId: true, scuBuyMax: true } });
-        for (const m of allMax) {
-            if (m.scuBuyMax && m.scuBuyMax >= 2000)
-                dazongMap[m.commodityId] = true;
-        }
-        const allBuy = await this.prisma.priceSnapshot.findMany({
-            where: { fetchedAt: latest.fetchedAt }, select: { commodityId: true, priceBuy: true, priceBuyAvg: true },
-        });
-        const allSell = await this.prisma.priceSnapshot.findMany({
-            where: { fetchedAt: latest.fetchedAt }, select: { commodityId: true, priceSell: true, priceSellAvg: true },
-        });
-        const buyAcc = {};
-        for (const s of allBuy) {
-            const v = s.priceBuyAvg ?? s.priceBuy;
-            if (!v || v <= 0)
-                continue;
-            if (!buyAcc[s.commodityId])
-                buyAcc[s.commodityId] = { sum: 0, count: 0 };
-            buyAcc[s.commodityId].sum += v;
-            buyAcc[s.commodityId].count++;
-        }
-        const sellAcc = {};
-        for (const s of allSell) {
-            const v = s.priceSellAvg ?? s.priceSell;
-            if (!v || v <= 0)
-                continue;
-            if (!sellAcc[s.commodityId])
-                sellAcc[s.commodityId] = { sum: 0, count: 0 };
-            sellAcc[s.commodityId].sum += v;
-            sellAcc[s.commodityId].count++;
-        }
-        const buyMap = {}, sellMap = {};
-        for (const [id, a] of Object.entries(buyAcc))
-            buyMap[+id] = Math.round(a.sum / a.count);
-        for (const [id, a] of Object.entries(sellAcc))
-            sellMap[+id] = Math.round(a.sum / a.count);
+        for (const a of averages)
+            dazongMap[a.commodityId] = (a.scuBuyMax || 0) >= this.DAZONG_THRESHOLD;
         return commodities.map(c => ({
-            id: c.id, name: c.name, nameZh: c.name, nameEn: c.nameEn, code: c.code, kind: c.kind,
-            isBuyable: c.isBuyable, isSellable: c.isSellable, isIllegal: c.isIllegal, isRaw: c.isRaw, isRefined: c.isRefined,
-            kindZh: (0, commodity_zh_1.getZhKind)(c.kind), totalSellStock: 0, totalBuyStock: 0, changePercent: c.changePercent,
-            currentBuyAvg: buyMap[c.id] ?? null, currentSellAvg: sellMap[c.id] ?? null,
+            ...c, nameZh: c.name, kindZh: (0, commodity_zh_1.getZhKind)(c.kind),
+            totalSellStock: sellStockMap[c.id] || 0,
+            totalBuyStock: buyStockMap[c.id] || 0,
+            currentBuyAvg: buyMap[c.id] ?? null,
+            currentSellAvg: sellMap[c.id] ?? null,
             profitMargin: c.profitMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
             isDazong: dazongMap[c.id] ?? false,
         }));
     }
-    async findOne(id) {
+    async findOne(id, res) {
         const c = await this.prisma.commodity.findUnique({ where: { id: parseInt(id) } });
-        if (!c)
+        if (!c) {
+            res.status(404);
             return { error: 'not found' };
-        return { ...c, nameZh: c.name, kindZh: (0, commodity_zh_1.getZhKind)(c.kind) };
+        }
+        const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
+        const avg = await this.prisma.commodityAverage.findUnique({ where: { commodityId: c.id }, select: { scuBuyMax: true } });
+        let totalSellStock = 0, totalBuyStock = 0, currentBuyAvg = null, currentSellAvg = null;
+        if (latest) {
+            const [buyData, sellData, sellStock, buyStock] = await Promise.all([
+                this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { commodityId: c.id, fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } }, _avg: { priceBuy: true } }),
+                this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { commodityId: c.id, fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } }, _avg: { priceSell: true } }),
+                this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { commodityId: c.id, fetchedAt: latest.fetchedAt, scuSellStock: { gt: 0 } }, _sum: { scuSellStock: true } }),
+                this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { commodityId: c.id, fetchedAt: latest.fetchedAt, scuBuyStock: { gt: 0 } }, _sum: { scuBuyStock: true } }),
+            ]);
+            if (buyData[0])
+                currentBuyAvg = buyData[0]._avg.priceBuy;
+            if (sellData[0])
+                currentSellAvg = sellData[0]._avg.priceSell;
+            if (sellStock[0])
+                totalSellStock = sellStock[0]._sum.scuSellStock || 0;
+            if (buyStock[0])
+                totalBuyStock = buyStock[0]._sum.scuBuyStock || 0;
+        }
+        return {
+            ...c, nameZh: c.name, kindZh: (0, commodity_zh_1.getZhKind)(c.kind),
+            totalSellStock, totalBuyStock,
+            currentBuyAvg, currentSellAvg,
+            profitMargin: c.profitMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
+            isDazong: (avg?.scuBuyMax || 0) >= this.DAZONG_THRESHOLD,
+        };
     }
     async version() {
         const rows = await this.prisma.commodityAverage.findMany({
@@ -114,8 +128,9 @@ __decorate([
     (0, common_1.Get)('commodities/:id'),
     (0, public_decorator_1.Public)(),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], CommoditiesController.prototype, "findOne", null);
 __decorate([

@@ -17,15 +17,16 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const public_decorator_1 = require("../common/decorators/public.decorator");
 const commodity_zh_1 = require("../lib/commodity-zh");
-const SPACE_ONLY_SHIPS = new Set([102, 104, 105, 106]);
+const SPACE_ONLY_SHIPS = new Set([102, 104, 105, 106, 286]);
 let RoutesController = class RoutesController {
     prisma;
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findRoutes(commodityId, shipId, originSystem, destSystem, originLocation, destLocation, maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, sortOrder) {
+    async findRoutes(commodityId, shipId, originSystem, destSystem, originLocation, destLocation, maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, sortOrder, roundTrip) {
         const cid = commodityId ? parseInt(commodityId) : undefined;
         const sid = shipId ? parseInt(shipId) : 0;
+        const roundTripFlag = roundTrip === '1';
         let shipScu = 0, spaceOnly = false;
         if (sid > 0) {
             const ship = await this.prisma.vehicle.findUnique({ where: { id: sid }, select: { id: true, scu: true } });
@@ -49,18 +50,18 @@ let RoutesController = class RoutesController {
         const sellLocationFilters = buildLocationFilter(destLocation, spaceOnly);
         const [buySnaps, sellSnaps] = await Promise.all([
             this.prisma.priceSnapshot.findMany({
-                where: { fetchedAt: latest.fetchedAt, OR: [{ priceBuyAvg: { gt: 0 } }, { priceBuy: { gt: 0 } }], ...(cid ? { commodityId: cid } : {}), ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
-                include: { commodity: { select: { id: true, name: true, kind: true, isIllegal: true } }, terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
+                where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
+                include: { commodity: { select: { id: true, name: true, nameEn: true, kind: true, isIllegal: true } }, terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
             }),
             this.prisma.priceSnapshot.findMany({
-                where: { fetchedAt: latest.fetchedAt, OR: [{ priceSellAvg: { gt: 0 } }, { priceSell: { gt: 0 } }], ...(cid ? { commodityId: cid } : {}), ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
+                where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
                 include: { terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
             }),
         ]);
         const commodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
         const [cargoRoutes, termMaxRows] = await Promise.all([
             this.prisma.cargoRoute.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
-            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true } }),
+            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
         ]);
         const cargoMap = new Map();
         for (const cr of cargoRoutes)
@@ -82,10 +83,6 @@ let RoutesController = class RoutesController {
             for (const sell of sells) {
                 if (buy.terminalId === sell.terminalId)
                     continue;
-                const buyPrice = buy.priceBuyAvg ?? buy.priceBuy;
-                const sellPrice = sell.priceSellAvg ?? sell.priceSell;
-                if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice)
-                    continue;
                 if (originSystem && buy.terminal.starSystemName !== originSystem)
                     continue;
                 if (destSystem && sell.terminal.starSystemName !== destSystem)
@@ -106,17 +103,23 @@ let RoutesController = class RoutesController {
                     if (commodityType === 'minor' && (oSt && dSt))
                         continue;
                 }
-                const profitPerScu = sellPrice - buyPrice;
-                const roi = Math.round((profitPerScu / buyPrice) * 1000) / 10;
                 const oStock = stockMap.get(`${buy.commodityId}-${buy.terminalId}`);
                 const dStock = stockMap.get(`${sell.commodityId}-${sell.terminalId}`);
-                const originAvgStock = oStock?.scuBuyAvg ?? 0;
-                const loadScu = shipScu > 0 ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1) : 1;
-                const sellScu = shipScu > 0 ? Math.min(shipScu, originAvgStock > 0 ? originAvgStock : 1, dStock?.scuSellMax && dStock.scuSellMax > 0 ? dStock.scuSellMax : Infinity) : 1;
+                const buyPrice = oStock?.priceBuyAvg ?? buy.priceBuy ?? 0;
+                const sellPrice = dStock?.priceSellAvg ?? sell.priceSell ?? 0;
+                if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice)
+                    continue;
+                const profitPerScu = sellPrice - buyPrice;
+                const roi = Math.round((profitPerScu / buyPrice) * 1000) / 10;
+                const originMax = oStock?.scuBuyMax ?? 0;
+                const destMax = dStock?.scuSellMax ?? 0;
+                const loadScu = shipScu > 0 ? Math.min(shipScu, originMax > 0 ? originMax : 1) : 1;
+                const sellScu = shipScu > 0 ? Math.min(shipScu, originMax > 0 ? originMax : 1, destMax > 0 ? destMax : 1) : 1;
+                const totalInvestment = buyPrice * sellScu;
                 const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
                 const cargo = cargoMap.get(cargoKey);
                 routes.push({
-                    commodityId: buy.commodityId, commodityName: buy.commodity.name, commodityNameZh: buy.commodity.name, commodityKind: buy.commodity.kind, commodityKindZh: (0, commodity_zh_1.getZhKind)(buy.commodity.kind),
+                    commodityId: buy.commodityId, commodityName: buy.commodity.nameEn || buy.commodity.name, commodityNameZh: buy.commodity.name, commodityKind: buy.commodity.kind, commodityKindZh: (0, commodity_zh_1.getZhKind)(buy.commodity.kind),
                     originTerminalId: buy.terminalId, originTerminalName: buy.terminal.name, originTerminalNameZh: buy.terminal.name, originTerminalNameEn: buy.terminal.nameEn,
                     originLocation: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
                     originLocationZh: buy.terminal.cityName || buy.terminal.spaceStationName || buy.terminal.name,
@@ -134,8 +137,8 @@ let RoutesController = class RoutesController {
                     destMoonName: sell.terminal.moonName || '', destMoonNameEn: sell.terminal.moonNameEn || '',
                     sellPrice, profitPerScu, roi,
                     distanceGm: cargo?.distance ?? null,
-                    totalProfit: profitPerScu * sellScu, totalInvestment: buyPrice * loadScu, loadScu, sellScu, shipScu,
-                    originStock: buy.scuBuyStock || 0, destStock: sell.scuSellStock || 0,
+                    totalProfit: profitPerScu * sellScu, totalInvestment, loadScu, sellScu, shipScu,
+                    originStock: Math.round(oStock?.scuBuyAvg ?? 0), destStock: Math.round(dStock?.scuSellAvg ?? 0),
                     originStockMax: Math.round(oStock?.scuBuyMax ?? 0), destStockMax: Math.round(dStock?.scuSellMax ?? 0),
                     originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
                     destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
@@ -143,6 +146,63 @@ let RoutesController = class RoutesController {
                     containerSizesOrigin: cargo?.containerSizesOrigin ?? null, containerSizesDest: cargo?.containerSizesDest ?? null, isIllegal: buy.commodity.isIllegal,
                 });
             }
+        }
+        if (roundTripFlag) {
+            const revMap = new Map();
+            for (const r of routes) {
+                const revKey = `${r.destTerminalId}-${r.originTerminalId}`;
+                if (!revMap.has(revKey))
+                    revMap.set(revKey, r);
+            }
+            const maxInv = maxInvestment ? parseFloat(maxInvestment) : 0;
+            const maxDist = maxDistance ? parseFloat(maxDistance) : 0;
+            const qualified = routes.filter((r) => {
+                if (maxInv > 0 && r.totalInvestment > maxInv)
+                    return false;
+                if (maxDist > 0 && (r.distanceGm == null || r.distanceGm > maxDist))
+                    return false;
+                return true;
+            });
+            const used = new Set();
+            const pairs = [];
+            for (const r of qualified) {
+                const key = `${r.originTerminalId}-${r.destTerminalId}`;
+                const revKey = `${r.destTerminalId}-${r.originTerminalId}`;
+                if (used.has(key) || used.has(revKey))
+                    continue;
+                const rev = revMap.get(key);
+                if (rev) {
+                    let revOk = true;
+                    if (maxInv > 0 && rev.totalInvestment > maxInv)
+                        revOk = false;
+                    if (maxDist > 0 && (rev.distanceGm == null || rev.distanceGm > maxDist))
+                        revOk = false;
+                    if (revOk) {
+                        used.add(key);
+                        used.add(revKey);
+                        pairs.push({
+                            outward: r, return_: rev,
+                            roundTripProfit: r.totalProfit + rev.totalProfit,
+                            roundTripInvestment: r.totalInvestment + rev.totalInvestment,
+                        });
+                    }
+                }
+            }
+            const sort = sortBy || 'profit';
+            pairs.sort((a, b) => {
+                if (sort === 'profit')
+                    return b.roundTripProfit - a.roundTripProfit;
+                if (sort === 'roi') {
+                    const ra = a.roundTripInvestment > 0 ? a.roundTripProfit / a.roundTripInvestment : 0;
+                    const rb = b.roundTripInvestment > 0 ? b.roundTripProfit / b.roundTripInvestment : 0;
+                    return rb - ra;
+                }
+                if (sort === 'distance') {
+                    return (a.outward.distanceGm ?? Infinity) - (b.outward.distanceGm ?? Infinity);
+                }
+                return b.roundTripProfit - a.roundTripProfit;
+            });
+            return { roundTrip: true, pairs: pairs.slice(0, 25) };
         }
         let filtered = routes;
         const maxInv = maxInvestment ? parseFloat(maxInvestment) : 0;
@@ -158,7 +218,16 @@ let RoutesController = class RoutesController {
                 return (a.totalProfit - b.totalProfit) * order;
             if (sort === 'roi')
                 return (a.roi - b.roi) * order;
-            return ((a.distanceGm ?? 0) - (b.distanceGm ?? 0)) * order;
+            if (sort === 'distance') {
+                if (a.distanceGm == null && b.distanceGm == null)
+                    return 0;
+                if (a.distanceGm == null)
+                    return 1;
+                if (b.distanceGm == null)
+                    return -1;
+                return (a.distanceGm - b.distanceGm) * order;
+            }
+            return (a.totalProfit - b.totalProfit) * order;
         });
         return filtered.slice(0, 50);
     }
@@ -179,8 +248,9 @@ __decorate([
     __param(9, (0, common_1.Query)('autoLoadType')),
     __param(10, (0, common_1.Query)('sortBy')),
     __param(11, (0, common_1.Query)('sortOrder')),
+    __param(12, (0, common_1.Query)('roundTrip')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], RoutesController.prototype, "findRoutes", null);
 exports.RoutesController = RoutesController = __decorate([

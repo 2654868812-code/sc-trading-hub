@@ -1,11 +1,11 @@
+import { Response } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 export declare class LocationsController {
     private readonly prisma;
     constructor(prisma: PrismaService);
     list(): Promise<any[]>;
-    detail(name: string): Promise<{
+    detail(name: string, res: Response): Promise<{
         error: string;
-        status: number;
         location?: undefined;
         terminals?: undefined;
         commodities?: undefined;
@@ -24,7 +24,6 @@ export declare class LocationsController {
         terminals: never[];
         commodities: never[];
         error?: undefined;
-        status?: undefined;
         gameVersion?: undefined;
     } | {
         location: {
@@ -38,9 +37,8 @@ export declare class LocationsController {
             terminalCount: any;
         };
         terminals: any[];
-        gameVersion: null;
+        gameVersion: any;
         error?: undefined;
-        status?: undefined;
         commodities?: undefined;
     }>;
 }

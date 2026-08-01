@@ -26,14 +26,19 @@ let PricesController = class PricesController {
         if (!cid)
             return [];
         const ids = (terminalIds || '').split(',').map(Number).filter(Boolean);
-        const h = parseInt(hours || '24');
+        const hRaw = parseInt(hours || '24');
+        const h = Math.min(Math.max(hRaw || 24, 1), 168);
         const since = new Date(Date.now() - h * 60 * 60 * 1000);
+        const where = { commodityId: cid, fetchedAt: { gte: since } };
+        if (ids.length > 0)
+            where.terminalId = { in: ids };
         const snapshots = await this.prisma.priceSnapshot.findMany({
-            where: { commodityId: cid, terminalId: { in: ids }, fetchedAt: { gte: since } },
+            where,
             include: { terminal: { select: { name: true } } },
             orderBy: { fetchedAt: 'asc' },
+            take: 2000,
         });
-        return snapshots.map(s => ({ fetchedAt: s.fetchedAt.toISOString(), priceBuy: s.priceBuyAvg ?? s.priceBuy, priceSell: s.priceSellAvg ?? s.priceSell, terminalName: s.terminal.name }));
+        return snapshots.map(s => ({ fetchedAt: s.fetchedAt.toISOString(), priceBuy: s.priceBuy, priceSell: s.priceSell, terminalName: s.terminal.name }));
     }
     async terminals(commodityId) {
         const cid = parseInt(commodityId);
@@ -47,12 +52,11 @@ let PricesController = class PricesController {
             include: { terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, type: true, hasCargoCenter: true, hasDockingPort: true, hasFreightElevator: true, isAutoLoad: true } } },
         });
         const tids = [...new Set(snapshots.map(s => s.terminalId))];
-        const avgDays = 15;
-        const cutoff = new Date(Date.now() - avgDays * 24 * 60 * 60 * 1000);
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
         const [buyStats, sellStats, termMax] = await Promise.all([
-            this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceBuy: { gt: 0 }, fetchedAt: { gte: cutoff } }, _max: { priceBuy: true }, _min: { priceBuy: true }, _avg: { priceBuy: true } }),
-            this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceSell: { gt: 0 }, fetchedAt: { gte: cutoff } }, _max: { priceSell: true }, _min: { priceSell: true }, _avg: { priceSell: true } }),
-            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: cid }, select: { terminalId: true, scuBuyMax: true, scuSellMax: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceBuy: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } }, _max: { priceBuy: true }, _min: { priceBuy: true }, _avg: { priceBuy: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceSell: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } }, _max: { priceSell: true }, _min: { priceSell: true }, _avg: { priceSell: true } }),
+            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: cid }, select: { terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true } }),
         ]);
         const buyMap = {}, sellMap = {}, maxMap = {};
         for (const b of buyStats)
@@ -60,7 +64,7 @@ let PricesController = class PricesController {
         for (const s of sellStats)
             sellMap[s.terminalId] = { avg: s._avg.priceSell, max: s._max.priceSell, min: s._min.priceSell };
         for (const m of termMax)
-            maxMap[m.terminalId] = { buyMax: m.scuBuyMax ?? 0, sellMax: m.scuSellMax ?? 0 };
+            maxMap[m.terminalId] = { buyMax: m.scuBuyMax ?? 0, sellMax: m.scuSellMax ?? 0, buyAvg: m.scuBuyAvg ?? null, sellAvg: m.scuSellAvg ?? null };
         const seen = new Set();
         return snapshots.filter(s => { if (seen.has(s.terminalId))
             return false; seen.add(s.terminalId); return true; }).map(s => ({
@@ -73,7 +77,9 @@ let PricesController = class PricesController {
             type: s.terminal.type, hasCargoCenter: s.terminal.hasCargoCenter, hasDockingPort: s.terminal.hasDockingPort, hasFreightElevator: s.terminal.hasFreightElevator, isAutoLoad: s.terminal.isAutoLoad,
             priceBuy: s.priceBuy, priceBuyAvg: buyMap[s.terminalId]?.avg ?? null, priceBuyMax: buyMap[s.terminalId]?.max ?? null, priceBuyMin: buyMap[s.terminalId]?.min ?? null,
             priceSell: s.priceSell, priceSellAvg: sellMap[s.terminalId]?.avg ?? null, priceSellMax: sellMap[s.terminalId]?.max ?? null, priceSellMin: sellMap[s.terminalId]?.min ?? null,
-            scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock, scuBuyMax: maxMap[s.terminalId]?.buyMax ?? null, scuSellMax: maxMap[s.terminalId]?.sellMax ?? null,
+            scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
+            scuBuyMax: maxMap[s.terminalId]?.buyMax ?? null, scuSellMax: maxMap[s.terminalId]?.sellMax ?? null,
+            scuBuyAvg: maxMap[s.terminalId]?.buyAvg ?? null, scuSellAvg: maxMap[s.terminalId]?.sellAvg ?? null,
             updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),
         }));
     }

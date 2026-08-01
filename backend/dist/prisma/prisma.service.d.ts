@@ -1,5 +1,6 @@
 import { OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 export declare class PrismaService implements OnModuleInit, OnModuleDestroy {
+    private readonly logger;
     private readonly client;
     readonly commodity: any;
     readonly terminal: any;

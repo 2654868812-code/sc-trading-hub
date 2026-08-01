@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthGuard = exports.IS_PUBLIC_KEY = void 0;
 const common_1 = require("@nestjs/common");
 const core_1 = require("@nestjs/core");
+const auth_1 = require("../../lib/auth");
 exports.IS_PUBLIC_KEY = 'isPublic';
 let AuthGuard = class AuthGuard {
     reflector;
@@ -27,13 +28,13 @@ let AuthGuard = class AuthGuard {
             return true;
         const request = context.switchToHttp().getRequest();
         const auth = request.headers['authorization'];
-        if (!auth)
+        if (!auth?.startsWith('Bearer '))
             throw new common_1.UnauthorizedException('Unauthorized');
-        const adminPwd = process.env.ADMIN_PASSWORD;
+        const token = auth.slice(7);
         const cronSecret = process.env.CRON_SECRET;
-        if (adminPwd && auth === `Bearer ${adminPwd}`)
+        if (cronSecret && token === cronSecret)
             return true;
-        if (cronSecret && auth === `Bearer ${cronSecret}`)
+        if ((0, auth_1.verifyToken)(token))
             return true;
         throw new common_1.UnauthorizedException('Unauthorized');
     }
