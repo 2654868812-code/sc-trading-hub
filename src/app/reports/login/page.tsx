@@ -49,6 +49,7 @@ export default function LoginPage() {
                    focus:border-primary/50 transition-colors mb-3"
       />
       <button
+        type="button"
         onClick={login}
         disabled={submitting}
         className="w-full h-10 rounded-lg bg-primary text-primary-foreground text-sm font-semibold
