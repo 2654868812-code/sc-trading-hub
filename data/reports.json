@@ -1,13 +1,65 @@
 {
   "news": [
     {
-      "date": "",
-      "title": "OK",
-      "body": "clean",
+      "date": "2005-04-13",
+      "title": "测试中",
+      "body": "测试中",
+      "image": "/uploads/1785562739786-7ujtdg.jpg",
+      "imagePosition": "left",
+      "imageScale": 20,
+      "style": "left-half"
+    },
+    {
+      "date": "132131-03-31",
+      "title": "1312312",
+      "body": "142414124",
       "image": "",
       "imagePosition": "left",
-      "imageScale": 45
+      "imageScale": 45,
+      "style": "right-half"
+    },
+    {
+      "date": "2026-08-01",
+      "title": "1234as",
+      "body": "asdaweq",
+      "image": "",
+      "imagePosition": "left",
+      "imageScale": 45,
+      "style": "default"
     }
   ],
-  "routes": []
+  "routes": [
+    {
+      "ship": "喵",
+      "commodity": "喵",
+      "origin": "喵",
+      "dest": "喵",
+      "profit": "喵",
+      "note": "喵"
+    },
+    {
+      "ship": "124",
+      "commodity": "231",
+      "origin": "213",
+      "dest": "214",
+      "profit": "3",
+      "note": "14"
+    },
+    {
+      "ship": "12314",
+      "commodity": "",
+      "origin": "",
+      "dest": "124",
+      "profit": "",
+      "note": ""
+    },
+    {
+      "ship": "214",
+      "commodity": "3142",
+      "origin": "215143",
+      "dest": "2144",
+      "profit": "1241",
+      "note": "21321"
+    }
+  ]
 }

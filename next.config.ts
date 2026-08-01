@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Only proxy to NestJS backend when BACKEND_URL is set (Docker build)
+// Only proxy to NestJS backend when BACKEND_URL is set (Docker production)
 // In local dev, no rewrite → frontend handles /api/* via own SQLite routes
 if (process.env.BACKEND_URL) {
   nextConfig.rewrites = async () => [

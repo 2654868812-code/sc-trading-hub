@@ -1,15 +1,12 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaPg } from '@prisma/adapter-pg';
-import { Pool } from 'pg';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import * as generated from '../generated/prisma/client';
 const PrismaClient = generated.PrismaClient as any;
 
 @Injectable()
 export class PrismaService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrismaService.name);
   private readonly client: any;
 
-  // Model delegates — typed as any for now (Prisma v7 generated types are
-  // incompatible with NestJS tsc CommonJS build. Runtime delegation works.)
   readonly commodity: any;
   readonly terminal: any;
   readonly priceSnapshot: any;
@@ -20,10 +17,21 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   readonly $transaction: any;
 
   constructor() {
-    const pool = new Pool({
-      connectionString: process.env.DATABASE_URL || 'postgresql://trading:trading@localhost:5432/trading',
-    });
-    this.client = new PrismaClient({ adapter: new PrismaPg(pool) }) as any;
+    const url = process.env.DATABASE_URL || 'file:./dev.db';
+    const isPostgres = url.startsWith('postgres');
+
+    if (isPostgres) {
+      const { PrismaPg } = require('@prisma/adapter-pg');
+      const { Pool } = require('pg');
+      const pool = new Pool({ connectionString: url });
+      this.client = new PrismaClient({ adapter: new PrismaPg(pool) }) as any;
+      this.logger.log('Using PostgreSQL adapter');
+    } else {
+      const { PrismaLibSql } = require('@prisma/adapter-libsql');
+      this.client = new PrismaClient({ adapter: new PrismaLibSql({ url }) }) as any;
+      this.logger.log('Using LibSQL/SQLite adapter');
+    }
+
     this.commodity = this.client.commodity;
     this.terminal = this.client.terminal;
     this.priceSnapshot = this.client.priceSnapshot;
