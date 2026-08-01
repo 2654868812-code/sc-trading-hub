@@ -10,7 +10,7 @@ services:
       PRICE_RETENTION_DAYS: ${PRICE_RETENTION_DAYS:-30}
       CRON_SECRET: ${CRON_SECRET}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
-      CORS_ORIGIN: "http://localhost:3000"
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     volumes:
       - appdata:/data
     depends_on:
