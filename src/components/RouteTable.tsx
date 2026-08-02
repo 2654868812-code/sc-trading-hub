@@ -236,9 +236,11 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
         <div className="text-[9px] text-muted-foreground/50">
           {[r.originSystemName, r.originPlanetName, r.originMoonName].filter(Boolean).join(' · ')}
         </div>
+      </td>
+      <td className="td-cell--right">
+        {fmtM(r.buyPrice)}
         <div className="text-[8px] text-muted-foreground/35">{fmtTime(r.originUpdatedAt)}</div>
       </td>
-      <td className="td-cell--right">{fmtM(r.buyPrice)}</td>
       <td className="td-cell"><StockBar stock={r.originStock} max={r.originStockMax} /></td>
       <td className="td-cell min-w-[95px]">
         <button
@@ -251,9 +253,11 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
         <div className="text-[9px] text-muted-foreground/50">
           {[r.destSystemName, r.destPlanetName, r.destMoonName].filter(Boolean).join(' · ')}
         </div>
+      </td>
+      <td className="td-cell--right">
+        {fmtM(r.sellPrice)}
         <div className="text-[8px] text-muted-foreground/35">{fmtTime(r.destUpdatedAt)}</div>
       </td>
-      <td className="td-cell--right">{fmtM(r.sellPrice)}</td>
       <td className="td-cell"><StockBar stock={r.destStock} max={r.destStockMax} /></td>
       <td className="td-cell--right">
         <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`买价(${fmtM(r.buyPrice)}) × 可售量(${r.sellScu}) = ${fmtM(r.totalInvestment)}`}>{fmtM(r.totalInvestment)}</span>
