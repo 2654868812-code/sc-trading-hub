@@ -124,7 +124,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">路线结果解读</h3>
-          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、ROI、距离和货箱规格（最小/最大）。鼠标悬停可查看计算公式。</p>
+          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、ROI、距离和货箱规格（最小-最大）。鼠标悬停可查看计算公式。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">库存条</h3>

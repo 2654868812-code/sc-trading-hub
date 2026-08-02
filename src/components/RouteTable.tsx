@@ -36,7 +36,7 @@ function fmtContainerSizes(sizes: string | null): string {
   if (nums.length === 1) return `${nums[0]}`;
   const min = Math.min(...nums);
   const max = Math.max(...nums);
-  return `${min}/${max}`;
+  return `${min}-${max}`;
 }
 
 function fmtM(n: number): string {
