@@ -37,7 +37,7 @@ export function Footer() {
             <img src="/scm-logo.jpg" alt="SCM" className="h-6 object-contain" />
           </a>
           <p className="text-[11px] text-muted-foreground/50">
-            本网站开发者是 SCM 开发组一员，非常感谢 SCM 开发组 Rookie 和 Starryeye 大佬对本网站开发提供的支持
+            本网站开发者是 SCM 开发组一员，非常感谢 SCM 开发组 @Rookie 和 @Starryeye 大佬对本网站开发提供的支持
           </p>
         </div>
 
