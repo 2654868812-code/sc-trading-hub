@@ -22,7 +22,7 @@ export function Footer() {
             <img src="/logo.png" alt="泛天商会" className="h-10 object-contain opacity-75" />
           </a>
           <p className="text-[11px] text-muted-foreground/40">
-            © 2026 泛天贸易 · @公 &nbsp;|&nbsp; QQ群：1083464126 &nbsp;|&nbsp; QQ：2654868812
+            © 2026 泛天贸易中心 · @公 &nbsp;|&nbsp; QQ群：1083464126 &nbsp;|&nbsp; QQ：2654868812
           </p>
         </div>
 

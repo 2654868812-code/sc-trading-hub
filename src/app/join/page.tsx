@@ -20,7 +20,7 @@ export default function JoinPage() {
             想要为你的漫漫星途，寻一处温暖的避风港？
           </p>
           <p>
-            欢迎加入由「泛天贸易」网站开发者{' '}
+            欢迎加入由「泛天贸易中心」网站开发者{' '}
             <span className="font-semibold text-foreground">@公</span>{' '}
             创建的游戏内组织：
             <span className="font-semibold text-foreground">泛天商会</span>。
