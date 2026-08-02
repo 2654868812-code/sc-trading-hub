@@ -35,7 +35,7 @@ function SelectField({ label, value, onChange, children }: {
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-9 w-[120px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+        className="h-9 w-full sm:w-[100px] lg:w-[120px] rounded-md border border-border/40 bg-secondary px-2 text-sm text-foreground
                    focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none
                    transition-colors appearance-none cursor-pointer"
       >
@@ -58,7 +58,7 @@ function InputField({ label, value, onChange, placeholder, type = 'text', step, 
         placeholder={placeholder}
         step={step}
         max={max}
-        className="h-9 w-[120px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+        className="h-9 w-full sm:w-[100px] lg:w-[120px] rounded-md border border-border/40 bg-secondary px-2 text-sm text-foreground
                    placeholder:text-muted-foreground/40 tabular-nums
                    focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none
                    transition-colors"
@@ -91,7 +91,7 @@ function LogInputField({ label, value, onChange, placeholder, max }: {
         </button>
         <input type="number" value={value} onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder} max={max}
-          className="h-9 w-[88px] border-y border-border/40 bg-secondary px-1 text-center text-sm text-foreground tabular-nums
+          className="h-9 w-[68px] lg:w-[88px] border-y border-border/40 bg-secondary px-1 text-center text-sm text-foreground tabular-nums
                      placeholder:text-muted-foreground/40
                      focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors
                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
@@ -166,6 +166,7 @@ export function TradeRouteFilter({
     ]).then(([shipsData, locsData, commData]) => {
       setShips(shipsData);
       setLocations(locsData);
+      if (!Array.isArray(commData)) return;
       const commList = commData.map((c: any) => ({
         id: c.id, nameZh: c.nameZh || c.name, nameEn: c.nameEn || c.name,
         kindZh: c.kindZh || '', isDazong: c.isDazong || false, isIllegal: c.isIllegal || false,
@@ -360,7 +361,7 @@ export function TradeRouteFilter({
   }
 
   return (
-    <div className="section-card p-6 space-y-4">
+    <div className="section-card p-3 sm:p-4 lg:p-6 space-y-3 lg:space-y-4">
       <div className="flex items-center gap-3">
         <h2 className="text-xs font-semibold tracking-[0.2em] text-primary uppercase">
           贸易路线筛选器
@@ -369,7 +370,7 @@ export function TradeRouteFilter({
       </div>
 
       {/* Row 1: Ship + Commodity selectors */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 flex-wrap">
         <div className="flex flex-col gap-1 relative" ref={shipRef}>
           <label className="text-[11px] tracking-wider text-primary/80 uppercase">
             选择货船
@@ -385,7 +386,7 @@ export function TradeRouteFilter({
             }}
             onFocus={() => setShipOpen(true)}
             placeholder={selectedShip ? selectedShip.name : '搜索货船...'}
-            className="h-9 w-[260px] rounded-md border border-primary/35 bg-secondary px-3 text-sm text-foreground
+            className="h-9 w-full sm:w-[240px] lg:w-[260px] rounded-md border border-primary/35 bg-secondary px-3 text-sm text-foreground
                        placeholder:text-muted-foreground/50
                        focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none
                        transition-colors"
@@ -444,7 +445,7 @@ export function TradeRouteFilter({
             }}
             onFocus={() => setCommodityOpen(true)}
             placeholder={selectedCommodity ? selectedCommodity.nameZh : '不限'}
-            className="h-9 w-[220px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+            className="h-9 w-full sm:w-[200px] lg:w-[220px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
                        placeholder:text-muted-foreground/50
                        focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
             title={selectedCommodity?.nameEn}
@@ -513,7 +514,7 @@ export function TradeRouteFilter({
                 onFocus={() => setOriginLocOpen(true)}
                 placeholder={originLocation || '不限'}
                 title={locations.find(l => l.name === originLocation)?.nameEn}
-                className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                className="h-9 w-full sm:w-[150px] lg:w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
                            placeholder:text-muted-foreground/50
                            focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
               />
@@ -572,7 +573,7 @@ export function TradeRouteFilter({
                 onFocus={() => setDestLocOpen(true)}
                 placeholder={destLocation || '不限'}
                 title={locations.find(l => l.name === destLocation)?.nameEn}
-                className="h-9 w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                className="h-9 w-full sm:w-[150px] lg:w-[160px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
                            placeholder:text-muted-foreground/50
                            focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none transition-colors"
               />
@@ -631,7 +632,7 @@ export function TradeRouteFilter({
         </SelectField>
         <div className="flex flex-col gap-1">
           <span className="text-[11px] tracking-wider text-muted-foreground uppercase flex items-center gap-1">
-            利润模式
+            利润算法
             <span className="relative group/help inline-flex">
               <svg width="13" height="13" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors" fill="none" strokeWidth="1">
                 <circle cx="7" cy="7" r="6.5" />
@@ -645,7 +646,7 @@ export function TradeRouteFilter({
           <select
             value={profitMode}
             onChange={(e) => setProfitMode(e.target.value)}
-            className="h-9 w-[120px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+            className="h-9 w-[90px] sm:w-[100px] lg:w-[120px] rounded-md border border-border/40 bg-secondary px-2 text-sm text-foreground
                        focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none
                        transition-colors appearance-none cursor-pointer"
           >

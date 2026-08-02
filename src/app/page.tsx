@@ -24,7 +24,6 @@ export default function HomePage() {
   const [gameVersion, setGameVersion] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
   const [sort, setSort] = useState<'name' | 'margin' | 'profit'>('name');
   const [flipKey, setFlipKey] = useState(1);
   const router = useRouter();
@@ -81,7 +80,7 @@ export default function HomePage() {
 
   return (
     <>
-      <div className="flex items-center gap-3 mb-3 text-[13px] text-muted-foreground/60">
+      <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 mb-2 lg:mb-3 text-[11px] sm:text-[12px] lg:text-[13px] text-muted-foreground/60 flex-wrap">
         <span className="data-pulse-dot" />
         <span className="text-chart-2">{fmtLastUpdated(lastUpdated)}</span>
         <span className="text-border/40">·</span>
@@ -102,15 +101,6 @@ export default function HomePage() {
           <option value="margin">按利润率</option>
           <option value="profit">按利润</option>
         </select>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="搜索商品…"
-          className="h-7 w-44 rounded-md border border-border/50 bg-secondary px-2.5 text-xs text-foreground
-                     placeholder:text-muted-foreground/40 outline-none
-                     focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-colors"
-        />
       </div>
 
       {error && (
@@ -127,11 +117,10 @@ export default function HomePage() {
         <Heatmap
           commodities={commodities}
           loading={loading}
-        flipKey={flipKey}
-        search={search}
-        sort={sort}
-        onCommodityClick={handleCommodityClick}
-      />
+          flipKey={flipKey}
+          sort={sort}
+          onCommodityClick={handleCommodityClick}
+        />
       )}
     </>
   );

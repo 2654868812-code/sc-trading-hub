@@ -18,6 +18,7 @@ const NewsItemSchema = z.object({
 });
 
 const ReportsSchema = z.object({
+  date: z.string().max(20).optional().default(''),
   news: z.array(NewsItemSchema).max(100),
   routes: z.array(z.object({
     ship: z.string().max(100).optional().default(''),

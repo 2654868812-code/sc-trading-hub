@@ -14,17 +14,23 @@ export default function TradePage() {
         </p>
       </div>
 
-      <div className="section-card p-8 space-y-4">
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          SCM 是由星际公民社区开发者维护的玩家交易市场，
-          提供游戏内物品的玩家间买卖以及玩家间合约服务。
-        </p>
+      <div className="section-card p-8 space-y-5">
+        <img
+          src="/scm-logo.jpg"
+          alt="SCM"
+          className="h-16 object-contain mx-auto"
+        />
 
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          为热爱星际公民的小伙伴们共同搭建的交易平台
+          <br />
+          为了让游戏内的物品交换更加便利而生
+        </p>
         <a
           href="https://scm.flowcld.com/"
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-lg bg-primary text-primary-foreground
+          className="inline-flex items-center gap-2 px-6 py-2 rounded-lg bg-primary text-primary-foreground
                      text-sm font-semibold hover:bg-primary/90 transition-all
                      hover:shadow-[0_2px_16px_hsl(42_65%_45%/0.3)]"
         >

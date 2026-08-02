@@ -41,13 +41,14 @@ export class LocationsController {
 
     // 3-day price stats
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    const [snapshots, buyStats, sellStats, gameVer] = await Promise.all([
+    const [snapshots, buyStats, sellStats, termMax, gameVer] = await Promise.all([
       this.prisma.priceSnapshot.findMany({
         where: { terminalId: { in: ids }, fetchedAt: latest.fetchedAt },
         include: { commodity: { select: { id: true, name: true, nameEn: true, code: true, kind: true, isIllegal: true, profitMargin: true } } },
       }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['terminalId', 'commodityId'], where: { terminalId: { in: ids }, priceBuy: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } }, _avg: { priceBuy: true }, _max: { priceBuy: true }, _min: { priceBuy: true } }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['terminalId', 'commodityId'], where: { terminalId: { in: ids }, priceSell: { gt: 0 }, fetchedAt: { gte: threeDaysAgo } }, _avg: { priceSell: true }, _max: { priceSell: true }, _min: { priceSell: true } }),
+      this.prisma.terminalCommodityMax.findMany({ where: { terminalId: { in: ids } }, select: { terminalId: true, commodityId: true, scuBuyMax: true, scuSellMax: true } }),
       this.prisma.commodityAverage.findFirst({ where: { gameVersion: { not: null } }, select: { gameVersion: true }, orderBy: { fetchedAt: 'desc' } }),
     ]);
 
@@ -55,6 +56,8 @@ export class LocationsController {
     for (const b of buyStats) buyStatMap.set(`${b.terminalId}-${b.commodityId}`, { avg: b._avg.priceBuy, max: b._max.priceBuy, min: b._min.priceBuy });
     const sellStatMap = new Map<string, any>();
     for (const s of sellStats) sellStatMap.set(`${s.terminalId}-${s.commodityId}`, { avg: s._avg.priceSell, max: s._max.priceSell, min: s._min.priceSell });
+    const stockMaxMap = new Map<string, any>();
+    for (const m of termMax) stockMaxMap.set(`${m.terminalId}-${m.commodityId}`, { scuBuyMax: m.scuBuyMax ?? 0, scuSellMax: m.scuSellMax ?? 0 });
 
     const termMap = new Map<number, any>();
     for (const t of terminals) termMap.set(t.id, { id: t.id, name: t.name, nameEn: t.nameEn, type: t.type, hasCargoCenter: t.hasCargoCenter, hasDockingPort: t.hasDockingPort, hasFreightElevator: t.hasFreightElevator, isAutoLoad: t.isAutoLoad, buys: [], sells: [] });
@@ -63,6 +66,7 @@ export class LocationsController {
       const term = termMap.get(s.terminalId); if (!term) continue;
       const bStat = buyStatMap.get(`${s.terminalId}-${s.commodityId}`);
       const sStat = sellStatMap.get(`${s.terminalId}-${s.commodityId}`);
+      const sm = stockMaxMap.get(`${s.terminalId}-${s.commodityId}`);
       const item = {
         id: s.commodityId, name: s.commodity.name, nameEn: s.commodity.nameEn, code: s.commodity.code,
         kind: s.commodity.kind, kindZh: getZhKind(s.commodity.kind), isIllegal: s.commodity.isIllegal,
@@ -70,6 +74,7 @@ export class LocationsController {
         priceBuy: s.priceBuy, priceBuyAvg: bStat?.avg ?? null, priceBuyMax: bStat?.max ?? null, priceBuyMin: bStat?.min ?? null,
         priceSell: s.priceSell, priceSellAvg: sStat?.avg ?? null, priceSellMax: sStat?.max ?? null, priceSellMin: sStat?.min ?? null,
         scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
+        scuBuyMax: sm?.scuBuyMax ?? null, scuSellMax: sm?.scuSellMax ?? null,
         updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),
       };
       if (s.priceBuy && s.priceBuy > 0) term.buys.push(item);

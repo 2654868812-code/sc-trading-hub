@@ -22,6 +22,7 @@ interface RouteItem {
 }
 
 interface ReportsData {
+  date: string;
   news: NewsItem[];
   routes: RouteItem[];
 }
@@ -29,12 +30,7 @@ interface ReportsData {
 function NewsCard({ item, half }: { item: NewsItem; half?: boolean }) {
   return (
     <div className={`section-card p-5 ${half ? 'flex-1 min-w-0' : ''}`}>
-      <div className="flex items-baseline gap-3 mb-2">
-        {item.date && (
-          <span className="text-[11px] tabular-nums text-muted-foreground/60">{item.date}</span>
-        )}
-        <h3 className={`${half ? 'text-sm' : 'text-base'} font-semibold`}>{item.title}</h3>
-      </div>
+      <h3 className={`${half ? 'text-sm' : 'text-base'} font-semibold mb-2`}>{item.title}</h3>
       {item.image ? (
         <div className={`flex gap-4 ${item.imagePosition === 'right' ? 'flex-row-reverse' : ''}`}>
           <img
@@ -91,14 +87,19 @@ export default function ReportsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">泛天商报</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          每周商业新闻与推荐跑商路线
+        <p className="text-sm text-muted-foreground mt-1">每周商业新闻与推荐跑商路线</p>
+        <div className="flex items-center gap-2 mt-1">
           {gameVersion && (
-            <span className="ml-2.5 px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary/80">
+            <span className="px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary/80">
               {gameVersion}
             </span>
           )}
-        </p>
+          {data.date && (
+            <span className="px-2 py-0.5 rounded text-[11px] bg-primary/10 text-primary/80">
+              {data.date}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Weekly News */}
@@ -134,10 +135,7 @@ export default function ReportsPage() {
                   const item = row.item;
                   return (
                     <div key={i} className="border-l-[3px] border-primary/50 pl-4 py-2">
-                      <div className="flex items-baseline gap-3">
-                        {item.date && <span className="text-[10px] tabular-nums text-muted-foreground/50">{item.date}</span>}
-                        <h3 className="text-sm font-semibold">{item.title}</h3>
-                      </div>
+                      <h3 className="text-sm font-semibold">{item.title}</h3>
                       {item.body && <p className="text-xs text-muted-foreground leading-relaxed mt-1">{item.body}</p>}
                     </div>
                   );

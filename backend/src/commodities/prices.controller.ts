@@ -28,6 +28,56 @@ export class PricesController {
     return snapshots.map(s => ({ fetchedAt: s.fetchedAt.toISOString(), priceBuy: s.priceBuy, priceSell: s.priceSell, terminalName: s.terminal.name }));
   }
 
+  @Get('location')
+  @Public()
+  async locationPrices(@Query('locationName') locationName: string, @Query('hours') hours: string) {
+    const name = decodeURIComponent(locationName || '');
+    if (!name) return [];
+
+    const terminals = await this.prisma.terminal.findMany({
+      where: { OR: [{ cityName: name }, { spaceStationName: name }, { name }] },
+      select: { id: true },
+    });
+    if (!terminals.length) return [];
+
+    const tids = terminals.map(t => t.id);
+    const hRaw = parseInt(hours || '24');
+    const h = Math.min(Math.max(hRaw || 24, 1), 168);
+    const since = new Date(Date.now() - h * 60 * 60 * 1000);
+
+    // Get top 5 commodities by buy price and top 5 by sell price
+    const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
+    if (!latest) return [];
+
+    const latestSnaps = await this.prisma.priceSnapshot.findMany({
+      where: { terminalId: { in: tids }, fetchedAt: latest.fetchedAt },
+      select: { commodityId: true, priceBuy: true, priceSell: true },
+    });
+
+    // Top 5 buy commodities
+    const topBuy = [...latestSnaps.filter(s => s.priceBuy > 0)]
+      .sort((a, b) => b.priceBuy - a.priceBuy).slice(0, 5).map(s => s.commodityId);
+    // Top 5 sell commodities
+    const topSell = [...latestSnaps.filter(s => s.priceSell > 0)]
+      .sort((a, b) => a.priceSell - b.priceSell).slice(0, 5).map(s => s.commodityId);
+    const cids = [...new Set([...topBuy, ...topSell])];
+
+    const snapshots = await this.prisma.priceSnapshot.findMany({
+      where: { terminalId: { in: tids }, commodityId: { in: cids }, fetchedAt: { gte: since } },
+      include: { commodity: { select: { name: true } } },
+      orderBy: { fetchedAt: 'asc' },
+      take: 2000,
+    });
+
+    return snapshots.map(s => ({
+      fetchedAt: s.fetchedAt.toISOString(),
+      priceBuy: s.priceBuy,
+      priceSell: s.priceSell,
+      commodityName: s.commodity.name,
+      commodityId: s.commodityId,
+    }));
+  }
+
   @Get('terminals')
   @Public()
   async terminals(@Query('commodityId') commodityId: string) {

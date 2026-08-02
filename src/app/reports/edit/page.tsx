@@ -3,7 +3,6 @@
 import { useEffect, useState, useRef } from 'react';
 
 interface NewsItem {
-  date: string;
   title: string;
   body: string;
   image: string;
@@ -22,12 +21,13 @@ interface RouteItem {
 }
 
 interface ReportsData {
+  date: string;
   news: NewsItem[];
   routes: RouteItem[];
 }
 
 function emptyNews(): NewsItem {
-  return { date: '', title: '', body: '', image: '', imagePosition: 'left', imageScale: 45, style: 'default' };
+  return { title: '', body: '', image: '', imagePosition: 'left', imageScale: 45, style: 'default' };
 }
 
 function emptyRoute(): RouteItem {
@@ -42,12 +42,13 @@ function getToken(): string {
 export default function ReportsEditPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
+  const [date, setDate] = useState('');
+  const [gameVersion, setGameVersion] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
   const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
-  const [gameVersion, setGameVersion] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function ReportsEditPage() {
     ]).then(([d, ver]) => {
       setNews((d as ReportsData).news?.length ? (d as ReportsData).news : [emptyNews()]);
       setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
+      setDate((d as ReportsData).date || '');
       setGameVersion(ver.gameVersion);
       setLoaded(true);
     }).catch((err) => {
@@ -104,7 +106,7 @@ export default function ReportsEditPage() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
       },
-      body: JSON.stringify({ news: nonEmptyNews, routes: nonEmptyRoutes }),
+      body: JSON.stringify({ date, news: nonEmptyNews, routes: nonEmptyRoutes }),
     })
       .then((r) => r.json())
       .then((res) => {
@@ -129,14 +131,21 @@ export default function ReportsEditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">维护商报</h1>
-          <p className="text-xs text-muted-foreground mt-1">
-            编辑每周商业新闻与推荐跑商路线
+          <p className="text-xs text-muted-foreground mt-1">编辑每周商业新闻与推荐跑商路线</p>
+          <div className="flex items-center gap-2 mt-1">
             {gameVersion && (
-              <span className="ml-2 px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary/80">
+              <span className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary/80">
                 {gameVersion}
               </span>
             )}
-          </p>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="h-7 rounded border border-border/40 bg-secondary px-2 text-xs text-foreground
+                         outline-none focus:border-primary/60 transition-colors"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-3">
           {msg && (
@@ -180,19 +189,6 @@ export default function ReportsEditPage() {
             </div>
 
             <div className="grid grid-cols-[120px_1fr] gap-3">
-              <span className="text-xs text-muted-foreground self-center">日期</span>
-              <input
-                type="date"
-                value={item.date}
-                onChange={(e) => {
-                  const next = [...news];
-                  next[idx] = { ...next[idx], date: e.target.value };
-                  setNews(next);
-                }}
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
               <span className="text-xs text-muted-foreground self-center">标题</span>
               <input
                 type="text"

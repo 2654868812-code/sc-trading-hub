@@ -31,6 +31,7 @@ const NewsItemSchema = zod_1.z.object({
     style: zod_1.z.enum(['default', 'left-half', 'right-half', 'flash']).optional().default('default'),
 });
 const ReportsSchema = zod_1.z.object({
+    date: zod_1.z.string().max(20).optional().default(''),
     news: zod_1.z.array(NewsItemSchema).max(100),
     routes: zod_1.z.array(zod_1.z.object({
         ship: zod_1.z.string().max(100).optional().default(''),

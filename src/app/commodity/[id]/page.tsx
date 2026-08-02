@@ -9,6 +9,16 @@ import {
 import type { PricePoint, TerminalInfo, CommodityWithChange } from '@/types';
 import { getZhKind } from '@/lib/commodity-zh';
 
+function fmtRelativeTime(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '刚刚';
+  if (mins < 60) return `${mins}分钟前`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}小时前`;
+  return `${Math.floor(hrs / 24)}天前`;
+}
+
 const LINE_COLORS = [
   '#c9a94e', '#4ade80', '#f87171', '#38bdf8', '#a78bfa',
   '#fb923c', '#2dd4bf', '#f472b6',
@@ -113,25 +123,27 @@ export default function CommodityDetailPage() {
 
       {/* Commodity header */}
       {commodity && (
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-baseline gap-3">
-            <h1 className="text-2xl font-bold text-foreground tracking-tight">
-              {commodity.nameZh}
-            </h1>
-            <span className="text-sm text-muted-foreground/60">
-              {commodity.code}
-            </span>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
-              {getZhKind(commodity.kind)}
-            </span>
+        <div>
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="flex items-baseline gap-3">
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                {commodity.nameZh}
+              </h1>
+              <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                {getZhKind(commodity.kind)}
+              </span>
+            </div>
+            <button
+              onClick={() => router.push(`/routes?commodityId=${commodityId}`)}
+              className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium
+                         hover:bg-primary/90 transition-colors"
+            >
+              查看贸易路线 →
+            </button>
           </div>
-          <button
-            onClick={() => router.push(`/routes?commodityId=${commodityId}`)}
-            className="text-xs px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium
-                       hover:bg-primary/90 transition-colors"
-          >
-            查看贸易路线 →
-          </button>
+          {commodity.nameEn && (
+            <p className="text-sm text-muted-foreground/60 mt-1">{commodity.nameEn}</p>
+          )}
         </div>
       )}
 
@@ -291,19 +303,6 @@ export default function CommodityDetailPage() {
                           库存: {t.scuBuyStock != null ? t.scuBuyStock.toLocaleString() : '—'}
                           {t.scuBuyMax ? ` / ${t.scuBuyMax.toLocaleString()}` : ''}
                         </span>
-                        {t.updatedAt && (
-                          <span className="text-[9px] text-muted-foreground/30">
-                            {(() => {
-                              const diff = Date.now() - new Date(t.updatedAt).getTime();
-                              const mins = Math.floor(diff / 60000);
-                              if (mins < 1) return '刚刚';
-                              if (mins < 60) return `${mins}分钟前`;
-                              const hrs = Math.floor(mins / 60);
-                              if (hrs < 24) return `${hrs}小时前`;
-                              return `${Math.floor(hrs / 24)}天前`;
-                            })()}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -317,6 +316,11 @@ export default function CommodityDetailPage() {
                           {t.priceBuyAvg != null && <span title="历史均价">均{t.priceBuyAvg.toFixed(0)}</span>}
                           {t.priceBuyMax != null && <span title="历史最高">高{t.priceBuyMax.toFixed(0)}</span>}
                           {t.priceBuyMin != null && <span title="历史最低">低{t.priceBuyMin.toFixed(0)}</span>}
+                        </div>
+                      )}
+                      {t.updatedAt && (
+                        <div className="text-[9px] text-muted-foreground/30 mt-0.5">
+                          {fmtRelativeTime(t.updatedAt)}
                         </div>
                       )}
                     </div>
@@ -364,19 +368,6 @@ export default function CommodityDetailPage() {
                           库存: {t.scuSellStock != null ? t.scuSellStock.toLocaleString() : '—'}
                           {t.scuSellMax ? ` / ${t.scuSellMax.toLocaleString()}` : ''}
                         </span>
-                        {t.updatedAt && (
-                          <span className="text-[9px] text-muted-foreground/30">
-                            {(() => {
-                              const diff = Date.now() - new Date(t.updatedAt).getTime();
-                              const mins = Math.floor(diff / 60000);
-                              if (mins < 1) return '刚刚';
-                              if (mins < 60) return `${mins}分钟前`;
-                              const hrs = Math.floor(mins / 60);
-                              if (hrs < 24) return `${hrs}小时前`;
-                              return `${Math.floor(hrs / 24)}天前`;
-                            })()}
-                          </span>
-                        )}
                       </div>
                     </div>
                     <div className="text-right shrink-0">
@@ -390,6 +381,11 @@ export default function CommodityDetailPage() {
                           {t.priceSellAvg != null && <span title="历史均价">均{t.priceSellAvg.toFixed(0)}</span>}
                           {t.priceSellMax != null && <span title="历史最高">高{t.priceSellMax.toFixed(0)}</span>}
                           {t.priceSellMin != null && <span title="历史最低">低{t.priceSellMin.toFixed(0)}</span>}
+                        </div>
+                      )}
+                      {t.updatedAt && (
+                        <div className="text-[9px] text-muted-foreground/30 mt-0.5">
+                          {fmtRelativeTime(t.updatedAt)}
                         </div>
                       )}
                     </div>

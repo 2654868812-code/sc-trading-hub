@@ -55,12 +55,12 @@ export function CommodityCell({
         }}
       >
         <div className="flex items-center justify-between gap-1">
-          <span className="text-[11px] truncate leading-tight font-medium">
+          <span className="text-[10px] sm:text-[11px] truncate leading-tight font-medium">
             {nameZh}
           </span>
           {profitMargin != null && (
             <span
-              className="text-[10px] tabular-nums font-bold flex-shrink-0"
+              className="text-[9px] sm:text-[10px] tabular-nums font-bold flex-shrink-0"
               style={{ color: marginColor(profitMargin) }}
             >
               {profitMargin >= 0 ? '+' : ''}{profitMargin}%
@@ -68,9 +68,9 @@ export function CommodityCell({
           )}
         </div>
         <div className="flex items-center justify-between gap-1 mt-0.5">
-          <span className="text-[10px] text-muted-foreground/55">{kindZh}</span>
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground/55">{kindZh}</span>
           {hasChange && (
-            <span className={`text-[10px] tabular-nums font-medium flex-shrink-0 ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
+            <span className={`text-[9px] sm:text-[10px] tabular-nums font-medium flex-shrink-0 ${profitChange! >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
               {profitChange! >= 0 ? '▲' : '▼'}{fmtChange(Math.abs(profitChange!))}
             </span>
           )}

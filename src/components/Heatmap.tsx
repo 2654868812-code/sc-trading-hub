@@ -50,7 +50,7 @@ function Skeleton() {
       {[1, 2].map((s) => (
         <div key={s}>
           <div className="h-3 w-20 bg-muted rounded mb-3 animate-pulse" />
-          <div className="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
             {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} className="h-[44px] rounded bg-muted/50 animate-pulse" />
             ))}
@@ -104,7 +104,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
     <div className="space-y-3">
       <section>
         <SectionHeader title="大宗商品" help={`历史最大买量 ≥ 2,000 SCU\n流通量大、供需稳定的主流贸易品`} />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
           {major.map((c, i) => (
             <CommodityCell
               key={`${flipKey || 0}-${c.id}`}
@@ -123,7 +123,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
 
       <section>
         <SectionHeader title="小宗商品" help={`历史最大买量 ＜ 2,000 SCU\n流通量小、零散交易的小众商品`} />
-        <div className="grid grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] sm:grid-cols-[repeat(auto-fill,minmax(90px,1fr))] gap-1">
           {minor.map((c, i) => (
             <CommodityCell
               key={`${flipKey || 0}-${c.id}`}

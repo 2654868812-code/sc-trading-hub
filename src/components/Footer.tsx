@@ -3,9 +3,9 @@ import Link from 'next/link';
 export function Footer() {
   return (
     <footer className="border-t border-border/50 mt-12">
-      <div className="max-w-[1280px] mx-auto px-6 py-6 space-y-4">
+      <div className="max-w-[1280px] mx-auto px-3 sm:px-4 lg:px-6 py-4 lg:py-6 space-y-3 lg:space-y-4">
         {/* Links */}
-        <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/60">
+        <div className="flex items-center justify-center gap-4 text-[13px] text-muted-foreground/60">
           <Link href="/help" className="hover:text-foreground transition-colors">帮助中心</Link>
           <span className="text-border/40">|</span>
           <Link href="/join" className="hover:text-foreground transition-colors">加入我们</Link>
@@ -27,9 +27,19 @@ export function Footer() {
         </div>
 
         {/* Dev thanks */}
-        <p className="text-center text-[11px] text-muted-foreground/50">
-          开发者是 SCM 开发组一员，非常感谢 SCM 开发组 Rookie 和 Starryeye 大佬对本网站开发提供的支持
-        </p>
+        <div className="flex items-center justify-center gap-2">
+          <a
+            href="https://scm.flowcld.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 transition-opacity hover:opacity-80"
+          >
+            <img src="/scm-logo.jpg" alt="SCM" className="h-6 object-contain" />
+          </a>
+          <p className="text-[11px] text-muted-foreground/50">
+            本网站开发者是 SCM 开发组一员，非常感谢 SCM 开发组 Rookie 和 Starryeye 大佬对本网站开发提供的支持
+          </p>
+        </div>
 
         {/* Data credits */}
         <div className="flex items-center justify-center gap-4 flex-wrap">

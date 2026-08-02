@@ -3,6 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getZhName = getZhName;
 exports.getZhKind = getZhKind;
 const EN_TO_ZH = {
+    "Lunes": "月果",
+    "Atacamite": "氯铜",
+    "Lastaphrene": "耐用橡胶",
     "AcryliPlex Composite": "亚克力络合物复合材料",
     "Agricium": "艾格瑞金属",
     "Agricium (Ore)": "艾格瑞矿石",
@@ -20,7 +23,6 @@ const EN_TO_ZH = {
     "Aslarite": "阿斯莱晶体",
     "Aslarite (Raw)": "阿斯莱晶体（粗制）",
     "Astatine": "砹",
-    "Atacamite": "Atacamite",
     "Atlasium": "巨神合金",
     "Audio-Visual Equipment": "视听设备",
     "Beradom": "冰蓝珀",
@@ -106,12 +108,10 @@ const EN_TO_ZH = {
     "Krypton": "氪",
     "Laranite": "砬兰石",
     "Laranite (Raw)": "砬兰石（粗制）",
-    "Lastaphrene": "Lastaphrene",
     "LifeCure Medsticks": "生疗医疗棒",
     "Lindinium": "林登金",
     "Lindinium (Ore)": "林登金矿石",
     "Luminalia Gift": "光灯节礼物",
-    "Lunes": "Lunes",
     "Lycara": "莱护材料",
     "Magnesium": "镁",
     "Mala": "玛拉毒素",

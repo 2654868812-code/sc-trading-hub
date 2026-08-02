@@ -163,6 +163,56 @@ const CATEGORIES: HelpCategory[] = [
     ),
   },
   {
+    id: 'commodity-detail',
+    title: '商品详情',
+    dotColor: '#38bdf8',
+    content: (
+      <>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">进入方式</h3>
+          <p className="text-xs">从首页热力图点击任意商品，或使用右下角搜索浮窗（Ctrl+K）搜索商品名进入。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">页面结构</h3>
+          <p className="text-xs">顶部显示商品中文名、英文名和种类标签。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该商品。下方有时间范围选择器（24小时 / 3天 / 7天），切换后图表和统计数据同步更新。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">价格趋势图</h3>
+          <p className="text-xs">左右双栏展示买价趋势和卖价趋势。图表横轴为时间、纵轴为价格 (aUEC)，每条折线代表一个终端。默认选取买价/卖价最高的 5 个终端绘图，图例显示终端名。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">可购买 / 可售出地点</h3>
+          <p className="text-xs">图表下方双栏列出所有可购买和可售出该商品的终端。每行显示：地点名（点击进入地点详情）、星系·行星·卫星、当前库存（格式：当前 / 最大）、当前买价/卖价、近3日均价/最高价/最低价。价格下方显示该商品在该终端的最后更新时间。</p>
+        </div>
+      </>
+    ),
+  },
+  {
+    id: 'location-detail',
+    title: '地点详情',
+    dotColor: '#fbbf24',
+    content: (
+      <>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">进入方式</h3>
+          <p className="text-xs">从路线结果中点击购买地或出售地，或从商品详情页点击终端名，也可通过搜索浮窗（Ctrl+K）搜索地点名进入。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">页面结构</h3>
+          <p className="text-xs">顶部显示地点名、终端数量标签和星系·行星·卫星位置信息。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该地点作为起点。下方有时间范围选择器和买卖价格趋势图，展示该地点交易量最高的前几种商品的价格走势。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">价格趋势图</h3>
+          <p className="text-xs">与商品详情页相同的双栏布局，但折线代表不同的商品（而非不同终端）。图表展示该地点买价最高和卖价最高的商品价格随时间的变化趋势。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">可购买 / 可售出商品</h3>
+          <p className="text-xs">双栏列出该地点所有终端可购买和可售出的商品。每行显示：商品名（点击进入商品详情）、种类标签、终端名·英文名·商品代码、当前库存（格式：当前 / 最大）、利润率、当前价格、近3日均价/最高价/最低价，以及更新时间。</p>
+        </div>
+      </>
+    ),
+  },
+  {
     id: 'reports',
     title: '泛天商报',
     dotColor: '#f472b6',

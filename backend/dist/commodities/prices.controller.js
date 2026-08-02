@@ -40,6 +40,46 @@ let PricesController = class PricesController {
         });
         return snapshots.map(s => ({ fetchedAt: s.fetchedAt.toISOString(), priceBuy: s.priceBuy, priceSell: s.priceSell, terminalName: s.terminal.name }));
     }
+    async locationPrices(locationName, hours) {
+        const name = decodeURIComponent(locationName || '');
+        if (!name)
+            return [];
+        const terminals = await this.prisma.terminal.findMany({
+            where: { OR: [{ cityName: name }, { spaceStationName: name }, { name }] },
+            select: { id: true },
+        });
+        if (!terminals.length)
+            return [];
+        const tids = terminals.map(t => t.id);
+        const hRaw = parseInt(hours || '24');
+        const h = Math.min(Math.max(hRaw || 24, 1), 168);
+        const since = new Date(Date.now() - h * 60 * 60 * 1000);
+        const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
+        if (!latest)
+            return [];
+        const latestSnaps = await this.prisma.priceSnapshot.findMany({
+            where: { terminalId: { in: tids }, fetchedAt: latest.fetchedAt },
+            select: { commodityId: true, priceBuy: true, priceSell: true },
+        });
+        const topBuy = [...latestSnaps.filter(s => s.priceBuy > 0)]
+            .sort((a, b) => b.priceBuy - a.priceBuy).slice(0, 5).map(s => s.commodityId);
+        const topSell = [...latestSnaps.filter(s => s.priceSell > 0)]
+            .sort((a, b) => a.priceSell - b.priceSell).slice(0, 5).map(s => s.commodityId);
+        const cids = [...new Set([...topBuy, ...topSell])];
+        const snapshots = await this.prisma.priceSnapshot.findMany({
+            where: { terminalId: { in: tids }, commodityId: { in: cids }, fetchedAt: { gte: since } },
+            include: { commodity: { select: { name: true } } },
+            orderBy: { fetchedAt: 'asc' },
+            take: 2000,
+        });
+        return snapshots.map(s => ({
+            fetchedAt: s.fetchedAt.toISOString(),
+            priceBuy: s.priceBuy,
+            priceSell: s.priceSell,
+            commodityName: s.commodity.name,
+            commodityId: s.commodityId,
+        }));
+    }
     async terminals(commodityId) {
         const cid = parseInt(commodityId);
         if (!cid)
@@ -95,6 +135,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], PricesController.prototype, "history", null);
+__decorate([
+    (0, common_1.Get)('location'),
+    (0, public_decorator_1.Public)(),
+    __param(0, (0, common_1.Query)('locationName')),
+    __param(1, (0, common_1.Query)('hours')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:returntype", Promise)
+], PricesController.prototype, "locationPrices", null);
 __decorate([
     (0, common_1.Get)('terminals'),
     (0, public_decorator_1.Public)(),

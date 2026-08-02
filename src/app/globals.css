@@ -151,32 +151,32 @@
 
 /* ── Table ── */
 .th-cell {
-  @apply text-left py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  @apply text-left py-2 px-2 lg:px-3 text-[9px] lg:text-[10px] font-semibold tracking-[0.1em] lg:tracking-[0.15em] uppercase;
   color: var(--muted-foreground);
   border-bottom: 2px solid var(--border);
   background: var(--card);
 }
 .th-cell--right {
-  @apply text-right py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  @apply text-right py-2 px-2 lg:px-3 text-[9px] lg:text-[10px] font-semibold tracking-[0.1em] lg:tracking-[0.15em] uppercase;
   color: var(--muted-foreground);
   border-bottom: 2px solid var(--border);
   background: var(--card);
 }
 .th-cell-last {
-  @apply text-center py-2 px-3 text-[10px] font-semibold tracking-[0.15em] uppercase;
+  @apply text-center py-2 px-2 lg:px-3 text-[9px] lg:text-[10px] font-semibold tracking-[0.1em] lg:tracking-[0.15em] uppercase;
   color: var(--muted-foreground);
   border-bottom: 2px solid var(--border);
   background: var(--card);
 }
 
 .td-cell {
-  @apply py-2 px-3 text-[11px] border-b border-border/50;
+  @apply py-2 px-2 lg:px-3 text-[10px] lg:text-[11px] border-b border-border/50;
 }
 .td-cell--right {
-  @apply py-2 px-3 text-[11px] text-right tabular-nums border-b border-border/50;
+  @apply py-2 px-2 lg:px-3 text-[10px] lg:text-[11px] text-right tabular-nums border-b border-border/50;
 }
 .td-cell-last {
-  @apply py-2 px-3 text-[11px] text-center border-b border-border/50;
+  @apply py-2 px-2 lg:px-3 text-[10px] lg:text-[11px] text-center border-b border-border/50;
 }
 
 .table-zebra tbody tr:nth-child(even) {
@@ -188,7 +188,7 @@
 
 /* ── Nav tab glow ── */
 .nav-tab {
-  @apply relative px-4 py-1.5 text-sm rounded-md transition-colors;
+  @apply relative px-3 lg:px-4 py-1.5 text-[13px] lg:text-sm rounded-md transition-colors whitespace-nowrap;
   color: var(--muted-foreground);
 }
 .nav-tab:hover {
@@ -212,7 +212,7 @@
 
 /* ── Commodity card (heatmap) ── */
 .commodity-card {
-  @apply h-[60px] flex flex-col items-start justify-center px-2 py-1 rounded-lg
+  @apply h-[52px] lg:h-[60px] flex flex-col items-start justify-center px-2 py-1 rounded-lg
          border bg-card cursor-pointer
          transition-all duration-150 text-left overflow-hidden;
   border-color: var(--border);
