@@ -74,7 +74,7 @@ export function Footer() {
 
         {/* Disclaimer */}
         <p className="text-center text-[11px] text-muted-foreground/40">
-          泛天贸易中心非官方工具，与CIG无任何关联
+          泛天贸易中心非官方工具，与Cloud Imperium Group无任何关联
         </p>
       </div>
     </footer>
