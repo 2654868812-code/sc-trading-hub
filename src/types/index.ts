@@ -87,13 +87,18 @@ export interface TradeRoute {
   isIllegal: boolean;
 }
 
+export type FilterMode = 'include' | 'exclude';
+
 export interface RouteFilters {
-  commodityId?: number;
+  commodityIds?: number[];
+  commodityMode?: FilterMode;
   shipId?: number;
   originSystem?: string;
   destSystem?: string;
-  originLocation?: string;
-  destLocation?: string;
+  originLocations?: string[];
+  originLocationMode?: FilterMode;
+  destLocations?: string[];
+  destLocationMode?: FilterMode;
   maxInvestment?: number;
   maxDistance?: number;
   commodityType?: 'major' | 'minor';

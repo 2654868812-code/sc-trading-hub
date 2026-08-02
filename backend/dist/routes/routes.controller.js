@@ -23,8 +23,22 @@ let RoutesController = class RoutesController {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async findRoutes(commodityId, shipId, originSystem, destSystem, originLocation, destLocation, maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, sortOrder, roundTrip, profitMode) {
-        const cid = commodityId ? parseInt(commodityId) : undefined;
+    async findRoutes(commodityId, commodityIdsRaw, commodityModeRaw, shipId, originSystem, destSystem, originLocation, originLocationsRaw, originLocationModeRaw, destLocation, destLocationsRaw, destLocationModeRaw, maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, sortOrder, roundTrip, profitMode) {
+        const cids = commodityIdsRaw
+            ? commodityIdsRaw.split(',').map(Number).filter(n => !isNaN(n))
+            : (commodityId ? [parseInt(commodityId)] : []);
+        const commodityMode = commodityModeRaw || 'include';
+        const parseLocs = (raw, fallback) => {
+            if (raw)
+                return raw.split(',').map(s => decodeURIComponent(s.trim())).filter(Boolean);
+            if (fallback)
+                return [fallback];
+            return [];
+        };
+        const originLocations = parseLocs(originLocationsRaw, originLocation);
+        const destLocations = parseLocs(destLocationsRaw, destLocation);
+        const originLocationMode = originLocationModeRaw || 'include';
+        const destLocationMode = destLocationModeRaw || 'include';
         const sid = shipId ? parseInt(shipId) : 0;
         const roundTripFlag = roundTrip === '1';
         let shipScu = 0, spaceOnly = false;
@@ -38,32 +52,46 @@ let RoutesController = class RoutesController {
         const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
         if (!latest)
             return [];
-        const buildLocationFilter = (loc, spaceOnlyFlag) => {
+        const buildLocationFilter = (locs, mode, spaceOnlyFlag) => {
             const filters = [];
-            if (loc)
-                filters.push({ terminal: { OR: [{ cityName: loc }, { spaceStationName: loc }] } });
-            if (!loc && spaceOnlyFlag)
+            if (locs.length > 0) {
+                const locOr = [
+                    { cityName: { in: locs } },
+                    { spaceStationName: { in: locs } },
+                ];
+                if (mode === 'exclude') {
+                    filters.push({ terminal: { NOT: { OR: locOr } } });
+                }
+                else {
+                    filters.push({ terminal: { OR: locOr } });
+                }
+            }
+            if (locs.length === 0 && spaceOnlyFlag) {
                 filters.push({ terminal: { spaceStationName: { not: null } } });
+            }
             return filters;
         };
-        const buyLocationFilters = buildLocationFilter(originLocation, spaceOnly);
-        const sellLocationFilters = buildLocationFilter(destLocation, spaceOnly);
+        const buyLocationFilters = buildLocationFilter(originLocations, originLocationMode, spaceOnly);
+        const sellLocationFilters = buildLocationFilter(destLocations, destLocationMode, spaceOnly);
+        const commodityFilter = cids.length > 0
+            ? { commodityId: commodityMode === 'exclude' ? { notIn: cids } : { in: cids } }
+            : {};
         const [buySnaps, sellSnaps] = await Promise.all([
             this.prisma.priceSnapshot.findMany({
-                where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
+                where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 }, ...commodityFilter, ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
                 include: { commodity: { select: { id: true, name: true, nameEn: true, kind: true, isIllegal: true } }, terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
             }),
             this.prisma.priceSnapshot.findMany({
-                where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
+                where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 }, ...commodityFilter, ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
                 include: { terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
             }),
         ]);
-        const commodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
+        const allCommodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
         const DAZONG_THRESHOLD = 2000;
         const [cargoRoutes, termMaxRows, commAvgs] = await Promise.all([
-            this.prisma.cargoRoute.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
-            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
-            this.prisma.commodityAverage.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
+            this.prisma.cargoRoute.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
+            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
+            this.prisma.commodityAverage.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
         ]);
         const cargoMap = new Map();
         for (const cr of cargoRoutes)
@@ -117,12 +145,13 @@ let RoutesController = class RoutesController {
                 if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice)
                     continue;
                 const profitPerScu = sellPrice - buyPrice;
-                const roi = Math.round((profitPerScu / buyPrice) * 1000) / 10;
                 const isMaxMode = profitMode === 'max';
                 const originStock = isMaxMode ? (oStock?.scuBuyMax ?? 0) : Math.round(oStock?.scuBuyAvg ?? 0);
                 const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
                 const sellScu = loadScu;
                 const totalInvestment = buyPrice * sellScu;
+                const totalProfit = profitPerScu * sellScu;
+                const roi = totalInvestment > 0 ? Math.round((totalProfit / totalInvestment) * 1000) / 10 : 0;
                 const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
                 const cargo = cargoMap.get(cargoKey);
                 routes.push({
@@ -144,7 +173,7 @@ let RoutesController = class RoutesController {
                     destMoonName: sell.terminal.moonName || '', destMoonNameEn: sell.terminal.moonNameEn || '',
                     sellPrice, profitPerScu, roi,
                     distanceGm: cargo?.distance ?? null,
-                    totalProfit: profitPerScu * sellScu, totalInvestment, loadScu, sellScu, shipScu,
+                    totalProfit, totalInvestment, loadScu, sellScu, shipScu,
                     originStock: Math.round(oStock?.scuBuyAvg ?? 0), destStock: Math.round(dStock?.scuSellAvg ?? 0),
                     originStockMax: Math.round(oStock?.scuBuyMax ?? 0), destStockMax: Math.round(dStock?.scuSellMax ?? 0),
                     originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
@@ -244,21 +273,27 @@ __decorate([
     (0, common_1.Get)(),
     (0, public_decorator_1.Public)(),
     __param(0, (0, common_1.Query)('commodityId')),
-    __param(1, (0, common_1.Query)('shipId')),
-    __param(2, (0, common_1.Query)('originSystem')),
-    __param(3, (0, common_1.Query)('destSystem')),
-    __param(4, (0, common_1.Query)('originLocation')),
-    __param(5, (0, common_1.Query)('destLocation')),
-    __param(6, (0, common_1.Query)('maxInvestment')),
-    __param(7, (0, common_1.Query)('maxDistance')),
-    __param(8, (0, common_1.Query)('commodityType')),
-    __param(9, (0, common_1.Query)('autoLoadType')),
-    __param(10, (0, common_1.Query)('sortBy')),
-    __param(11, (0, common_1.Query)('sortOrder')),
-    __param(12, (0, common_1.Query)('roundTrip')),
-    __param(13, (0, common_1.Query)('profitMode')),
+    __param(1, (0, common_1.Query)('commodityIds')),
+    __param(2, (0, common_1.Query)('commodityMode')),
+    __param(3, (0, common_1.Query)('shipId')),
+    __param(4, (0, common_1.Query)('originSystem')),
+    __param(5, (0, common_1.Query)('destSystem')),
+    __param(6, (0, common_1.Query)('originLocation')),
+    __param(7, (0, common_1.Query)('originLocations')),
+    __param(8, (0, common_1.Query)('originLocationMode')),
+    __param(9, (0, common_1.Query)('destLocation')),
+    __param(10, (0, common_1.Query)('destLocations')),
+    __param(11, (0, common_1.Query)('destLocationMode')),
+    __param(12, (0, common_1.Query)('maxInvestment')),
+    __param(13, (0, common_1.Query)('maxDistance')),
+    __param(14, (0, common_1.Query)('commodityType')),
+    __param(15, (0, common_1.Query)('autoLoadType')),
+    __param(16, (0, common_1.Query)('sortBy')),
+    __param(17, (0, common_1.Query)('sortOrder')),
+    __param(18, (0, common_1.Query)('roundTrip')),
+    __param(19, (0, common_1.Query)('profitMode')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String]),
+    __metadata("design:paramtypes", [String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String, String]),
     __metadata("design:returntype", Promise)
 ], RoutesController.prototype, "findRoutes", null);
 exports.RoutesController = RoutesController = __decorate([

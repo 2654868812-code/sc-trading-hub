@@ -7,14 +7,43 @@ import { RouteTable } from '@/components/RouteTable';
 import type { TradeRoute, RouteFilters } from '@/types';
 import { saveFiltersToStorage, buildFilterParams } from '@/lib/filter-storage';
 
+function parseIds(raw: string | null): number[] | undefined {
+  if (!raw) return undefined;
+  const ids = raw.split(',').map(Number).filter(n => !isNaN(n));
+  return ids.length ? ids : undefined;
+}
+
+function parseLocs(raw: string | null): string[] | undefined {
+  if (!raw) return undefined;
+  const locs = raw.split(',').map(s => decodeURIComponent(s.trim())).filter(Boolean);
+  return locs.length ? locs : undefined;
+}
+
 function readFiltersFromParams(searchParams: URLSearchParams): RouteFilters {
+  // Parse commodity: new multi-select takes priority, fallback to old single
+  const newCids = parseIds(searchParams.get('commodityIds'));
+  const oldCid = searchParams.get('commodityId');
+  const commodityIds = newCids ?? (oldCid ? [parseInt(oldCid)] : undefined);
+
+  // Parse locations: new multi-select takes priority, fallback to old single
+  const newOrigins = parseLocs(searchParams.get('originLocations'));
+  const oldOrigin = searchParams.get('originLocation');
+  const originLocations = newOrigins ?? (oldOrigin ? [oldOrigin] : undefined);
+
+  const newDests = parseLocs(searchParams.get('destLocations'));
+  const oldDest = searchParams.get('destLocation');
+  const destLocations = newDests ?? (oldDest ? [oldDest] : undefined);
+
   return {
     shipId: searchParams.get('shipId') ? parseInt(searchParams.get('shipId')!) : undefined,
-    commodityId: searchParams.get('commodityId') ? parseInt(searchParams.get('commodityId')!) : undefined,
+    commodityIds,
+    commodityMode: (searchParams.get('commodityMode') || undefined) as RouteFilters['commodityMode'],
     originSystem: searchParams.get('originSystem') || undefined,
     destSystem: searchParams.get('destSystem') || undefined,
-    originLocation: searchParams.get('originLocation') || undefined,
-    destLocation: searchParams.get('destLocation') || undefined,
+    originLocations,
+    originLocationMode: (searchParams.get('originLocationMode') || undefined) as RouteFilters['originLocationMode'],
+    destLocations,
+    destLocationMode: (searchParams.get('destLocationMode') || undefined) as RouteFilters['destLocationMode'],
     maxInvestment: searchParams.get('maxInvestment') ? parseFloat(searchParams.get('maxInvestment')!) : undefined,
     maxDistance: searchParams.get('maxDistance') ? parseFloat(searchParams.get('maxDistance')!) : undefined,
     commodityType: (searchParams.get('commodityType') || undefined) as RouteFilters['commodityType'],
@@ -59,21 +88,7 @@ function RoutesContent() {
   const doSearch = useCallback(async (filters: RouteFilters, silent?: boolean) => {
     if (!silent) setLoading(true);
     setSearched(true);
-    const params = new URLSearchParams();
-    if (filters.shipId) params.set('shipId', String(filters.shipId));
-    if (filters.commodityId) params.set('commodityId', String(filters.commodityId));
-    if (filters.originSystem) params.set('originSystem', filters.originSystem);
-    if (filters.destSystem) params.set('destSystem', filters.destSystem);
-    if (filters.originLocation) params.set('originLocation', filters.originLocation);
-    if (filters.destLocation) params.set('destLocation', filters.destLocation);
-    if (filters.maxInvestment) params.set('maxInvestment', String(filters.maxInvestment));
-    if (filters.maxDistance) params.set('maxDistance', String(filters.maxDistance));
-    if (filters.autoLoadType) params.set('autoLoadType', filters.autoLoadType);
-    if (filters.commodityType) params.set('commodityType', filters.commodityType);
-    if (filters.sortBy) params.set('sortBy', filters.sortBy);
-    if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
-    if (filters.roundTrip) params.set('roundTrip', '1');
-    if (filters.profitMode) params.set('profitMode', filters.profitMode);
+    const params = buildFilterParams(filters);
 
     try {
       const res = await fetch(`/api/routes?${params.toString()}`);
@@ -99,7 +114,7 @@ function RoutesContent() {
 
   // Auto-search on mount if shipId present in URL
   useEffect(() => {
-    if (initialFilters.shipId || initialFilters.commodityId) {
+    if (initialFilters.shipId || initialFilters.commodityIds?.length) {
       currentFiltersRef.current = initialFilters;
       doSearch(initialFilters);
     }

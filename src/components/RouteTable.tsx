@@ -151,7 +151,7 @@ export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, on
                     <th className="th-cell--right">成本</th>
                     <th className="th-cell--right">利润</th>
                     <th className="th-cell--right">/SCU</th>
-                    <th className="th-cell--right">ROI</th>
+                    <th className="th-cell--right">利润率</th>
                     <th className="th-cell--right">距离</th>
                     <th className="th-cell--right">货箱</th>
                     <th className="th-cell-last">自动</th>
@@ -312,7 +312,7 @@ function RouteTableInner({ routes, router, onCommodityClick, flipKey }: {
           <th className="th-cell--right">成本</th>
           <th className="th-cell--right">利润</th>
           <th className="th-cell--right">/SCU</th>
-          <th className="th-cell--right">ROI</th>
+          <th className="th-cell--right">利润率</th>
           <th className="th-cell--right">距离</th>
           <th className="th-cell--right">货箱</th>
           <th className="th-cell-last">自动</th>

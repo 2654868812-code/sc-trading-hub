@@ -13,11 +13,17 @@ export class RoutesController {
   @Public()
   async findRoutes(
     @Query('commodityId') commodityId?: string,
+    @Query('commodityIds') commodityIdsRaw?: string,
+    @Query('commodityMode') commodityModeRaw?: string,
     @Query('shipId') shipId?: string,
     @Query('originSystem') originSystem?: string,
     @Query('destSystem') destSystem?: string,
     @Query('originLocation') originLocation?: string,
+    @Query('originLocations') originLocationsRaw?: string,
+    @Query('originLocationMode') originLocationModeRaw?: string,
     @Query('destLocation') destLocation?: string,
+    @Query('destLocations') destLocationsRaw?: string,
+    @Query('destLocationMode') destLocationModeRaw?: string,
     @Query('maxInvestment') maxInvestment?: string,
     @Query('maxDistance') maxDistance?: string,
     @Query('commodityType') commodityType?: string,
@@ -27,7 +33,23 @@ export class RoutesController {
     @Query('roundTrip') roundTrip?: string,
     @Query('profitMode') profitMode?: string,
   ) {
-    const cid = commodityId ? parseInt(commodityId) : undefined;
+    // Parse commodity: new multi-select takes priority, fallback to old single
+    const cids = commodityIdsRaw
+      ? commodityIdsRaw.split(',').map(Number).filter(n => !isNaN(n))
+      : (commodityId ? [parseInt(commodityId)] : []);
+    const commodityMode = commodityModeRaw || 'include';
+
+    // Parse locations: new multi-select takes priority, fallback to old single
+    const parseLocs = (raw: string | undefined, fallback: string | undefined) => {
+      if (raw) return raw.split(',').map(s => decodeURIComponent(s.trim())).filter(Boolean);
+      if (fallback) return [fallback];
+      return [];
+    };
+    const originLocations = parseLocs(originLocationsRaw, originLocation);
+    const destLocations = parseLocs(destLocationsRaw, destLocation);
+    const originLocationMode = originLocationModeRaw || 'include';
+    const destLocationMode = destLocationModeRaw || 'include';
+
     const sid = shipId ? parseInt(shipId) : 0;
     const roundTripFlag = roundTrip === '1';
 
@@ -40,36 +62,52 @@ export class RoutesController {
     const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
     if (!latest) return [];
 
-    // Build terminal filter for location matching
-    const buildLocationFilter = (loc: string | undefined, spaceOnlyFlag: boolean) => {
+    // Build terminal filter for location matching (supports include/exclude multi-select)
+    const buildLocationFilter = (locs: string[], mode: string, spaceOnlyFlag: boolean) => {
       const filters: any[] = [];
-      if (loc) filters.push({ terminal: { OR: [{ cityName: loc }, { spaceStationName: loc }] } });
-      if (!loc && spaceOnlyFlag) filters.push({ terminal: { spaceStationName: { not: null } } });
+      if (locs.length > 0) {
+        const locOr = [
+          { cityName: { in: locs } },
+          { spaceStationName: { in: locs } },
+        ];
+        if (mode === 'exclude') {
+          filters.push({ terminal: { NOT: { OR: locOr } } });
+        } else {
+          filters.push({ terminal: { OR: locOr } });
+        }
+      }
+      if (locs.length === 0 && spaceOnlyFlag) {
+        filters.push({ terminal: { spaceStationName: { not: null } } });
+      }
       return filters;
     };
 
-    const buyLocationFilters = buildLocationFilter(originLocation, spaceOnly);
-    const sellLocationFilters = buildLocationFilter(destLocation, spaceOnly);
+    const buyLocationFilters = buildLocationFilter(originLocations, originLocationMode, spaceOnly);
+    const sellLocationFilters = buildLocationFilter(destLocations, destLocationMode, spaceOnly);
 
     // Filter: use priceBuy (not avg) as gate; priceBuyAvg as preferred value with fallback
+    const commodityFilter = cids.length > 0
+      ? { commodityId: commodityMode === 'exclude' ? { notIn: cids } : { in: cids } }
+      : {};
+
     const [buySnaps, sellSnaps] = await Promise.all([
       this.prisma.priceSnapshot.findMany({
-        where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
+        where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 }, ...commodityFilter, ...(buyLocationFilters.length ? { AND: buyLocationFilters } : {}) },
         include: { commodity: { select: { id: true, name: true, nameEn: true, kind: true, isIllegal: true } }, terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
       }),
       this.prisma.priceSnapshot.findMany({
-        where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 }, ...(cid ? { commodityId: cid } : {}), ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
+        where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 }, ...commodityFilter, ...(sellLocationFilters.length ? { AND: sellLocationFilters } : {}) },
         include: { terminal: { select: { id: true, name: true, nameEn: true, starSystemName: true, starSystemNameEn: true, planetName: true, planetNameEn: true, moonName: true, moonNameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, isAutoLoad: true } } },
       }),
     ]);
 
     // Fetch cargo routes + terminal stock + commodity averages for dazong threshold
-    const commodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
+    const allCommodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
     const DAZONG_THRESHOLD = 2000;
     const [cargoRoutes, termMaxRows, commAvgs] = await Promise.all([
-      this.prisma.cargoRoute.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
-      this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
-      this.prisma.commodityAverage.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
+      this.prisma.cargoRoute.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
+      this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
+      this.prisma.commodityAverage.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
     ]);
     const cargoMap = new Map<string, typeof cargoRoutes[number]>();
     for (const cr of cargoRoutes) cargoMap.set(`${cr.commodityId}-${cr.originTerminalId}-${cr.destTerminalId}`, cr);
@@ -110,7 +148,6 @@ export class RoutesController {
         if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice) continue;
 
         const profitPerScu = sellPrice - buyPrice;
-        const roi = Math.round((profitPerScu / buyPrice) * 1000) / 10;
 
         // Stock constraint: expected (3d avg) vs max (historical peak)
         const isMaxMode = profitMode === 'max';
@@ -118,6 +155,8 @@ export class RoutesController {
         const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
         const sellScu = loadScu;
         const totalInvestment = buyPrice * sellScu;
+        const totalProfit = profitPerScu * sellScu;
+        const roi = totalInvestment > 0 ? Math.round((totalProfit / totalInvestment) * 1000) / 10 : 0;
 
         // Cargo route info
         const cargoKey = `${buy.commodityId}-${buy.terminalId}-${sell.terminalId}`;
@@ -142,7 +181,7 @@ export class RoutesController {
           destMoonName: sell.terminal.moonName || '', destMoonNameEn: sell.terminal.moonNameEn || '',
           sellPrice, profitPerScu, roi,
           distanceGm: cargo?.distance ?? null,
-          totalProfit: profitPerScu * sellScu, totalInvestment, loadScu, sellScu, shipScu,
+          totalProfit, totalInvestment, loadScu, sellScu, shipScu,
           originStock: Math.round(oStock?.scuBuyAvg ?? 0), destStock: Math.round(dStock?.scuSellAvg ?? 0),
           originStockMax: Math.round(oStock?.scuBuyMax ?? 0), destStockMax: Math.round(dStock?.scuSellMax ?? 0),
           originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),

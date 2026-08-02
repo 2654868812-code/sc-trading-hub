@@ -2,12 +2,22 @@ import type { RouteFilters } from '@/types';
 
 const KEY = 'sc-trade-filters';
 
+function encodeArray(values: string[]): string {
+  return values.map(v => encodeURIComponent(v)).join(',');
+}
+
 export function readFiltersFromStorage(): RouteFilters | null {
   try {
     if (typeof sessionStorage === 'undefined') return null;
     const raw = sessionStorage.getItem(KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as RouteFilters;
+    const parsed = JSON.parse(raw);
+    // Migration: detect old single-value format and clear
+    if (typeof parsed.commodityId === 'number' || typeof parsed.originLocation === 'string' || typeof parsed.destLocation === 'string') {
+      sessionStorage.removeItem(KEY);
+      return null;
+    }
+    return parsed as RouteFilters;
   } catch {
     return null;
   }
@@ -23,11 +33,20 @@ export function saveFiltersToStorage(filters: RouteFilters): void {
 export function buildFilterParams(filters: RouteFilters): URLSearchParams {
   const params = new URLSearchParams();
   if (filters.shipId) params.set('shipId', String(filters.shipId));
-  if (filters.commodityId) params.set('commodityId', String(filters.commodityId));
+  if (filters.commodityIds?.length) {
+    params.set('commodityIds', encodeArray(filters.commodityIds.map(String)));
+    if (filters.commodityMode) params.set('commodityMode', filters.commodityMode);
+  }
   if (filters.originSystem) params.set('originSystem', filters.originSystem);
   if (filters.destSystem) params.set('destSystem', filters.destSystem);
-  if (filters.originLocation) params.set('originLocation', filters.originLocation);
-  if (filters.destLocation) params.set('destLocation', filters.destLocation);
+  if (filters.originLocations?.length) {
+    params.set('originLocations', encodeArray(filters.originLocations));
+    if (filters.originLocationMode) params.set('originLocationMode', filters.originLocationMode);
+  }
+  if (filters.destLocations?.length) {
+    params.set('destLocations', encodeArray(filters.destLocations));
+    if (filters.destLocationMode) params.set('destLocationMode', filters.destLocationMode);
+  }
   if (filters.maxInvestment) params.set('maxInvestment', String(filters.maxInvestment));
   if (filters.maxDistance) params.set('maxDistance', String(filters.maxDistance));
   if (filters.autoLoadType) params.set('autoLoadType', filters.autoLoadType);

@@ -62,14 +62,14 @@ export function SearchFloat() {
       c.nameEn.toLowerCase().includes(q) ||
       c.kindZh.includes(q) ||
       c.code.toLowerCase().includes(q)
-    ).slice(0, 8));
+    ).slice(0, 12));
 
     setLocations(allLocations.filter(l =>
       l.name.toLowerCase().includes(q) ||
       l.nameEn.toLowerCase().includes(q) ||
       l.system.toLowerCase().includes(q) ||
       (l.planet || '').toLowerCase().includes(q)
-    ).slice(0, 6));
+    ).slice(0, 8));
   }, [query, dataLoaded, allCommodities, allLocations]);
 
   // Keyboard shortcut

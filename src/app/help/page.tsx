@@ -124,7 +124,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">路线结果解读</h3>
-          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、ROI、距离和货箱规格（最小-最大）。鼠标悬停可查看计算公式。</p>
+          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、利润率、距离和货箱规格（最小-最大）。鼠标悬停可查看计算公式。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">库存条</h3>
@@ -151,7 +151,7 @@ const CATEGORIES: HelpCategory[] = [
             <strong>最大距离</strong>：过滤远距离路线。<br />
             <strong>商品类型</strong>：大宗/小宗，与首页标准一致（历史最大买入量 ≥ 2,000 SCU 为大宗）。<br />
             <strong>自动装卸</strong>：全程自动（两端都有）/ 半程自动 / 全手动。<br />
-            <strong>排序</strong>：按总利润 / ROI / 距离排序。<br />
+            <strong>排序</strong>：按总利润 / 利润率 / 距离排序。<br />
             <strong>利润模式</strong>：期望利润（3日均库存）或最大利润（历史最高库存）。
           </p>
         </div>
