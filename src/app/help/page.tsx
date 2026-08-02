@@ -91,23 +91,23 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">大宗 vs 小宗</h3>
-          <p className="text-xs">大宗商品流通量大、供需稳定，适合大批量跑商。小宗商品单利可能更高但供应不稳定。可通过搜索框和排序切换快速找到目标商品。</p>
+          <p className="text-xs">历史最大买入量 ≥ 2,000 SCU 归为大宗，流通量大、供需稳定，适合大批量跑商。小宗商品单利可能更高但供应不稳定。搜索框和排序切换可快速定位目标商品。</p>
         </div>
         <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">利润率与颜色</h3>
-          <p className="text-xs">利润率 = (卖均价 − 买均价) / 买均价 × 100%。绿色越深利润越高，红色表示亏损。颜色从红到绿平滑过渡。</p>
+          <h3 className="text-foreground font-semibold text-xs mb-1">利润率</h3>
+          <p className="text-xs">利润率 = (当前卖均价 − 当前买均价) / 当前买均价 × 100%，基于最新快照实时计算。绿色越深利润越高，红色表示亏损。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">排序方式</h3>
           <p className="text-xs">
             <strong>按名称</strong>：中文拼音排序。<br />
             <strong>按利润率</strong>：百分比从高到低。<br />
-            <strong>按利润</strong>：单位利润 (aUEC/SCU) 从高到低。高单价商品在此排序靠前。
+            <strong>按利润</strong>：单位利润 (aUEC/SCU) 从高到低。
           </p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">商品详情页</h3>
-          <p className="text-xs">点击商品进入详情页，可查看买卖价格趋势图、各终端当前价格与库存、历史最高/最低/均价。点击「查看贸易路线」一键跳转。</p>
+          <p className="text-xs">点击商品进入详情页，可查看买卖价格趋势图（24h/72h/7天）、各终端当前价格与库存、历史最高/最低/均价。点击「查看贸易路线」一键跳转。</p>
         </div>
       </>
     ),
@@ -120,32 +120,44 @@ const CATEGORIES: HelpCategory[] = [
       <>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">使用流程</h3>
-          <p className="text-xs">选择货船 → 设置筛选条件 → 点击「查询路线」。也可从商品总览点击商品快速跳转，自动带入商品筛选。</p>
+          <p className="text-xs">选择货船 → 设置筛选条件 → 点击「查询路线」。也可从商品总览点击商品快速跳转，自动带入商品筛选。「重置」按钮一键清空所有筛选条件和结果。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">路线结果解读</h3>
-          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 ( /SCU)、ROI 和距离。鼠标悬停可查看计算公式。</p>
+          <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、ROI、距离和货箱规格（最小/最大）。鼠标悬停可查看计算公式。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">库存条</h3>
-          <p className="text-xs">购买地显示「均/最大库存」，出售地同理。进度条颜色：红色库存紧张、黄色适中、绿色充足。</p>
+          <p className="text-xs">购买地和出售地均显示「近3日均库存 / 历史最高库存」。进度条颜色：红色库存紧张、黄色适中、绿色充足。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">利润模式</h3>
+          <p className="text-xs">
+            <strong>期望利润</strong>：按近3日买入地平均库存估算载货量，利润数字反映当前真实交易水平。<br />
+            <strong>最大利润</strong>：按买入地历史最高库存估算载货量（理想上限，当前库存往往达不到），利润是理论上限。
+          </p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">往返路线</h3>
+          <p className="text-xs">勾选「往返航线」后仅显示来回都有利润的路线组。每条往返路线卡片内用完整表格展示去程和回程明细，卡片顶部显示往返总成本和总利润。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">筛选器指南</h3>
           <p className="text-xs">
-            <strong>货船</strong>（必选）：选船后根据 SCU 容量计算装载量和投资额。仅空间站的船会自动过滤地面站点。<br />
-            <strong>商品</strong>：搜索特定商品，为空展示全部。<br />
+            <strong>货船</strong>（必选）：选船后根据 SCU 容量计算装载量和投资额。仅空间站的船自动过滤地面站点。<br />
+            <strong>商品</strong>：搜索特定商品，不选则展示全部。<br />
             <strong>星系/地点</strong>：起终点独立筛选，支持地点搜索。<br />
             <strong>最大投资</strong>：限制总买入成本，±10 倍步进。<br />
             <strong>最大距离</strong>：过滤远距离路线。<br />
-            <strong>商品类型</strong>：大宗/小宗过滤。<br />
-            <strong>自动装卸</strong>：全程自动（两端都自动）/ 半程自动 / 全手动。<br />
-            <strong>往返航线</strong>：仅显示来回都有利润的路线。
+            <strong>商品类型</strong>：大宗/小宗，与首页标准一致（历史最大买入量 ≥ 2,000 SCU 为大宗）。<br />
+            <strong>自动装卸</strong>：全程自动（两端都有）/ 半程自动 / 全手动。<br />
+            <strong>排序</strong>：按总利润 / ROI / 距离排序。<br />
+            <strong>利润模式</strong>：期望利润（3日均库存）或最大利润（历史最高库存）。
           </p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">筛选记住 & 自动刷新</h3>
-          <p className="text-xs">筛选条件在切换页面后保留，也可复制链接分享。页面每 60 秒自动检测数据更新。</p>
+          <p className="text-xs">筛选条件切换页面后保留，也可复制链接分享。页面每 60 秒自动检测数据更新并刷新结果。</p>
         </div>
       </>
     ),
@@ -182,33 +194,8 @@ const CATEGORIES: HelpCategory[] = [
           <p className="text-xs">每 30 分钟自动同步一次最新价格。页面顶部状态栏可查看上次更新时间。</p>
         </div>
         <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">价格说明</h3>
-          <p className="text-xs">展示的买卖价格和库存数据基于最近 3 天均值，比瞬时价格更稳定可靠。最大库存来自历史统计。</p>
-        </div>
-      </>
-    ),
-  },
-  {
-    id: 'join',
-    title: '加入我们',
-    dotColor: '#c9a94e',
-    content: (
-      <>
-        <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">泛天商会</h3>
-          <p className="text-xs">坚守中立，欢迎所有热爱游戏、主张和平的玩家加入。</p>
-        </div>
-        <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">加入方式</h3>
-          <p className="text-xs">
-            RSI 组织页面：<span className="break-all">robertsspaceindustries.com/en/orgs/FANTIAN</span><br />
-            QQ 群：1083464126<br />
-            联系 @公，QQ：2654868812
-          </p>
-        </div>
-        <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">反馈建议</h3>
-          <p className="text-xs">欢迎提出意见或反馈 bug。数据采集插件正在开发中，届时欢迎参与数据贡献。</p>
+          <h3 className="text-foreground font-semibold text-xs mb-1">价格与库存</h3>
+          <p className="text-xs">买卖价格来自最新快照的实时数据，非历史均价。路线利润基于当前差价计算。库存列显示近3日均库存（用于约束期望利润模式下的载货量）和 UEX 历史最高库存（用于最大利润模式）。</p>
         </div>
       </>
     ),

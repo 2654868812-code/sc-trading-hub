@@ -12,7 +12,7 @@ export class CommoditiesController {
     return { id: c.id, name: c.name, nameZh: c.name, nameEn: c.nameEn, code: c.code, kind: c.kind,
       isBuyable: c.isBuyable, isSellable: c.isSellable, isIllegal: c.isIllegal, isRaw: c.isRaw, isRefined: c.isRefined,
       kindZh: getZhKind(c.kind), totalSellStock: 0, totalBuyStock: 0, changePercent: c.changePercent,
-      currentBuyAvg: null, currentSellAvg: null, profitMargin: null, profitChange: null, maxProfitMargin: null, isDazong: false };
+      currentBuyAvg: null, currentSellAvg: null, profitMargin: null, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin, isDazong: false };
   }
 
   private DAZONG_THRESHOLD = 2000;
@@ -45,15 +45,22 @@ export class CommoditiesController {
     const dazongMap: Record<number, boolean> = {};
     for (const a of averages) dazongMap[a.commodityId] = (a.scuBuyMax || 0) >= this.DAZONG_THRESHOLD;
 
-    return commodities.map(c => ({
-      ...c, nameZh: c.name, kindZh: getZhKind(c.kind),
-      totalSellStock: sellStockMap[c.id] || 0,
-      totalBuyStock: buyStockMap[c.id] || 0,
-      currentBuyAvg: buyMap[c.id] ?? null,
-      currentSellAvg: sellMap[c.id] ?? null,
-      profitMargin: c.profitMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
-      isDazong: dazongMap[c.id] ?? false,
-    }));
+    return commodities.map(c => {
+      const buyAvg = buyMap[c.id] ?? null;
+      const sellAvg = sellMap[c.id] ?? null;
+      const liveMargin = (buyAvg != null && sellAvg != null && buyAvg > 0)
+        ? Math.round(((sellAvg - buyAvg) / buyAvg) * 1000) / 10
+        : null;
+      return {
+        ...c, nameZh: c.name, kindZh: getZhKind(c.kind),
+        totalSellStock: sellStockMap[c.id] || 0,
+        totalBuyStock: buyStockMap[c.id] || 0,
+        currentBuyAvg: buyAvg,
+        currentSellAvg: sellAvg,
+        profitMargin: liveMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
+        isDazong: dazongMap[c.id] ?? false,
+      };
+    });
   }
 
   @Get('commodities/:id')
@@ -79,11 +86,15 @@ export class CommoditiesController {
       if (buyStock[0]) totalBuyStock = buyStock[0]._sum.scuBuyStock || 0;
     }
 
+    const liveMargin = (currentBuyAvg != null && currentSellAvg != null && currentBuyAvg > 0)
+      ? Math.round(((currentSellAvg - currentBuyAvg) / currentBuyAvg) * 1000) / 10
+      : null;
+
     return {
       ...c, nameZh: c.name, kindZh: getZhKind(c.kind),
       totalSellStock, totalBuyStock,
       currentBuyAvg, currentSellAvg,
-      profitMargin: c.profitMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
+      profitMargin: liveMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
       isDazong: (avg?.scuBuyMax || 0) >= this.DAZONG_THRESHOLD,
     };
   }

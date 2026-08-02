@@ -142,6 +142,7 @@ export function TradeRouteFilter({
   const [autoLoadType, setAutoLoadType] = useState(f.autoLoadType || '');
   const [sortBy, setSortBy] = useState<string>(f.sortBy || 'profit');
   const [roundTrip, setRoundTrip] = useState(f.roundTrip || false);
+  const [profitMode, setProfitMode] = useState<string>(f.profitMode || 'expected');
 
   // Location selectors
   const [locations, setLocations] = useState<LocationOption[]>([]);
@@ -196,6 +197,7 @@ export function TradeRouteFilter({
         if (stored.autoLoadType) setAutoLoadType(stored.autoLoadType);
         if (stored.sortBy) setSortBy(stored.sortBy);
         if (stored.roundTrip) setRoundTrip(stored.roundTrip);
+        if (stored.profitMode) setProfitMode(stored.profitMode);
       }
 
       // Restore search text from effective IDs (works for both URL and sessionStorage)
@@ -233,10 +235,11 @@ export function TradeRouteFilter({
       sortBy: sortBy as RouteFilters['sortBy'],
       sortOrder: 'desc',
       roundTrip: roundTrip || undefined,
+      profitMode: profitMode as RouteFilters['profitMode'],
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shipId, commodityId, originSystem, destSystem, originLocation, destLocation,
-      maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, roundTrip]);
+      maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, roundTrip, profitMode]);
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -330,6 +333,12 @@ export function TradeRouteFilter({
 
   const hasShip = shipId !== '';
 
+  function resetFilters() {
+    // Clear session storage and reload to reset everything including parent results
+    try { sessionStorage.removeItem('sc-trade-filters'); } catch { /* ignore */ }
+    window.location.href = '/routes';
+  }
+
   function apply() {
     if (!hasShip) return;
     onFilterChange({
@@ -346,6 +355,7 @@ export function TradeRouteFilter({
       sortBy: sortBy as RouteFilters['sortBy'],
       sortOrder: 'desc',
       roundTrip,
+      profitMode: profitMode as RouteFilters['profitMode'],
     });
   }
 
@@ -619,6 +629,30 @@ export function TradeRouteFilter({
           <option value="roi">ROI</option>
           <option value="distance">距离</option>
         </SelectField>
+        <div className="flex flex-col gap-1">
+          <span className="text-[11px] tracking-wider text-muted-foreground uppercase flex items-center gap-1">
+            利润模式
+            <span className="relative group/help inline-flex">
+              <svg width="13" height="13" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors" fill="none" strokeWidth="1">
+                <circle cx="7" cy="7" r="6.5" />
+                <text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text>
+              </svg>
+              <span className="absolute left-0 bottom-full mb-1 w-56 p-2.5 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 whitespace-pre-line hidden group-hover/help:block">
+{'期望利润：按近3日买入地平均库存估算你能买到的载货量，并基于此计算总利润\n最大利润：按买入地历史最高库存估算载货量（理想上限，当前库存往往达不到），并基于此计算总利润'}
+              </span>
+            </span>
+          </span>
+          <select
+            value={profitMode}
+            onChange={(e) => setProfitMode(e.target.value)}
+            className="h-9 w-[120px] rounded-md border border-border/40 bg-secondary px-3 text-sm text-foreground
+                       focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none
+                       transition-colors appearance-none cursor-pointer"
+          >
+            <option value="expected">期望利润</option>
+            <option value="max">最大利润</option>
+          </select>
+        </div>
         <label className="flex items-center gap-2 h-9 px-3 rounded-md border border-border/40 bg-secondary cursor-pointer hover:border-primary/40 transition-colors select-none">
           <span className="text-[11px] tracking-wider text-muted-foreground uppercase">往返航线</span>
           <div className="relative w-8 h-[18px] flex items-center">
@@ -636,6 +670,13 @@ export function TradeRouteFilter({
           title={!hasShip ? '请先选择货船' : ''}
         >
           {!hasShip ? '请先选择货船' : loading ? '查询中…' : '查询路线'}
+        </button>
+        <button onClick={resetFilters}
+          className="h-9 px-4 rounded-lg border border-border/50 bg-secondary text-sm text-muted-foreground
+                     hover:text-foreground hover:border-border hover:bg-accent
+                     active:bg-accent/80 transition-all duration-200"
+        >
+          重置
         </button>
       </div>
     </div>

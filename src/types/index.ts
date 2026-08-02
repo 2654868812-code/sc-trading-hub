@@ -101,6 +101,7 @@ export interface RouteFilters {
   sortBy?: 'roi' | 'profit' | 'distance';
   sortOrder?: 'asc' | 'desc';
   roundTrip?: boolean;
+  profitMode?: 'expected' | 'max';
 }
 
 export interface ShipOption {

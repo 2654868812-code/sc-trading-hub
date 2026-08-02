@@ -7,6 +7,8 @@ export function Footer() {
         {/* Links */}
         <div className="flex items-center justify-center gap-4 text-[11px] text-muted-foreground/60">
           <Link href="/help" className="hover:text-foreground transition-colors">帮助中心</Link>
+          <span className="text-border/40">|</span>
+          <Link href="/join" className="hover:text-foreground transition-colors">加入我们</Link>
         </div>
 
         {/* Copyright + logo */}

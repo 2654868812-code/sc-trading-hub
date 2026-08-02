@@ -25,6 +25,7 @@ export class RoutesController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
     @Query('roundTrip') roundTrip?: string,
+    @Query('profitMode') profitMode?: string,
   ) {
     const cid = commodityId ? parseInt(commodityId) : undefined;
     const sid = shipId ? parseInt(shipId) : 0;
@@ -62,16 +63,20 @@ export class RoutesController {
       }),
     ]);
 
-    // Fetch cargo routes + terminal stock for accurate calculations
+    // Fetch cargo routes + terminal stock + commodity averages for dazong threshold
     const commodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
-    const [cargoRoutes, termMaxRows] = await Promise.all([
+    const DAZONG_THRESHOLD = 2000;
+    const [cargoRoutes, termMaxRows, commAvgs] = await Promise.all([
       this.prisma.cargoRoute.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
       this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
+      this.prisma.commodityAverage.findMany({ where: { commodityId: { in: commodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
     ]);
     const cargoMap = new Map<string, typeof cargoRoutes[number]>();
     for (const cr of cargoRoutes) cargoMap.set(`${cr.commodityId}-${cr.originTerminalId}-${cr.destTerminalId}`, cr);
     const stockMap = new Map<string, typeof termMaxRows[number]>();
     for (const t of termMaxRows) stockMap.set(`${t.commodityId}-${t.terminalId}`, t);
+    const isDazong = new Set<number>();
+    for (const a of commAvgs) { if ((a.scuBuyMax || 0) >= DAZONG_THRESHOLD) isDazong.add(a.commodityId); }
 
     const sellByCommodity: Record<number, typeof sellSnaps> = {};
     for (const s of sellSnaps) { if (!sellByCommodity[s.commodityId]) sellByCommodity[s.commodityId] = []; sellByCommodity[s.commodityId].push(s); }
@@ -90,25 +95,28 @@ export class RoutesController {
           if (autoLoadType === 'manual' && (oa || da)) continue;
         }
         if (commodityType) {
-          const oSt = !!buy.terminal.spaceStationName, dSt = !!sell.terminal.spaceStationName;
-          if (commodityType === 'major' && !(oSt && dSt)) continue;
-          if (commodityType === 'minor' && (oSt && dSt)) continue;
+          const dazong = isDazong.has(buy.commodityId);
+          if (commodityType === 'major' && !dazong) continue;
+          if (commodityType === 'minor' && dazong) continue;
         }
 
         // Look up terminal-level averages
         const oStock = stockMap.get(`${buy.commodityId}-${buy.terminalId}`);
         const dStock = stockMap.get(`${sell.commodityId}-${sell.terminalId}`);
 
-        const buyPrice = oStock?.priceBuyAvg ?? buy.priceBuy ?? 0;
-        const sellPrice = dStock?.priceSellAvg ?? sell.priceSell ?? 0;
+        // Use current snapshot prices for real-time accuracy
+        const buyPrice = buy.priceBuy ?? 0;
+        const sellPrice = sell.priceSell ?? 0;
         if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice) continue;
 
         const profitPerScu = sellPrice - buyPrice;
         const roi = Math.round((profitPerScu / buyPrice) * 1000) / 10;
-        const originMax = oStock?.scuBuyMax ?? 0;
-        const destMax = dStock?.scuSellMax ?? 0;
-        const loadScu = shipScu > 0 ? Math.min(shipScu, originMax > 0 ? originMax : 1) : 1;
-        const sellScu = shipScu > 0 ? Math.min(shipScu, originMax > 0 ? originMax : 1, destMax > 0 ? destMax : 1) : 1;
+
+        // Stock constraint: expected (3d avg) vs max (historical peak)
+        const isMaxMode = profitMode === 'max';
+        const originStock = isMaxMode ? (oStock?.scuBuyMax ?? 0) : Math.round(oStock?.scuBuyAvg ?? 0);
+        const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
+        const sellScu = loadScu;
         const totalInvestment = buyPrice * sellScu;
 
         // Cargo route info

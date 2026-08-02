@@ -35,5 +35,6 @@ export function buildFilterParams(filters: RouteFilters): URLSearchParams {
   if (filters.sortBy) params.set('sortBy', filters.sortBy);
   if (filters.sortOrder) params.set('sortOrder', filters.sortOrder || 'desc');
   if (filters.roundTrip) params.set('roundTrip', '1');
+  if (filters.profitMode) params.set('profitMode', filters.profitMode);
   return params;
 }

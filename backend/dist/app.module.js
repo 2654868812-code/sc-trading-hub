@@ -25,7 +25,7 @@ exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            throttler_1.ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+            throttler_1.ThrottlerModule.forRoot([{ ttl: 60000, limit: 500 }]),
             prisma_module_1.PrismaModule,
             commodities_module_1.CommoditiesModule,
             routes_module_1.RoutesModule,

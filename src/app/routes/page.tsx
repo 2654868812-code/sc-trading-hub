@@ -22,6 +22,7 @@ function readFiltersFromParams(searchParams: URLSearchParams): RouteFilters {
     sortBy: (searchParams.get('sortBy') || undefined) as RouteFilters['sortBy'],
     sortOrder: (searchParams.get('sortOrder') || undefined) as RouteFilters['sortOrder'],
     roundTrip: searchParams.get('roundTrip') === '1' || undefined,
+    profitMode: (searchParams.get('profitMode') || undefined) as RouteFilters['profitMode'],
   };
 }
 
@@ -72,6 +73,7 @@ function RoutesContent() {
     if (filters.sortBy) params.set('sortBy', filters.sortBy);
     if (filters.sortOrder) params.set('sortOrder', filters.sortOrder);
     if (filters.roundTrip) params.set('roundTrip', '1');
+    if (filters.profitMode) params.set('profitMode', filters.profitMode);
 
     try {
       const res = await fetch(`/api/routes?${params.toString()}`);
