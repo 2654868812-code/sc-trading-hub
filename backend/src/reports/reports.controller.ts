@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Body, Res, UseGuards, Logger } from '@nestjs/common';
+import { Controller, Get, Post, Req, Body, Res, Param, UseGuards, Logger } from '@nestjs/common';
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -103,6 +103,28 @@ export class ReportsController {
     return res.status(401).json({ ok: false });
   }
 
+  @Get('file/:filename')
+  @Public()
+  serveFile(@Param('filename') filename: string, @Res() res: Response) {
+    // Sanitize filename: only allow alphanumeric, dash, dot, underscore
+    if (!/^[a-zA-Z0-9._-]+$/.test(filename)) {
+      return res.status(400).json({ error: 'Invalid filename' });
+    }
+    const filePath = path.join(UPLOAD_DIR, filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    const ext = path.extname(filename).toLowerCase();
+    const mimeTypes: Record<string, string> = {
+      '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+      '.webp': 'image/webp', '.gif': 'image/gif',
+    };
+    const contentType = mimeTypes[ext] || 'application/octet-stream';
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    fs.createReadStream(filePath).pipe(res);
+  }
+
   @Post('upload-image')
   @UseGuards(AuthGuard)
   async uploadImage(@Req() req: Request, @Res() res: Response) {
@@ -169,7 +191,7 @@ export class ReportsController {
             ws.end();
           });
         }
-        ws.on('finish', () => send(200, { ok: true, url: `/uploads/${filename}` }));
+        ws.on('finish', () => send(200, { ok: true, url: `/api/reports/file/${filename}` }));
         ws.on('error', () => send(500, { error: 'Failed to upload image' }));
       });
 
