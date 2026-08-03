@@ -119,7 +119,14 @@ export const TerminalScalarFieldEnum = {
   hasCargoCenter: 'hasCargoCenter',
   hasDockingPort: 'hasDockingPort',
   hasFreightElevator: 'hasFreightElevator',
-  isAutoLoad: 'isAutoLoad'
+  hasLoadingDock: 'hasLoadingDock',
+  isAutoLoad: 'isAutoLoad',
+  isRefinery: 'isRefinery',
+  isMedical: 'isMedical',
+  isFood: 'isFood',
+  isRefuel: 'isRefuel',
+  isRepair: 'isRepair',
+  isHabitation: 'isHabitation'
 } as const
 
 export type TerminalScalarFieldEnum = (typeof TerminalScalarFieldEnum)[keyof typeof TerminalScalarFieldEnum]
@@ -192,6 +199,8 @@ export const TerminalCommodityMaxScalarFieldEnum = {
   terminalId: 'terminalId',
   scuBuyMax: 'scuBuyMax',
   scuSellMax: 'scuSellMax',
+  scuBuyMaxLocal: 'scuBuyMaxLocal',
+  scuSellMaxLocal: 'scuSellMaxLocal',
   scuBuyAvg: 'scuBuyAvg',
   scuSellAvg: 'scuSellAvg',
   priceBuyAvg: 'priceBuyAvg',

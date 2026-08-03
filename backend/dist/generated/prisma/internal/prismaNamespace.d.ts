@@ -772,7 +772,14 @@ export declare const TerminalScalarFieldEnum: {
     readonly hasCargoCenter: "hasCargoCenter";
     readonly hasDockingPort: "hasDockingPort";
     readonly hasFreightElevator: "hasFreightElevator";
+    readonly hasLoadingDock: "hasLoadingDock";
     readonly isAutoLoad: "isAutoLoad";
+    readonly isRefinery: "isRefinery";
+    readonly isMedical: "isMedical";
+    readonly isFood: "isFood";
+    readonly isRefuel: "isRefuel";
+    readonly isRepair: "isRepair";
+    readonly isHabitation: "isHabitation";
 };
 export type TerminalScalarFieldEnum = (typeof TerminalScalarFieldEnum)[keyof typeof TerminalScalarFieldEnum];
 export declare const PriceSnapshotScalarFieldEnum: {
@@ -830,6 +837,8 @@ export declare const TerminalCommodityMaxScalarFieldEnum: {
     readonly terminalId: "terminalId";
     readonly scuBuyMax: "scuBuyMax";
     readonly scuSellMax: "scuSellMax";
+    readonly scuBuyMaxLocal: "scuBuyMaxLocal";
+    readonly scuSellMaxLocal: "scuSellMaxLocal";
     readonly scuBuyAvg: "scuBuyAvg";
     readonly scuSellAvg: "scuSellAvg";
     readonly priceBuyAvg: "priceBuyAvg";

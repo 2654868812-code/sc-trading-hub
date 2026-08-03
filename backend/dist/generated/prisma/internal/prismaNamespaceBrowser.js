@@ -65,7 +65,14 @@ exports.TerminalScalarFieldEnum = {
     hasCargoCenter: 'hasCargoCenter',
     hasDockingPort: 'hasDockingPort',
     hasFreightElevator: 'hasFreightElevator',
-    isAutoLoad: 'isAutoLoad'
+    hasLoadingDock: 'hasLoadingDock',
+    isAutoLoad: 'isAutoLoad',
+    isRefinery: 'isRefinery',
+    isMedical: 'isMedical',
+    isFood: 'isFood',
+    isRefuel: 'isRefuel',
+    isRepair: 'isRepair',
+    isHabitation: 'isHabitation'
 };
 exports.PriceSnapshotScalarFieldEnum = {
     id: 'id',
@@ -118,6 +125,8 @@ exports.TerminalCommodityMaxScalarFieldEnum = {
     terminalId: 'terminalId',
     scuBuyMax: 'scuBuyMax',
     scuSellMax: 'scuSellMax',
+    scuBuyMaxLocal: 'scuBuyMaxLocal',
+    scuSellMaxLocal: 'scuSellMaxLocal',
     scuBuyAvg: 'scuBuyAvg',
     scuSellAvg: 'scuSellAvg',
     priceBuyAvg: 'priceBuyAvg',

@@ -55,8 +55,8 @@ let SyncService = SyncService_1 = class SyncService {
         for (const t of data) {
             await this.prisma.terminal.upsert({
                 where: { id: t.id },
-                update: { name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.has_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, isAutoLoad: t.is_auto_load === 1 },
-                create: { id: t.id, name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.has_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, isAutoLoad: t.is_auto_load === 1 },
+                update: { name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: t.is_auto_load === 1, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1 },
+                create: { id: t.id, name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: t.is_auto_load === 1, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1 },
             });
         }
         this.logger.log(`Synced ${data.length} terminals`);
@@ -90,13 +90,14 @@ let SyncService = SyncService_1 = class SyncService {
             by: ['commodityId', 'terminalId'],
             where: { fetchedAt: { gte: threeDaysAgo } },
             _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+            _max: { scuBuyStock: true, scuSellStock: true },
         });
         let updated = 0;
         for (const r of rows) {
             await this.prisma.terminalCommodityMax.upsert({
                 where: { commodityId_terminalId: { commodityId: r.commodityId, terminalId: r.terminalId } },
-                update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null },
-                create: { commodityId: r.commodityId, terminalId: r.terminalId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, fetchedAt: new Date() },
+                update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, scuBuyMaxLocal: r._max.scuBuyStock ?? null, scuSellMaxLocal: r._max.scuSellStock ?? null },
+                create: { commodityId: r.commodityId, terminalId: r.terminalId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, scuBuyMaxLocal: r._max.scuBuyStock ?? null, scuSellMaxLocal: r._max.scuSellStock ?? null, fetchedAt: new Date() },
             });
             updated++;
         }

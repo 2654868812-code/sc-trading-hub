@@ -72,7 +72,7 @@ let LocationsController = class LocationsController {
             stockMaxMap.set(`${m.terminalId}-${m.commodityId}`, { scuBuyMax: m.scuBuyMax ?? 0, scuSellMax: m.scuSellMax ?? 0 });
         const termMap = new Map();
         for (const t of terminals)
-            termMap.set(t.id, { id: t.id, name: t.name, nameEn: t.nameEn, type: t.type, hasCargoCenter: t.hasCargoCenter, hasDockingPort: t.hasDockingPort, hasFreightElevator: t.hasFreightElevator, isAutoLoad: t.isAutoLoad, buys: [], sells: [] });
+            termMap.set(t.id, { id: t.id, name: t.name, nameEn: t.nameEn, type: t.type, hasCargoCenter: t.hasCargoCenter, hasDockingPort: t.hasDockingPort, hasFreightElevator: t.hasFreightElevator, hasLoadingDock: t.hasLoadingDock, isAutoLoad: t.isAutoLoad, isRefinery: t.isRefinery, isMedical: t.isMedical, isFood: t.isFood, isRefuel: t.isRefuel, isRepair: t.isRepair, isHabitation: t.isHabitation, buys: [], sells: [] });
         for (const s of snapshots) {
             const term = termMap.get(s.terminalId);
             if (!term)

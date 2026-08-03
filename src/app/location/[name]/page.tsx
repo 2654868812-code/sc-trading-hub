@@ -50,7 +50,14 @@ interface TerminalGroup {
   hasCargoCenter: boolean;
   hasDockingPort: boolean;
   hasFreightElevator: boolean;
+  hasLoadingDock: boolean;
   isAutoLoad: boolean;
+  isRefinery: boolean;
+  isMedical: boolean;
+  isFood: boolean;
+  isRefuel: boolean;
+  isRepair: boolean;
+  isHabitation: boolean;
   buys: TermCommodity[];
   sells: TermCommodity[];
 }
@@ -79,6 +86,40 @@ function FacilityBadge({ yes, label }: { yes: boolean; label: string }) {
     <span className={`px-1.5 py-0.5 rounded text-[9px] border ${yes ? 'bg-chart-2/10 text-chart-2 border-chart-2/30' : 'bg-muted/30 text-muted-foreground/40 border-border/30'}`}>
       {yes ? '✓' : '✗'} {label}
     </span>
+  );
+}
+
+function MergedFacilities({ terminals }: { terminals: TerminalGroup[] }) {
+  const hasCargoCenter = terminals.some(t => t.hasCargoCenter);
+  const hasDockingPort = terminals.some(t => t.hasDockingPort);
+  const hasFreightElevator = terminals.some(t => t.hasFreightElevator);
+  const hasLoadingDock = terminals.some(t => t.hasLoadingDock);
+  const isAutoLoad = terminals.some(t => t.isAutoLoad);
+  const isRefinery = terminals.some(t => t.isRefinery);
+  const isMedical = terminals.some(t => t.isMedical);
+  const isFood = terminals.some(t => t.isFood);
+  const isRefuel = terminals.some(t => t.isRefuel);
+  const isRepair = terminals.some(t => t.isRepair);
+  const isHabitation = terminals.some(t => t.isHabitation);
+
+  const hasAny = hasCargoCenter || hasDockingPort || hasFreightElevator || hasLoadingDock
+    || isAutoLoad || isRefinery || isMedical || isFood || isRefuel || isRepair || isHabitation;
+  if (!hasAny) return null;
+
+  return (
+    <div className="flex items-center gap-1 flex-wrap">
+      {hasCargoCenter && <FacilityBadge yes label="货运中心" />}
+      {hasDockingPort && <FacilityBadge yes label="停机坪" />}
+      {hasFreightElevator && <FacilityBadge yes label="货梯" />}
+      {hasLoadingDock && <FacilityBadge yes label="外部货柜" />}
+      {isAutoLoad && <FacilityBadge yes label="自动装卸" />}
+      {isRefinery && <FacilityBadge yes label="精炼站" />}
+      {isMedical && <FacilityBadge yes label="医疗" />}
+      {isFood && <FacilityBadge yes label="餐饮" />}
+      {isRefuel && <FacilityBadge yes label="加油" />}
+      {isRepair && <FacilityBadge yes label="维修" />}
+      {isHabitation && <FacilityBadge yes label="居住区" />}
+    </div>
   );
 }
 
@@ -258,6 +299,11 @@ export default function LocationDetailPage() {
       {subtitle && (
         <p className="text-sm text-muted-foreground/60 -mt-4">{subtitle}</p>
       )}
+
+      {/* Terminal facilities — merged union across all terminals */}
+      <div className="-mt-2">
+        <MergedFacilities terminals={data.terminals} />
+      </div>
 
       {/* Time range selector — same as commodity detail */}
       <div className="flex gap-1">

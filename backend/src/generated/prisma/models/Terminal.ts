@@ -53,7 +53,14 @@ export type TerminalMinAggregateOutputType = {
   hasCargoCenter: boolean | null
   hasDockingPort: boolean | null
   hasFreightElevator: boolean | null
+  hasLoadingDock: boolean | null
   isAutoLoad: boolean | null
+  isRefinery: boolean | null
+  isMedical: boolean | null
+  isFood: boolean | null
+  isRefuel: boolean | null
+  isRepair: boolean | null
+  isHabitation: boolean | null
 }
 
 export type TerminalMaxAggregateOutputType = {
@@ -75,7 +82,14 @@ export type TerminalMaxAggregateOutputType = {
   hasCargoCenter: boolean | null
   hasDockingPort: boolean | null
   hasFreightElevator: boolean | null
+  hasLoadingDock: boolean | null
   isAutoLoad: boolean | null
+  isRefinery: boolean | null
+  isMedical: boolean | null
+  isFood: boolean | null
+  isRefuel: boolean | null
+  isRepair: boolean | null
+  isHabitation: boolean | null
 }
 
 export type TerminalCountAggregateOutputType = {
@@ -97,7 +111,14 @@ export type TerminalCountAggregateOutputType = {
   hasCargoCenter: number
   hasDockingPort: number
   hasFreightElevator: number
+  hasLoadingDock: number
   isAutoLoad: number
+  isRefinery: number
+  isMedical: number
+  isFood: number
+  isRefuel: number
+  isRepair: number
+  isHabitation: number
   _all: number
 }
 
@@ -129,7 +150,14 @@ export type TerminalMinAggregateInputType = {
   hasCargoCenter?: true
   hasDockingPort?: true
   hasFreightElevator?: true
+  hasLoadingDock?: true
   isAutoLoad?: true
+  isRefinery?: true
+  isMedical?: true
+  isFood?: true
+  isRefuel?: true
+  isRepair?: true
+  isHabitation?: true
 }
 
 export type TerminalMaxAggregateInputType = {
@@ -151,7 +179,14 @@ export type TerminalMaxAggregateInputType = {
   hasCargoCenter?: true
   hasDockingPort?: true
   hasFreightElevator?: true
+  hasLoadingDock?: true
   isAutoLoad?: true
+  isRefinery?: true
+  isMedical?: true
+  isFood?: true
+  isRefuel?: true
+  isRepair?: true
+  isHabitation?: true
 }
 
 export type TerminalCountAggregateInputType = {
@@ -173,7 +208,14 @@ export type TerminalCountAggregateInputType = {
   hasCargoCenter?: true
   hasDockingPort?: true
   hasFreightElevator?: true
+  hasLoadingDock?: true
   isAutoLoad?: true
+  isRefinery?: true
+  isMedical?: true
+  isFood?: true
+  isRefuel?: true
+  isRepair?: true
+  isHabitation?: true
   _all?: true
 }
 
@@ -282,7 +324,14 @@ export type TerminalGroupByOutputType = {
   hasCargoCenter: boolean
   hasDockingPort: boolean
   hasFreightElevator: boolean
+  hasLoadingDock: boolean
   isAutoLoad: boolean
+  isRefinery: boolean
+  isMedical: boolean
+  isFood: boolean
+  isRefuel: boolean
+  isRepair: boolean
+  isHabitation: boolean
   _count: TerminalCountAggregateOutputType | null
   _avg: TerminalAvgAggregateOutputType | null
   _sum: TerminalSumAggregateOutputType | null
@@ -327,7 +376,14 @@ export type TerminalWhereInput = {
   hasCargoCenter?: Prisma.BoolFilter<"Terminal"> | boolean
   hasDockingPort?: Prisma.BoolFilter<"Terminal"> | boolean
   hasFreightElevator?: Prisma.BoolFilter<"Terminal"> | boolean
+  hasLoadingDock?: Prisma.BoolFilter<"Terminal"> | boolean
   isAutoLoad?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRefinery?: Prisma.BoolFilter<"Terminal"> | boolean
+  isMedical?: Prisma.BoolFilter<"Terminal"> | boolean
+  isFood?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRefuel?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRepair?: Prisma.BoolFilter<"Terminal"> | boolean
+  isHabitation?: Prisma.BoolFilter<"Terminal"> | boolean
   priceSnapshots?: Prisma.PriceSnapshotListRelationFilter
   cargoRoutesOrigin?: Prisma.CargoRouteListRelationFilter
   cargoRoutesDest?: Prisma.CargoRouteListRelationFilter
@@ -353,7 +409,14 @@ export type TerminalOrderByWithRelationInput = {
   hasCargoCenter?: Prisma.SortOrder
   hasDockingPort?: Prisma.SortOrder
   hasFreightElevator?: Prisma.SortOrder
+  hasLoadingDock?: Prisma.SortOrder
   isAutoLoad?: Prisma.SortOrder
+  isRefinery?: Prisma.SortOrder
+  isMedical?: Prisma.SortOrder
+  isFood?: Prisma.SortOrder
+  isRefuel?: Prisma.SortOrder
+  isRepair?: Prisma.SortOrder
+  isHabitation?: Prisma.SortOrder
   priceSnapshots?: Prisma.PriceSnapshotOrderByRelationAggregateInput
   cargoRoutesOrigin?: Prisma.CargoRouteOrderByRelationAggregateInput
   cargoRoutesDest?: Prisma.CargoRouteOrderByRelationAggregateInput
@@ -382,7 +445,14 @@ export type TerminalWhereUniqueInput = Prisma.AtLeast<{
   hasCargoCenter?: Prisma.BoolFilter<"Terminal"> | boolean
   hasDockingPort?: Prisma.BoolFilter<"Terminal"> | boolean
   hasFreightElevator?: Prisma.BoolFilter<"Terminal"> | boolean
+  hasLoadingDock?: Prisma.BoolFilter<"Terminal"> | boolean
   isAutoLoad?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRefinery?: Prisma.BoolFilter<"Terminal"> | boolean
+  isMedical?: Prisma.BoolFilter<"Terminal"> | boolean
+  isFood?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRefuel?: Prisma.BoolFilter<"Terminal"> | boolean
+  isRepair?: Prisma.BoolFilter<"Terminal"> | boolean
+  isHabitation?: Prisma.BoolFilter<"Terminal"> | boolean
   priceSnapshots?: Prisma.PriceSnapshotListRelationFilter
   cargoRoutesOrigin?: Prisma.CargoRouteListRelationFilter
   cargoRoutesDest?: Prisma.CargoRouteListRelationFilter
@@ -408,7 +478,14 @@ export type TerminalOrderByWithAggregationInput = {
   hasCargoCenter?: Prisma.SortOrder
   hasDockingPort?: Prisma.SortOrder
   hasFreightElevator?: Prisma.SortOrder
+  hasLoadingDock?: Prisma.SortOrder
   isAutoLoad?: Prisma.SortOrder
+  isRefinery?: Prisma.SortOrder
+  isMedical?: Prisma.SortOrder
+  isFood?: Prisma.SortOrder
+  isRefuel?: Prisma.SortOrder
+  isRepair?: Prisma.SortOrder
+  isHabitation?: Prisma.SortOrder
   _count?: Prisma.TerminalCountOrderByAggregateInput
   _avg?: Prisma.TerminalAvgOrderByAggregateInput
   _max?: Prisma.TerminalMaxOrderByAggregateInput
@@ -438,7 +515,14 @@ export type TerminalScalarWhereWithAggregatesInput = {
   hasCargoCenter?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
   hasDockingPort?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
   hasFreightElevator?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  hasLoadingDock?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
   isAutoLoad?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isRefinery?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isMedical?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isFood?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isRefuel?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isRepair?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
+  isHabitation?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean
 }
 
 export type TerminalCreateInput = {
@@ -460,7 +544,14 @@ export type TerminalCreateInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput
@@ -486,7 +577,14 @@ export type TerminalUncheckedCreateInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput
@@ -512,7 +610,14 @@ export type TerminalUpdateInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput
@@ -538,7 +643,14 @@ export type TerminalUncheckedUpdateInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput
@@ -564,7 +676,14 @@ export type TerminalCreateManyInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
 }
 
 export type TerminalUpdateManyMutationInput = {
@@ -586,7 +705,14 @@ export type TerminalUpdateManyMutationInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type TerminalUncheckedUpdateManyInput = {
@@ -608,7 +734,14 @@ export type TerminalUncheckedUpdateManyInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
 }
 
 export type TerminalCountOrderByAggregateInput = {
@@ -630,7 +763,14 @@ export type TerminalCountOrderByAggregateInput = {
   hasCargoCenter?: Prisma.SortOrder
   hasDockingPort?: Prisma.SortOrder
   hasFreightElevator?: Prisma.SortOrder
+  hasLoadingDock?: Prisma.SortOrder
   isAutoLoad?: Prisma.SortOrder
+  isRefinery?: Prisma.SortOrder
+  isMedical?: Prisma.SortOrder
+  isFood?: Prisma.SortOrder
+  isRefuel?: Prisma.SortOrder
+  isRepair?: Prisma.SortOrder
+  isHabitation?: Prisma.SortOrder
 }
 
 export type TerminalAvgOrderByAggregateInput = {
@@ -656,7 +796,14 @@ export type TerminalMaxOrderByAggregateInput = {
   hasCargoCenter?: Prisma.SortOrder
   hasDockingPort?: Prisma.SortOrder
   hasFreightElevator?: Prisma.SortOrder
+  hasLoadingDock?: Prisma.SortOrder
   isAutoLoad?: Prisma.SortOrder
+  isRefinery?: Prisma.SortOrder
+  isMedical?: Prisma.SortOrder
+  isFood?: Prisma.SortOrder
+  isRefuel?: Prisma.SortOrder
+  isRepair?: Prisma.SortOrder
+  isHabitation?: Prisma.SortOrder
 }
 
 export type TerminalMinOrderByAggregateInput = {
@@ -678,7 +825,14 @@ export type TerminalMinOrderByAggregateInput = {
   hasCargoCenter?: Prisma.SortOrder
   hasDockingPort?: Prisma.SortOrder
   hasFreightElevator?: Prisma.SortOrder
+  hasLoadingDock?: Prisma.SortOrder
   isAutoLoad?: Prisma.SortOrder
+  isRefinery?: Prisma.SortOrder
+  isMedical?: Prisma.SortOrder
+  isFood?: Prisma.SortOrder
+  isRefuel?: Prisma.SortOrder
+  isRepair?: Prisma.SortOrder
+  isHabitation?: Prisma.SortOrder
 }
 
 export type TerminalSumOrderByAggregateInput = {
@@ -765,7 +919,14 @@ export type TerminalCreateWithoutPriceSnapshotsInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput
@@ -790,7 +951,14 @@ export type TerminalUncheckedCreateWithoutPriceSnapshotsInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput
@@ -831,7 +999,14 @@ export type TerminalUpdateWithoutPriceSnapshotsInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput
@@ -856,7 +1031,14 @@ export type TerminalUncheckedUpdateWithoutPriceSnapshotsInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput
@@ -881,7 +1063,14 @@ export type TerminalCreateWithoutCargoRoutesOriginInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput
@@ -906,7 +1095,14 @@ export type TerminalUncheckedCreateWithoutCargoRoutesOriginInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput
@@ -936,7 +1132,14 @@ export type TerminalCreateWithoutCargoRoutesDestInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput
@@ -961,7 +1164,14 @@ export type TerminalUncheckedCreateWithoutCargoRoutesDestInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput
@@ -1002,7 +1212,14 @@ export type TerminalUpdateWithoutCargoRoutesOriginInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput
@@ -1027,7 +1244,14 @@ export type TerminalUncheckedUpdateWithoutCargoRoutesOriginInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput
@@ -1063,7 +1287,14 @@ export type TerminalUpdateWithoutCargoRoutesDestInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput
@@ -1088,7 +1319,14 @@ export type TerminalUncheckedUpdateWithoutCargoRoutesDestInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput
   terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput
@@ -1113,7 +1351,14 @@ export type TerminalCreateWithoutTerminalMaxInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput
@@ -1138,7 +1383,14 @@ export type TerminalUncheckedCreateWithoutTerminalMaxInput = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput
@@ -1179,7 +1431,14 @@ export type TerminalUpdateWithoutTerminalMaxInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput
@@ -1204,7 +1463,14 @@ export type TerminalUncheckedUpdateWithoutTerminalMaxInput = {
   hasCargoCenter?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasDockingPort?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hasFreightElevator?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hasLoadingDock?: Prisma.BoolFieldUpdateOperationsInput | boolean
   isAutoLoad?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefinery?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isMedical?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isFood?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean
   priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput
   cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput
   cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput
@@ -1287,7 +1553,14 @@ export type TerminalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
   priceSnapshots?: boolean | Prisma.Terminal$priceSnapshotsArgs<ExtArgs>
   cargoRoutesOrigin?: boolean | Prisma.Terminal$cargoRoutesOriginArgs<ExtArgs>
   cargoRoutesDest?: boolean | Prisma.Terminal$cargoRoutesDestArgs<ExtArgs>
@@ -1314,7 +1587,14 @@ export type TerminalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
 }, ExtArgs["result"]["terminal"]>
 
 export type TerminalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1336,7 +1616,14 @@ export type TerminalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
 }, ExtArgs["result"]["terminal"]>
 
 export type TerminalSelectScalar = {
@@ -1358,10 +1645,17 @@ export type TerminalSelectScalar = {
   hasCargoCenter?: boolean
   hasDockingPort?: boolean
   hasFreightElevator?: boolean
+  hasLoadingDock?: boolean
   isAutoLoad?: boolean
+  isRefinery?: boolean
+  isMedical?: boolean
+  isFood?: boolean
+  isRefuel?: boolean
+  isRepair?: boolean
+  isHabitation?: boolean
 }
 
-export type TerminalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "nameEn" | "code" | "type" | "starSystemName" | "starSystemNameEn" | "planetName" | "planetNameEn" | "moonName" | "moonNameEn" | "cityName" | "cityNameEn" | "spaceStationName" | "spaceStationNameEn" | "hasCargoCenter" | "hasDockingPort" | "hasFreightElevator" | "isAutoLoad", ExtArgs["result"]["terminal"]>
+export type TerminalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "nameEn" | "code" | "type" | "starSystemName" | "starSystemNameEn" | "planetName" | "planetNameEn" | "moonName" | "moonNameEn" | "cityName" | "cityNameEn" | "spaceStationName" | "spaceStationNameEn" | "hasCargoCenter" | "hasDockingPort" | "hasFreightElevator" | "hasLoadingDock" | "isAutoLoad" | "isRefinery" | "isMedical" | "isFood" | "isRefuel" | "isRepair" | "isHabitation", ExtArgs["result"]["terminal"]>
 export type TerminalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   priceSnapshots?: boolean | Prisma.Terminal$priceSnapshotsArgs<ExtArgs>
   cargoRoutesOrigin?: boolean | Prisma.Terminal$cargoRoutesOriginArgs<ExtArgs>
@@ -1399,7 +1693,14 @@ export type $TerminalPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     hasCargoCenter: boolean
     hasDockingPort: boolean
     hasFreightElevator: boolean
+    hasLoadingDock: boolean
     isAutoLoad: boolean
+    isRefinery: boolean
+    isMedical: boolean
+    isFood: boolean
+    isRefuel: boolean
+    isRepair: boolean
+    isHabitation: boolean
   }, ExtArgs["result"]["terminal"]>
   composites: {}
 }
@@ -1845,7 +2146,14 @@ export interface TerminalFieldRefs {
   readonly hasCargoCenter: Prisma.FieldRef<"Terminal", 'Boolean'>
   readonly hasDockingPort: Prisma.FieldRef<"Terminal", 'Boolean'>
   readonly hasFreightElevator: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly hasLoadingDock: Prisma.FieldRef<"Terminal", 'Boolean'>
   readonly isAutoLoad: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isRefinery: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isMedical: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isFood: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isRefuel: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isRepair: Prisma.FieldRef<"Terminal", 'Boolean'>
+  readonly isHabitation: Prisma.FieldRef<"Terminal", 'Boolean'>
 }
     
 

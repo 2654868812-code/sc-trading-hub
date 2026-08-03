@@ -66,8 +66,8 @@ let RoutesController = class RoutesController {
                     filters.push({ terminal: { OR: locOr } });
                 }
             }
-            if (locs.length === 0 && spaceOnlyFlag) {
-                filters.push({ terminal: { spaceStationName: { not: null } } });
+            if (spaceOnlyFlag) {
+                filters.push({ terminal: { hasLoadingDock: true } });
             }
             return filters;
         };
@@ -90,8 +90,8 @@ let RoutesController = class RoutesController {
         const DAZONG_THRESHOLD = 2000;
         const [cargoRoutes, termMaxRows, commAvgs] = await Promise.all([
             this.prisma.cargoRoute.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
-            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
-            this.prisma.commodityAverage.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, scuBuyMax: true } }),
+            this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyMaxLocal: true, scuSellMaxLocal: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
+            this.prisma.commodityAverage.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, scuBuyMax: true, scuSellMax: true } }),
         ]);
         const cargoMap = new Map();
         for (const cr of cargoRoutes)
@@ -99,6 +99,9 @@ let RoutesController = class RoutesController {
         const stockMap = new Map();
         for (const t of termMaxRows)
             stockMap.set(`${t.commodityId}-${t.terminalId}`, t);
+        const commAvgMap = new Map();
+        for (const a of commAvgs)
+            commAvgMap.set(a.commodityId, a);
         const isDazong = new Set();
         for (const a of commAvgs) {
             if ((a.scuBuyMax || 0) >= DAZONG_THRESHOLD)
@@ -140,13 +143,19 @@ let RoutesController = class RoutesController {
                 }
                 const oStock = stockMap.get(`${buy.commodityId}-${buy.terminalId}`);
                 const dStock = stockMap.get(`${sell.commodityId}-${sell.terminalId}`);
+                const commAvg = commAvgMap.get(buy.commodityId);
                 const buyPrice = buy.priceBuy ?? 0;
                 const sellPrice = sell.priceSell ?? 0;
                 if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice)
                     continue;
                 const profitPerScu = sellPrice - buyPrice;
                 const isMaxMode = profitMode === 'max';
-                const originStock = isMaxMode ? (oStock?.scuBuyMax ?? 0) : Math.round(oStock?.scuBuyAvg ?? 0);
+                const originStockPrimary = isMaxMode ? oStock?.scuBuyMax : Math.round(oStock?.scuBuyAvg ?? 0);
+                const originStock = originStockPrimary
+                    || oStock?.scuBuyMaxLocal
+                    || buy.scuBuyStock
+                    || commAvg?.scuBuyMax
+                    || 1;
                 const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
                 const sellScu = loadScu;
                 const totalInvestment = buyPrice * sellScu;
@@ -174,8 +183,8 @@ let RoutesController = class RoutesController {
                     sellPrice, profitPerScu, roi,
                     distanceGm: cargo?.distance ?? null,
                     totalProfit, totalInvestment, loadScu, sellScu, shipScu,
-                    originStock: Math.round(oStock?.scuBuyAvg ?? 0), destStock: Math.round(dStock?.scuSellAvg ?? 0),
-                    originStockMax: Math.round(oStock?.scuBuyMax ?? 0), destStockMax: Math.round(dStock?.scuSellMax ?? 0),
+                    originStock: Math.round(oStock?.scuBuyAvg || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellAvg || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
+                    originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
                     originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
                     destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
                     isAutoLoadOrigin: buy.terminal.isAutoLoad, isAutoLoadDest: sell.terminal.isAutoLoad,

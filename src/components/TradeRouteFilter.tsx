@@ -418,7 +418,7 @@ export function TradeRouteFilter({
             {selectedShip ? `${selectedShip.companyName} · ${selectedShip.scu} SCU` : 'placeholder'}
             {selectedShip?.spaceOnly && (
               <span className="ml-1.5 px-1 py-0.5 rounded bg-destructive/10 text-destructive text-[9px]">
-                仅空间站
+                仅外部货柜
               </span>
             )}
           </span>

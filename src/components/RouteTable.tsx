@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { Fragment } from 'react';
 import type { TradeRoute } from '@/types';
 
 interface RoutePairData {
@@ -113,63 +114,68 @@ export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, on
           <span className="text-[11px] text-muted-foreground/60 tabular-nums">{pairs.length} 组</span>
         </div>
 
-        <div className="space-y-2">
-          {pairs.map((pair, i) => (
-            <div key={`${flipKey || 1}-${pair.outward.originTerminalId}-${pair.outward.destTerminalId}-${i}`}
-              className="rounded-lg border border-border/50 bg-card/70 hover:border-border transition-colors overflow-x-auto"
-              style={{
-                animation: shouldAnimate ? `cellFlip 0.15s ease-in-out ${i * 150}ms both` : undefined,
-              }}>
-              {/* Header */}
-              <div className="flex items-center justify-between px-4 py-2 border-b border-border/30 bg-muted/30">
-                <span className="text-xs text-muted-foreground">
-                  {pair.outward.originLocationZh || pair.outward.originTerminalName}
-                  <span className="mx-1.5 text-border/50">⇄</span>
-                  {pair.outward.destLocationZh || pair.outward.destTerminalName}
-                </span>
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="text-muted-foreground">
-                    往返成本 <span className="font-semibold tabular-nums text-foreground">{fmtM(pair.roundTripInvestment)}</span>
-                  </span>
-                  <span className="text-muted-foreground">
-                    往返利润 <span className="font-semibold tabular-nums text-chart-2">+{fmtM(pair.roundTripProfit)}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* Route rows as table */}
-              <table className="w-full">
-                <thead>
-                  <tr>
-                    <th className="th-cell">商品</th>
-                    <th className="th-cell">购买地</th>
-                    <th className="th-cell--right">买价</th>
-                    <th className="th-cell">均/最大库存</th>
-                    <th className="th-cell">出售地</th>
-                    <th className="th-cell--right">卖价</th>
-                    <th className="th-cell">均/最大库存</th>
-                    <th className="th-cell--right">成本</th>
-                    <th className="th-cell--right">利润</th>
-                    <th className="th-cell--right">/SCU</th>
-                    <th className="th-cell--right">利润率</th>
-                    <th className="th-cell--right">距离</th>
-                    <th className="th-cell--right">货箱</th>
-                    <th className="th-cell-last">自动</th>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <table className="w-full table-fixed table-zebra">
+            <thead>
+              <tr>
+                <th className="th-cell" style={{ width: '8%' }}>商品</th>
+                <th className="th-cell" style={{ width: '9%' }}>购买地</th>
+                <th className="th-cell--right" style={{ width: '6%' }}>买价</th>
+                <th className="th-cell" style={{ width: '7%' }}>均/最大库存</th>
+                <th className="th-cell" style={{ width: '9%' }}>出售地</th>
+                <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
+                <th className="th-cell" style={{ width: '7%' }}>均/最大库存</th>
+                <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
+                <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
+                <th className="th-cell--right" style={{ width: '5%' }}>/SCU</th>
+                <th className="th-cell--right" style={{ width: '5%' }}>利润率</th>
+                <th className="th-cell--right" style={{ width: '5%' }}>距离</th>
+                <th className="th-cell--right" style={{ width: '5%' }}>货箱</th>
+                <th className="th-cell-last" style={{ width: '3%' }}>自动</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pairs.map((pair, i) => (
+                <Fragment key={`${flipKey || 1}-${pair.outward.originTerminalId}-${pair.outward.destTerminalId}-${i}`}>
+                  {/* Pair header row */}
+                  <tr className="bg-muted/30 border-b border-border/40"
+                    style={{
+                      animation: shouldAnimate ? `cellFlip 0.15s ease-in-out ${i * 150}ms both` : undefined,
+                    }}>
+                    <td colSpan={14} className="px-4 py-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-muted-foreground">
+                          {pair.outward.originLocationZh || pair.outward.originTerminalName}
+                          <span className="mx-1.5 text-border/50">⇄</span>
+                          {pair.outward.destLocationZh || pair.outward.destTerminalName}
+                        </span>
+                        <div className="flex items-center gap-4 text-xs">
+                          <span className="text-muted-foreground">
+                            往返成本 <span className="font-semibold tabular-nums text-foreground">{fmtM(pair.roundTripInvestment)}</span>
+                          </span>
+                          <span className="text-muted-foreground">
+                            往返利润 <span className="font-semibold tabular-nums text-chart-2">+{fmtM(pair.roundTripProfit)}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
+                  {/* Outward row */}
                   <tr key={`out-${pair.outward.originTerminalId}-${pair.outward.destTerminalId}`}
                     className="border-b border-border/20">
                     <RouteTableCells route={pair.outward} router={router} onCommodityClick={onCommodityClick} />
                   </tr>
-                  <tr key={`ret-${pair.return_.originTerminalId}-${pair.return_.destTerminalId}`}>
+                  {/* Return row */}
+                  <tr key={`ret-${pair.return_.originTerminalId}-${pair.return_.destTerminalId}`}
+                    className="border-b border-border/20">
                     <RouteTableCells route={pair.return_} router={router} onCommodityClick={onCommodityClick} />
                   </tr>
-                </tbody>
-              </table>
-            </div>
-          ))}
-
+                  {/* Separator between pairs */}
+                  <tr className="h-2"><td colSpan={14} /></tr>
+                </Fragment>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     );

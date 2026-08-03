@@ -25,13 +25,14 @@ export class CommoditiesController {
     if (latest) res.setHeader('X-LastUpdated', latest.fetchedAt.toISOString());
     if (!latest) return commodities.map(c => this.emptyCommodity(c));
 
-    // Parallel queries for current prices + stocks + commodity averages
-    const [buyPrices, sellPrices, sellStock, buyStock, averages] = await Promise.all([
+    // Parallel queries for current prices + stocks + commodity averages + local max
+    const [buyPrices, sellPrices, sellStock, buyStock, averages, localMaxAgg] = await Promise.all([
       (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } }, _avg: { priceBuy: true } }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } }, _avg: { priceSell: true } }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, scuSellStock: { gt: 0 } }, _sum: { scuSellStock: true } }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, scuBuyStock: { gt: 0 } }, _sum: { scuBuyStock: true } }),
       this.prisma.commodityAverage.findMany({ select: { commodityId: true, scuBuyMax: true } }),
+      (this.prisma as any).terminalCommodityMax.groupBy({ by: ['commodityId'], _sum: { scuBuyMaxLocal: true } }),
     ]);
 
     const buyMap: Record<number, number | null> = {};
@@ -42,8 +43,19 @@ export class CommoditiesController {
     for (const s of sellStock) sellStockMap[s.commodityId] = s._sum.scuSellStock || 0;
     const buyStockMap: Record<number, number> = {};
     for (const b of buyStock) buyStockMap[b.commodityId] = b._sum.scuBuyStock || 0;
+    // Build local max map (sum per-terminal local maxes → commodity-level total)
+    const localMaxMap: Record<number, number> = {};
+    for (const r of localMaxAgg) localMaxMap[r.commodityId] = r._sum.scuBuyMaxLocal || 0;
+
+    // Cascade: UEX global → local max sum → current total stock
     const dazongMap: Record<number, boolean> = {};
-    for (const a of averages) dazongMap[a.commodityId] = (a.scuBuyMax || 0) >= this.DAZONG_THRESHOLD;
+    for (const c of commodities) {
+      const uexMax = averages.find(a => a.commodityId === c.id)?.scuBuyMax || 0;
+      const localMax = localMaxMap[c.id] || 0;
+      const currentStock = buyStockMap[c.id] || 0;
+      const bestStock = uexMax || localMax || currentStock;
+      dazongMap[c.id] = bestStock >= this.DAZONG_THRESHOLD;
+    }
 
     return commodities.map(c => {
       const buyAvg = buyMap[c.id] ?? null;
@@ -70,7 +82,10 @@ export class CommoditiesController {
     if (!c) { res.status(404); return { error: 'not found' }; }
 
     const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
-    const avg = await this.prisma.commodityAverage.findUnique({ where: { commodityId: c.id }, select: { scuBuyMax: true } });
+    const [avg, localMaxRow] = await Promise.all([
+      this.prisma.commodityAverage.findUnique({ where: { commodityId: c.id }, select: { scuBuyMax: true } }),
+      (this.prisma as any).terminalCommodityMax.groupBy({ by: ['commodityId'], where: { commodityId: c.id }, _sum: { scuBuyMaxLocal: true } }),
+    ]);
 
     let totalSellStock = 0, totalBuyStock = 0, currentBuyAvg: number | null = null, currentSellAvg: number | null = null;
     if (latest) {
@@ -90,12 +105,17 @@ export class CommoditiesController {
       ? Math.round(((currentSellAvg - currentBuyAvg) / currentBuyAvg) * 1000) / 10
       : null;
 
+    // Cascade: UEX global → local max sum → current total stock
+    const uexMax = avg?.scuBuyMax || 0;
+    const localMax = localMaxRow[0]?._sum?.scuBuyMaxLocal || 0;
+    const bestStock = uexMax || localMax || totalBuyStock;
+
     return {
       ...c, nameZh: c.name, kindZh: getZhKind(c.kind),
       totalSellStock, totalBuyStock,
       currentBuyAvg, currentSellAvg,
       profitMargin: liveMargin, profitChange: c.profitChange, maxProfitMargin: c.maxProfitMargin,
-      isDazong: (avg?.scuBuyMax || 0) >= this.DAZONG_THRESHOLD,
+      isDazong: bestStock >= this.DAZONG_THRESHOLD,
     };
   }
 

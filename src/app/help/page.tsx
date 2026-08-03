@@ -131,7 +131,7 @@ const CATEGORIES: HelpCategory[] = [
           <p className="text-xs">购买地和出售地均显示「近3日均库存 / 历史最高库存」。进度条颜色：红色库存紧张、黄色适中、绿色充足。</p>
         </div>
         <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">利润模式</h3>
+          <h3 className="text-foreground font-semibold text-xs mb-1">利润算法</h3>
           <p className="text-xs">
             <strong>期望利润</strong>：按近3日买入地平均库存估算载货量，利润数字反映当前真实交易水平。<br />
             <strong>最大利润</strong>：按买入地历史最高库存估算载货量（理想上限，当前库存往往达不到），利润是理论上限。
@@ -144,7 +144,7 @@ const CATEGORIES: HelpCategory[] = [
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">筛选器指南</h3>
           <p className="text-xs">
-            <strong>货船</strong>（必选）：选船后根据 SCU 容量计算装载量和投资额。仅空间站的船自动过滤地面站点。<br />
+            <strong>货船</strong>（必选）：选船后根据 SCU 容量计算装载量和投资额。仅外部货柜的船自动过滤无货柜的站点。<br />
             <strong>商品</strong>：搜索特定商品，不选则展示全部。<br />
             <strong>星系/地点</strong>：起终点独立筛选，支持地点搜索。<br />
             <strong>最大投资</strong>：限制总买入成本，±10 倍步进。<br />
@@ -152,7 +152,7 @@ const CATEGORIES: HelpCategory[] = [
             <strong>商品类型</strong>：大宗/小宗，与首页标准一致（历史最大买入量 ≥ 2,000 SCU 为大宗）。<br />
             <strong>自动装卸</strong>：全程自动（两端都有）/ 半程自动 / 全手动。<br />
             <strong>排序</strong>：按总利润 / 利润率 / 距离排序。<br />
-            <strong>利润模式</strong>：期望利润（3日均库存）或最大利润（历史最高库存）。
+            <strong>利润算法</strong>：期望利润（3日均库存）或最大利润（五级回退取最优库存）。
           </p>
         </div>
         <div>
@@ -199,7 +199,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">页面结构</h3>
-          <p className="text-xs">顶部显示地点名、终端数量标签和星系·行星·卫星位置信息。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该地点作为起点。下方有时间范围选择器和买卖价格趋势图，展示该地点交易量最高的前几种商品的价格走势。</p>
+          <p className="text-xs">顶部显示地点名、终端数量标签和星系·行星·卫星位置信息。位置下方显示该地点所有终端的设施标签（货运中心、停机坪、货梯、外部货柜、自动装卸、精炼站、医疗、餐饮、加油、维修、居住区），多终端取并集。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该地点作为起点。下方有时间范围选择器和买卖价格趋势图，展示该地点交易量最高的前几种商品的价格走势。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格趋势图</h3>
@@ -245,7 +245,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格与库存</h3>
-          <p className="text-xs">买卖价格来自最新快照的实时数据，非历史均价。路线利润基于当前差价计算。库存列显示近3日均库存（用于约束期望利润模式下的载货量）和 UEX 历史最高库存（用于最大利润模式）。</p>
+          <p className="text-xs">买卖价格来自最新快照的实时数据，非历史均价。路线利润基于当前差价计算。库存列和载货量计算使用五级回退链：UEX终端历史最大 → 本地快照历史最大 → 当前快照库存 → UEX全宇宙历史最大 → 兜底值1。确保在任何数据缺失情况下都能得到合理的库存估值。</p>
         </div>
       </>
     ),

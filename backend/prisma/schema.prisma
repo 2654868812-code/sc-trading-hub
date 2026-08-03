@@ -51,7 +51,14 @@ model Terminal {
   hasCargoCenter     Boolean          @default(false)
   hasDockingPort     Boolean          @default(false)
   hasFreightElevator Boolean          @default(false)
+  hasLoadingDock     Boolean          @default(false)
   isAutoLoad         Boolean          @default(false)
+  isRefinery         Boolean          @default(false)
+  isMedical          Boolean          @default(false)
+  isFood             Boolean          @default(false)
+  isRefuel           Boolean          @default(false)
+  isRepair           Boolean          @default(false)
+  isHabitation       Boolean          @default(false)
   priceSnapshots     PriceSnapshot[]
   cargoRoutesOrigin  CargoRoute[]     @relation("CargoRouteOrigin")
   cargoRoutesDest    CargoRoute[]     @relation("CargoRouteDest")
@@ -128,6 +135,8 @@ model TerminalCommodityMax {
   terminalId   Int
   scuBuyMax    Int?
   scuSellMax   Int?
+  scuBuyMaxLocal Int?
+  scuSellMaxLocal Int?
   scuBuyAvg    Float?
   scuSellAvg   Float?
   priceBuyAvg  Float?
