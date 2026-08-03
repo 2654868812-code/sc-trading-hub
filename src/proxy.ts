@@ -19,6 +19,21 @@ function checkRate(ip: string): boolean {
 }
 
 export async function proxy(request: NextRequest) {
+  // Handle CORS preflight for API routes — browser sends OPTIONS before
+  // cross-origin-ish requests with Authorization header + multipart/form-data.
+  // Next.js rewrites don't forward OPTIONS, so we respond directly.
+  if (request.method === 'OPTIONS' && request.nextUrl.pathname.startsWith('/api/')) {
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': request.headers.get('origin') || '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
+  }
+
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
 
   // General rate limit (NestJS backend has its own ThrottlerGuard)
