@@ -14,6 +14,7 @@ services:
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
     volumes:
       - appdata:/data
+      - uploaddata:/data/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -31,6 +32,7 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     volumes:
       - appdata:/data
+      - uploaddata:/app/public/uploads
     depends_on:
       - backend
     restart: unless-stopped
@@ -52,4 +54,5 @@ services:
 
 volumes:
   appdata:
+  uploaddata:
   pgdata:
