@@ -93,7 +93,7 @@ export class ReportsController {
       const token = signToken();
       res.cookie('auth_token', token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // HTTP server, no TLS — Secure cookies rejected by browser
         sameSite: 'strict',
         path: '/',
         maxAge: 30 * 60 * 1000, // 30 min
