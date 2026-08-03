@@ -22,4 +22,4 @@ COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/public ./public
 
 EXPOSE 3000
-CMD ["sh", "-c", "npm start"]
+CMD ["sh", "-c", "rm -rf /app/public/uploads && ln -sf /data/uploads /app/public/uploads && npm start"]
