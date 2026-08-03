@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = require("@prisma/client/runtime/client");
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -33,7 +33,8 @@ exports.ModelName = {
     CargoRoute: 'CargoRoute',
     Vehicle: 'Vehicle',
     CommodityAverage: 'CommodityAverage',
-    TerminalCommodityMax: 'TerminalCommodityMax'
+    TerminalCommodityMax: 'TerminalCommodityMax',
+    MarketIndex: 'MarketIndex'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -147,6 +148,12 @@ exports.TerminalCommodityMaxScalarFieldEnum = {
     priceBuyAvg: 'priceBuyAvg',
     priceSellAvg: 'priceSellAvg',
     dateModified: 'dateModified',
+    fetchedAt: 'fetchedAt'
+};
+exports.MarketIndexScalarFieldEnum = {
+    id: 'id',
+    value: 'value',
+    commodityCount: 'commodityCount',
     fetchedAt: 'fetchedAt'
 };
 exports.SortOrder = {

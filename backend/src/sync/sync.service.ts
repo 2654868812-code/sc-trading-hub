@@ -22,6 +22,7 @@ export class SyncService {
     // Compute 3-day averages (must run after syncPrices + syncTerminalCommodityMax)
     await this.computeAverages3d();
     await this.updatePriceChanges();
+    await this.computeMarketIndex();
     await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
     this.logger.log('Full sync complete');
   }
@@ -205,6 +206,50 @@ export class SyncService {
       } catch { /* skip */ }
       await new Promise(r => setTimeout(r, 50));
     }
+  }
+
+  private async computeMarketIndex() {
+    const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
+    if (!latest) return;
+
+    // Best buy/sell price per commodity from latest snapshot
+    const [bestBuys, bestSells] = await Promise.all([
+      (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } }, _min: { priceBuy: true } }),
+      (this.prisma as any).priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } }, _max: { priceSell: true } }),
+    ]);
+
+    const buyMap = new Map<number, number>();
+    for (const b of bestBuys) buyMap.set(b.commodityId, b._min.priceBuy);
+    const sellMap = new Map<number, number>();
+    for (const s of bestSells) sellMap.set(s.commodityId, s._max.priceSell);
+
+    // Fetch stock weights (UEX global max buy stock per commodity)
+    const ids = [...new Set([...buyMap.keys()])];
+    const avgs = await this.prisma.commodityAverage.findMany({
+      where: { commodityId: { in: ids } },
+      select: { commodityId: true, scuBuyMax: true },
+    });
+    const stockMap = new Map<number, number>();
+    for (const a of avgs) stockMap.set(a.commodityId, Math.max(a.scuBuyMax || 0, 1));
+
+    let totalProfit = 0, totalCost = 0, count = 0;
+    for (const [commodityId, buyPrice] of buyMap) {
+      const sellPrice = sellMap.get(commodityId);
+      if (!sellPrice || sellPrice <= buyPrice) continue;
+      const stock = stockMap.get(commodityId) || 1;
+      totalProfit += (sellPrice - buyPrice) * stock;
+      totalCost += buyPrice * stock;
+      count++;
+    }
+
+    if (!count || !totalCost) return;
+    const index = Math.round((totalProfit / totalCost) * 1000) / 10;
+
+    await this.prisma.marketIndex.create({ data: { value: index, commodityCount: count } });
+    // Keep last 90 days
+    const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    await this.prisma.marketIndex.deleteMany({ where: { fetchedAt: { lt: cutoff } } });
+    this.logger.log(`Market index: ${index.toFixed(1)}% (${count} commodities, stock-weighted)`);
   }
 
   private async cleanupOldSnapshots(days: number) {

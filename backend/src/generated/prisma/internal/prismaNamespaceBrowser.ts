@@ -57,7 +57,8 @@ export const ModelName = {
   CargoRoute: 'CargoRoute',
   Vehicle: 'Vehicle',
   CommodityAverage: 'CommodityAverage',
-  TerminalCommodityMax: 'TerminalCommodityMax'
+  TerminalCommodityMax: 'TerminalCommodityMax',
+  MarketIndex: 'MarketIndex'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -210,6 +211,16 @@ export const TerminalCommodityMaxScalarFieldEnum = {
 } as const
 
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum]
+
+
+export const MarketIndexScalarFieldEnum = {
+  id: 'id',
+  value: 'value',
+  commodityCount: 'commodityCount',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type MarketIndexScalarFieldEnum = (typeof MarketIndexScalarFieldEnum)[keyof typeof MarketIndexScalarFieldEnum]
 
 
 export const SortOrder = {

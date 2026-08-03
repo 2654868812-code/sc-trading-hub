@@ -403,7 +403,8 @@ export const ModelName = {
   CargoRoute: 'CargoRoute',
   Vehicle: 'Vehicle',
   CommodityAverage: 'CommodityAverage',
-  TerminalCommodityMax: 'TerminalCommodityMax'
+  TerminalCommodityMax: 'TerminalCommodityMax',
+  MarketIndex: 'MarketIndex'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -419,7 +420,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax"
+    modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax" | "marketIndex"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -941,6 +942,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    MarketIndex: {
+      payload: Prisma.$MarketIndexPayload<ExtArgs>
+      fields: Prisma.MarketIndexFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.MarketIndexFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.MarketIndexFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        findFirst: {
+          args: Prisma.MarketIndexFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.MarketIndexFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        findMany: {
+          args: Prisma.MarketIndexFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[]
+        }
+        create: {
+          args: Prisma.MarketIndexCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        createMany: {
+          args: Prisma.MarketIndexCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.MarketIndexCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[]
+        }
+        delete: {
+          args: Prisma.MarketIndexDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        update: {
+          args: Prisma.MarketIndexUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        deleteMany: {
+          args: Prisma.MarketIndexDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.MarketIndexUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.MarketIndexUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[]
+        }
+        upsert: {
+          args: Prisma.MarketIndexUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>
+        }
+        aggregate: {
+          args: Prisma.MarketIndexAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateMarketIndex>
+        }
+        groupBy: {
+          args: Prisma.MarketIndexGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketIndexGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.MarketIndexCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.MarketIndexCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1114,6 +1189,16 @@ export const TerminalCommodityMaxScalarFieldEnum = {
 } as const
 
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum]
+
+
+export const MarketIndexScalarFieldEnum = {
+  id: 'id',
+  value: 'value',
+  commodityCount: 'commodityCount',
+  fetchedAt: 'fetchedAt'
+} as const
+
+export type MarketIndexScalarFieldEnum = (typeof MarketIndexScalarFieldEnum)[keyof typeof MarketIndexScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -1366,6 +1451,7 @@ export type GlobalOmitConfig = {
   vehicle?: Prisma.VehicleOmit
   commodityAverage?: Prisma.CommodityAverageOmit
   terminalCommodityMax?: Prisma.TerminalCommodityMaxOmit
+  marketIndex?: Prisma.MarketIndexOmit
 }
 
 /* Types for Logging */

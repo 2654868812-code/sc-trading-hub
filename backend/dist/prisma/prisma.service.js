@@ -24,6 +24,7 @@ let PrismaService = PrismaService_1 = class PrismaService {
     vehicle;
     commodityAverage;
     terminalCommodityMax;
+    marketIndex;
     $transaction;
     constructor() {
         const url = process.env.DATABASE_URL || 'postgresql://trading:trading@localhost:5432/trading';
@@ -39,6 +40,7 @@ let PrismaService = PrismaService_1 = class PrismaService {
         this.vehicle = this.client.vehicle;
         this.commodityAverage = this.client.commodityAverage;
         this.terminalCommodityMax = this.client.terminalCommodityMax;
+        this.marketIndex = this.client.marketIndex;
         this.$transaction = this.client.$transaction.bind(this.client);
     }
     async onModuleInit() { await this.client.$connect(); }

@@ -167,6 +167,7 @@ export declare const ModelName: {
     readonly Vehicle: "Vehicle";
     readonly CommodityAverage: "CommodityAverage";
     readonly TerminalCommodityMax: "TerminalCommodityMax";
+    readonly MarketIndex: "MarketIndex";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export interface TypeMapCb<GlobalOmitOptions = {}> extends runtime.Types.Utils.Fn<{
@@ -179,7 +180,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         omit: GlobalOmitOptions;
     };
     meta: {
-        modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax";
+        modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax" | "marketIndex";
         txIsolationLevel: TransactionIsolationLevel;
     };
     model: {
@@ -701,6 +702,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
                 };
             };
         };
+        MarketIndex: {
+            payload: Prisma.$MarketIndexPayload<ExtArgs>;
+            fields: Prisma.MarketIndexFieldRefs;
+            operations: {
+                findUnique: {
+                    args: Prisma.MarketIndexFindUniqueArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload> | null;
+                };
+                findUniqueOrThrow: {
+                    args: Prisma.MarketIndexFindUniqueOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                findFirst: {
+                    args: Prisma.MarketIndexFindFirstArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload> | null;
+                };
+                findFirstOrThrow: {
+                    args: Prisma.MarketIndexFindFirstOrThrowArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                findMany: {
+                    args: Prisma.MarketIndexFindManyArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[];
+                };
+                create: {
+                    args: Prisma.MarketIndexCreateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                createMany: {
+                    args: Prisma.MarketIndexCreateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                createManyAndReturn: {
+                    args: Prisma.MarketIndexCreateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[];
+                };
+                delete: {
+                    args: Prisma.MarketIndexDeleteArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                update: {
+                    args: Prisma.MarketIndexUpdateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                deleteMany: {
+                    args: Prisma.MarketIndexDeleteManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateMany: {
+                    args: Prisma.MarketIndexUpdateManyArgs<ExtArgs>;
+                    result: BatchPayload;
+                };
+                updateManyAndReturn: {
+                    args: Prisma.MarketIndexUpdateManyAndReturnArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>[];
+                };
+                upsert: {
+                    args: Prisma.MarketIndexUpsertArgs<ExtArgs>;
+                    result: runtime.Types.Utils.PayloadToResult<Prisma.$MarketIndexPayload>;
+                };
+                aggregate: {
+                    args: Prisma.MarketIndexAggregateArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.AggregateMarketIndex>;
+                };
+                groupBy: {
+                    args: Prisma.MarketIndexGroupByArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.MarketIndexGroupByOutputType>[];
+                };
+                count: {
+                    args: Prisma.MarketIndexCountArgs<ExtArgs>;
+                    result: runtime.Types.Utils.Optional<Prisma.MarketIndexCountAggregateOutputType> | number;
+                };
+            };
+        };
     };
 } & {
     other: {
@@ -847,6 +922,13 @@ export declare const TerminalCommodityMaxScalarFieldEnum: {
     readonly fetchedAt: "fetchedAt";
 };
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum];
+export declare const MarketIndexScalarFieldEnum: {
+    readonly id: "id";
+    readonly value: "value";
+    readonly commodityCount: "commodityCount";
+    readonly fetchedAt: "fetchedAt";
+};
+export type MarketIndexScalarFieldEnum = (typeof MarketIndexScalarFieldEnum)[keyof typeof MarketIndexScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";
@@ -906,6 +988,7 @@ export type GlobalOmitConfig = {
     vehicle?: Prisma.VehicleOmit;
     commodityAverage?: Prisma.CommodityAverageOmit;
     terminalCommodityMax?: Prisma.TerminalCommodityMaxOmit;
+    marketIndex?: Prisma.MarketIndexOmit;
 };
 export type LogLevel = 'info' | 'query' | 'warn' | 'error';
 export type LogDefinition = {

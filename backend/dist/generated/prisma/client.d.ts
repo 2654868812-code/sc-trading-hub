@@ -13,3 +13,4 @@ export type CargoRoute = Prisma.CargoRouteModel;
 export type Vehicle = Prisma.VehicleModel;
 export type CommodityAverage = Prisma.CommodityAverageModel;
 export type TerminalCommodityMax = Prisma.TerminalCommodityMaxModel;
+export type MarketIndex = Prisma.MarketIndexModel;

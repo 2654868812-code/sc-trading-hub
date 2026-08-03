@@ -52,3 +52,8 @@ export type CommodityAverage = Prisma.CommodityAverageModel
  * 
  */
 export type TerminalCommodityMax = Prisma.TerminalCommodityMaxModel
+/**
+ * Model MarketIndex
+ * 
+ */
+export type MarketIndex = Prisma.MarketIndexModel

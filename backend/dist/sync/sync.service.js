@@ -33,6 +33,7 @@ let SyncService = SyncService_1 = class SyncService {
         ]);
         await this.computeAverages3d();
         await this.updatePriceChanges();
+        await this.computeMarketIndex();
         await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
         this.logger.log('Full sync complete');
     }
@@ -228,6 +229,46 @@ let SyncService = SyncService_1 = class SyncService {
             catch { }
             await new Promise(r => setTimeout(r, 50));
         }
+    }
+    async computeMarketIndex() {
+        const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
+        if (!latest)
+            return;
+        const [bestBuys, bestSells] = await Promise.all([
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceBuy: { gt: 0 } }, _min: { priceBuy: true } }),
+            this.prisma.priceSnapshot.groupBy({ by: ['commodityId'], where: { fetchedAt: latest.fetchedAt, priceSell: { gt: 0 } }, _max: { priceSell: true } }),
+        ]);
+        const buyMap = new Map();
+        for (const b of bestBuys)
+            buyMap.set(b.commodityId, b._min.priceBuy);
+        const sellMap = new Map();
+        for (const s of bestSells)
+            sellMap.set(s.commodityId, s._max.priceSell);
+        const ids = [...new Set([...buyMap.keys()])];
+        const avgs = await this.prisma.commodityAverage.findMany({
+            where: { commodityId: { in: ids } },
+            select: { commodityId: true, scuBuyMax: true },
+        });
+        const stockMap = new Map();
+        for (const a of avgs)
+            stockMap.set(a.commodityId, Math.max(a.scuBuyMax || 0, 1));
+        let totalProfit = 0, totalCost = 0, count = 0;
+        for (const [commodityId, buyPrice] of buyMap) {
+            const sellPrice = sellMap.get(commodityId);
+            if (!sellPrice || sellPrice <= buyPrice)
+                continue;
+            const stock = stockMap.get(commodityId) || 1;
+            totalProfit += (sellPrice - buyPrice) * stock;
+            totalCost += buyPrice * stock;
+            count++;
+        }
+        if (!count || !totalCost)
+            return;
+        const index = Math.round((totalProfit / totalCost) * 1000) / 10;
+        await this.prisma.marketIndex.create({ data: { value: index, commodityCount: count } });
+        const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        await this.prisma.marketIndex.deleteMany({ where: { fetchedAt: { lt: cutoff } } });
+        this.logger.log(`Market index: ${index.toFixed(1)}% (${count} commodities, stock-weighted)`);
     }
     async cleanupOldSnapshots(days) {
         const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);

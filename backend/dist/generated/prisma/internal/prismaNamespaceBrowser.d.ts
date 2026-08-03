@@ -18,6 +18,7 @@ export declare const ModelName: {
     readonly Vehicle: "Vehicle";
     readonly CommodityAverage: "CommodityAverage";
     readonly TerminalCommodityMax: "TerminalCommodityMax";
+    readonly MarketIndex: "MarketIndex";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
 export declare const TransactionIsolationLevel: {
@@ -142,6 +143,13 @@ export declare const TerminalCommodityMaxScalarFieldEnum: {
     readonly fetchedAt: "fetchedAt";
 };
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum];
+export declare const MarketIndexScalarFieldEnum: {
+    readonly id: "id";
+    readonly value: "value";
+    readonly commodityCount: "commodityCount";
+    readonly fetchedAt: "fetchedAt";
+};
+export type MarketIndexScalarFieldEnum = (typeof MarketIndexScalarFieldEnum)[keyof typeof MarketIndexScalarFieldEnum];
 export declare const SortOrder: {
     readonly asc: "asc";
     readonly desc: "desc";

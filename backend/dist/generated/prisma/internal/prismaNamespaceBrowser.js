@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = require("@prisma/client/runtime/index-browser");
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -18,7 +18,8 @@ exports.ModelName = {
     CargoRoute: 'CargoRoute',
     Vehicle: 'Vehicle',
     CommodityAverage: 'CommodityAverage',
-    TerminalCommodityMax: 'TerminalCommodityMax'
+    TerminalCommodityMax: 'TerminalCommodityMax',
+    MarketIndex: 'MarketIndex'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
     ReadUncommitted: 'ReadUncommitted',
@@ -132,6 +133,12 @@ exports.TerminalCommodityMaxScalarFieldEnum = {
     priceBuyAvg: 'priceBuyAvg',
     priceSellAvg: 'priceSellAvg',
     dateModified: 'dateModified',
+    fetchedAt: 'fetchedAt'
+};
+exports.MarketIndexScalarFieldEnum = {
+    id: 'id',
+    value: 'value',
+    commodityCount: 'commodityCount',
     fetchedAt: 'fetchedAt'
 };
 exports.SortOrder = {

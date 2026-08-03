@@ -26,23 +26,26 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [sort, setSort] = useState<'name' | 'margin' | 'profit'>('name');
   const [flipKey, setFlipKey] = useState(1);
+  const [index, setIndex] = useState<{ current: number | null; change: number | null; min: number; max: number; history: { v: number; t: string }[] }>({ current: null, change: null, min: 0, max: 100, history: [] });
   const router = useRouter();
 
   const lastCommoditySyncRef = useRef<string | null>(null);
 
   const fetchCommodities = useCallback(async () => {
     try {
-      const [dataRes, verRes] = await Promise.all([
+      const [dataRes, verRes, idxRes] = await Promise.all([
         fetch('/api/commodities'),
         fetch('/api/version'),
+        fetch('/api/market-index?days=14'),
       ]);
       if (!dataRes.ok) throw new Error(`HTTP ${dataRes.status}`);
       const lastUpd = dataRes.headers.get('X-LastUpdated');
       setLastUpdated(lastUpd);
       if (lastUpd) lastCommoditySyncRef.current = lastUpd;
-      const [data, ver] = await Promise.all([dataRes.json(), verRes.json()]);
+      const [data, ver, idx] = await Promise.all([dataRes.json(), verRes.json(), idxRes.json()]);
       setCommodities(data);
       setGameVersion(ver.gameVersion);
+      setIndex(idx);
       setError(null);
     } catch (err) {
       console.error(err);
@@ -83,14 +86,33 @@ export default function HomePage() {
       <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3 mb-2 lg:mb-3 text-[11px] sm:text-[12px] lg:text-[13px] text-muted-foreground/60 flex-wrap">
         <span className="data-pulse-dot" />
         <span className="text-chart-2">{fmtLastUpdated(lastUpdated)}</span>
-        <span className="text-border/40">·</span>
-        <span className="tabular-nums">{commodities.filter(c => (c.currentSellAvg != null && c.currentSellAvg > 0) || (c.currentBuyAvg != null && c.currentBuyAvg > 0)).length} 种</span>
+        {index.current != null && (
+          <>
+            <span className="text-border/40">·</span>
+            <button
+              onClick={() => router.push('/market-index')}
+              className="hover:opacity-80 transition-opacity flex items-center gap-1"
+            >
+              <span className="text-primary">泛天指数：</span>
+              <span className="tabular-nums font-semibold" style={{
+                color: (() => {
+                  const range = index.max - index.min || 1;
+                  const pct = (index.current! - index.min) / range;
+                  const h = Math.round(pct * 142);
+                  return `hsl(${h}, 65%, 45%)`;
+                })(),
+              }}>{index.current}%</span>
+            </button>
+          </>
+        )}
         {gameVersion && (
           <>
             <span className="text-border/40">·</span>
-            <span>版本：{gameVersion}</span>
+            <span>游戏版本：{gameVersion}</span>
           </>
         )}
+        <span className="text-border/40">·</span>
+        <span className="tabular-nums">{commodities.filter(c => (c.currentSellAvg != null && c.currentSellAvg > 0) || (c.currentBuyAvg != null && c.currentBuyAvg > 0)).length} 种</span>
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as 'name' | 'margin' | 'profit')}

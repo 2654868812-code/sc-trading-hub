@@ -14,6 +14,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
   readonly vehicle: any;
   readonly commodityAverage: any;
   readonly terminalCommodityMax: any;
+  readonly marketIndex: any;
   readonly $transaction: any;
 
   constructor() {
@@ -31,6 +32,7 @@ export class PrismaService implements OnModuleInit, OnModuleDestroy {
     this.vehicle = this.client.vehicle;
     this.commodityAverage = this.client.commodityAverage;
     this.terminalCommodityMax = this.client.terminalCommodityMax;
+    this.marketIndex = this.client.marketIndex;
     this.$transaction = this.client.$transaction.bind(this.client);
   }
 

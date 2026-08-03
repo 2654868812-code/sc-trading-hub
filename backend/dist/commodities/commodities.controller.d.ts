@@ -12,4 +12,19 @@ export declare class CommoditiesController {
     } | {
         gameVersion: string;
     }>;
+    marketIndex(daysRaw?: string): Promise<{
+        current: null;
+        history: never[];
+        commodityCount?: undefined;
+        change?: undefined;
+        min?: undefined;
+        max?: undefined;
+    } | {
+        current: any;
+        commodityCount: any;
+        change: number | null;
+        min: number;
+        max: number;
+        history: any;
+    }>;
 }

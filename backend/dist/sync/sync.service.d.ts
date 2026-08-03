@@ -13,5 +13,6 @@ export declare class SyncService {
     private syncCargoRoutes;
     private syncVehicles;
     private syncTerminalCommodityMax;
+    private computeMarketIndex;
     private cleanupOldSnapshots;
 }

@@ -51,5 +51,8 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get terminalCommodityMax(): Prisma.TerminalCommodityMaxDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get marketIndex(): Prisma.MarketIndexDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
 }
 export declare function getPrismaClientClass(): PrismaClientConstructor;

@@ -139,6 +139,31 @@ let CommoditiesController = class CommoditiesController {
         }
         return { gameVersion: Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] };
     }
+    async marketIndex(daysRaw) {
+        const days = Math.min(parseInt(daysRaw || '7', 10) || 7, 90);
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        const rows = await this.prisma.marketIndex.findMany({
+            where: { fetchedAt: { gte: since } },
+            orderBy: { fetchedAt: 'asc' },
+            select: { value: true, commodityCount: true, fetchedAt: true },
+        });
+        if (!rows.length)
+            return { current: null, history: [] };
+        const current = rows[rows.length - 1];
+        const prev = rows.length > 1 ? rows[rows.length - 2] : null;
+        const change = prev ? Math.round((current.value - prev.value) * 10) / 10 : null;
+        const values = rows.map(r => r.value);
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        return {
+            current: current.value,
+            commodityCount: current.commodityCount,
+            change,
+            min,
+            max,
+            history: rows.map(r => ({ v: r.value, t: r.fetchedAt.toISOString() })),
+        };
+    }
 };
 exports.CommoditiesController = CommoditiesController;
 __decorate([
@@ -165,6 +190,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], CommoditiesController.prototype, "version", null);
+__decorate([
+    (0, common_1.Get)('market-index'),
+    (0, public_decorator_1.Public)(),
+    __param(0, (0, common_1.Query)('days')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CommoditiesController.prototype, "marketIndex", null);
 exports.CommoditiesController = CommoditiesController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [prisma_service_1.PrismaService])

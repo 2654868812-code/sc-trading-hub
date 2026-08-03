@@ -149,3 +149,10 @@ model TerminalCommodityMax {
 
   @@id([commodityId, terminalId])
 }
+
+model MarketIndex {
+  id             Int      @id @default(autoincrement())
+  value          Float
+  commodityCount Int
+  fetchedAt      DateTime @default(now())
+}
