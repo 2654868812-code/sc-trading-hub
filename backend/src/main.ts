@@ -29,10 +29,16 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-  // Start periodic sync
+  // Start periodic sync (run immediately on startup, then on schedule)
   const intervalMin = parseInt(process.env.FETCH_INTERVAL_MINUTES || '30', 10);
   const { SyncService } = await import('./sync/sync.service');
   const syncService = app.get(SyncService);
+
+  console.log('Running initial data sync...');
+  syncService.fullSync()
+    .then(() => console.log('Initial data sync complete'))
+    .catch(err => console.error('Initial sync failed:', err));
+
   cron.schedule(`*/${intervalMin} * * * *`, () => {
     syncService.fullSync().catch(err => console.error('Cron sync failed:', err));
   });
