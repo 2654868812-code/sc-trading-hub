@@ -6,7 +6,7 @@ export class CronAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const auth = request.headers['authorization'];
     const secret = process.env.CRON_SECRET;
-    if (!secret) throw new Error('CRON_SECRET environment variable is required');
+    if (!secret) throw new UnauthorizedException('CRON_SECRET not configured');
 
     if (!auth || auth !== `Bearer ${secret}`) {
       throw new UnauthorizedException('Unauthorized');

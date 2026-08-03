@@ -11,7 +11,7 @@ export class PricesController {
   async history(@Query('commodityId') commodityId: string, @Query('terminalIds') terminalIds: string, @Query('hours') hours: string) {
     const cid = parseInt(commodityId);
     if (!cid) return [];
-    const ids = (terminalIds || '').split(',').map(Number).filter(Boolean);
+    const ids = (terminalIds || '').split(',').map(Number).filter(n => !isNaN(n));
     const hRaw = parseInt(hours || '24');
     const h = Math.min(Math.max(hRaw || 24, 1), 168); // clamp 1-168
     const since = new Date(Date.now() - h * 60 * 60 * 1000);
@@ -31,7 +31,8 @@ export class PricesController {
   @Get('location')
   @Public()
   async locationPrices(@Query('locationName') locationName: string, @Query('hours') hours: string) {
-    const name = decodeURIComponent(locationName || '');
+    let name: string;
+    try { name = decodeURIComponent(locationName || ''); } catch { name = locationName || ''; }
     if (!name) return [];
 
     const terminals = await this.prisma.terminal.findMany({

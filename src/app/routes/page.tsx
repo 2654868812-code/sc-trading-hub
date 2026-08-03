@@ -152,9 +152,13 @@ function RoutesContent() {
   // Check for data sync every 2 minutes, auto-refresh if new data available
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
+    let isChecking = false;
     async function check() {
+      if (isChecking) return;
+      isChecking = true;
       try {
         const res = await fetch('/api/data-freshness');
+        if (!res.ok) return;
         const { latestFetchedAt } = await res.json();
         if (!latestFetchedAt) return;
         if (lastSyncRef.current && lastSyncRef.current !== latestFetchedAt && currentFiltersRef.current) {
@@ -162,7 +166,8 @@ function RoutesContent() {
           setFlipKey((k) => k + 1);
         }
         lastSyncRef.current = latestFetchedAt;
-      } catch { /* ignore */ }
+      } catch { /* network error — retry next interval */ }
+      finally { isChecking = false; }
     }
     check();
     timer = setInterval(check, 60_000);

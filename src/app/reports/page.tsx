@@ -35,6 +35,7 @@ function NewsCard({ item, half }: { item: NewsItem; half?: boolean }) {
         <div className={`flex gap-4 ${item.imagePosition === 'right' ? 'flex-row-reverse' : ''}`}>
           <img
             src={item.image} alt={item.title}
+            referrerPolicy="no-referrer" crossOrigin="anonymous"
             className="max-h-80 object-contain rounded-lg shrink-0"
             style={{ width: `${item.imageScale ?? 45}%` }}
           />

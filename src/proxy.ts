@@ -32,9 +32,9 @@ export async function proxy(request: NextRequest) {
     if (!token || !/^\d+:[a-f0-9]{64}$/.test(token)) {
       return NextResponse.redirect(new URL('/reports/login', request.url));
     }
-    // Check token expiry
+    // Check token expiry (30s clock skew tolerance)
     const expiry = parseInt(token.split(':')[0], 10);
-    if (Date.now() > expiry) {
+    if (Date.now() - 30_000 > expiry) {
       return NextResponse.redirect(new URL('/reports/login', request.url));
     }
   }

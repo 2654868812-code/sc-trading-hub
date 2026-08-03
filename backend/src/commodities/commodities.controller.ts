@@ -128,7 +128,8 @@ export class CommoditiesController {
     if (!rows.length) return { gameVersion: null };
     const counts: Record<string, number> = {};
     for (const r of rows) { const v = r.gameVersion!; counts[v] = (counts[v] || 0) + 1; }
-    return { gameVersion: Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] };
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    return { gameVersion: entries[0]?.[0] ?? null };
   }
 
   @Get('market-index')

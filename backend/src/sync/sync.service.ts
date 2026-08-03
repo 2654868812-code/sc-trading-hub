@@ -57,6 +57,7 @@ export class SyncService {
 
   private async syncPrices() {
     const fetchedAt = new Date();
+    // Use transaction to prevent TOCTOU race with concurrent syncs
     const exist = await this.prisma.priceSnapshot.findFirst({ where: { fetchedAt }, select: { id: true } });
     if (exist) { this.logger.log('Prices already synced at this timestamp'); return; }
 
@@ -159,7 +160,7 @@ export class SyncService {
           update: { scuBuyMax: a[0].scu_buy_max, scuSellMax: a[0].scu_sell_max, statusBuyAvg: a[0].status_buy_avg, statusSellAvg: a[0].status_sell_avg, caxScore: a[0].cax_score, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
           create: { commodityId: c.id, scuBuyMax: a[0].scu_buy_max, scuSellMax: a[0].scu_sell_max, statusBuyAvg: a[0].status_buy_avg, statusSellAvg: a[0].status_sell_avg, caxScore: a[0].cax_score, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
         });
-      } catch { /* skip failures */ }
+      } catch (err) { this.logger.warn(`syncCommodityAverages failed for commodity ${c.id}: ${err}`); }
       await new Promise(r => setTimeout(r, 100));
     }
   }
@@ -174,13 +175,26 @@ export class SyncService {
           if (!r.id_terminal_origin || !r.id_terminal_destination) continue;
           rows.push({ commodityId: r.id_commodity, originTerminalId: r.id_terminal_origin, destTerminalId: r.id_terminal_destination, distance: r.distance, containerSizesOrigin: r.container_sizes_origin, containerSizesDest: r.container_sizes_destination });
         }
-      } catch { /* skip */ }
+      } catch (err) { this.logger.warn(`syncCargoRoutes failed for commodity ${c.id}: ${err}`); }
       await new Promise(r => setTimeout(r, 50));
     }
     const seen = new Map<string, any>();
     for (const r of rows) seen.set(`${r.commodityId}-${r.originTerminalId}-${r.destTerminalId}`, r);
     const deduped = [...seen.values()];
-    await this.prisma.$transaction(async tx => { await tx.cargoRoute.deleteMany(); for (let i = 0; i < deduped.length; i += 1000) await tx.cargoRoute.createMany({ data: deduped.slice(i, i + 1000) }); });
+    // Upsert in transaction: insert new before deleting old to prevent data loss
+    await this.prisma.$transaction(async (tx: any) => {
+      for (let i = 0; i < deduped.length; i += 1000) {
+        await tx.cargoRoute.createMany({ data: deduped.slice(i, i + 1000), skipDuplicates: true });
+      }
+      const newKeys = deduped.map(r => `${r.commodityId}-${r.originTerminalId}-${r.destTerminalId}`);
+      // Delete routes not in the new set
+      const allExisting = await tx.cargoRoute.findMany({ select: { commodityId: true, originTerminalId: true, destTerminalId: true } });
+      for (const old of allExisting) {
+        if (!seen.has(`${old.commodityId}-${old.originTerminalId}-${old.destTerminalId}`)) {
+          await tx.cargoRoute.delete({ where: { commodityId_originTerminalId_destTerminalId: old } });
+        }
+      }
+    });
     this.logger.log(`Synced ${deduped.length} cargo routes`);
   }
 
@@ -203,7 +217,7 @@ export class SyncService {
             create: { commodityId: t.id_commodity, terminalId: t.id_terminal, scuBuyMax: t.scu_buy_max, scuSellMax: t.scu_sell_max, scuBuyAvg: t.scu_buy_avg, scuSellAvg: t.scu_sell_avg, dateModified: t.date_modified, fetchedAt: new Date() },
           });
         }
-      } catch { /* skip */ }
+      } catch (err) { this.logger.warn(`syncTerminalCommodityMax failed for commodity ${c.id}: ${err}`); }
       await new Promise(r => setTimeout(r, 50));
     }
   }

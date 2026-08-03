@@ -34,21 +34,31 @@ export default function CommodityDetailPage() {
   const [terminals, setTerminals] = useState<TerminalInfo[]>([]);
   const [hours, setHours] = useState(24);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+
+  // Guard against invalid/missing route param
+  if (!id || isNaN(commodityId)) {
+    return <div className="text-center py-16 text-muted-foreground">无效的商品 ID</div>;
+  }
 
   useEffect(() => {
-    fetch(`/api/commodities/${commodityId}`)
+    const ac = new AbortController();
+    fetch(`/api/commodities/${commodityId}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data: CommodityWithChange) => {
-        if (data && !('error' in data)) setCommodity(data);
+        if (data && !('error' in data)) { setCommodity(data); setFetchError(false); }
       })
-      .catch(console.error);
+      .catch((err) => { if (err.name !== 'AbortError') { console.error(err); setFetchError(true); } });
+    return () => ac.abort();
   }, [commodityId]);
 
   useEffect(() => {
-    fetch(`/api/prices/terminals?commodityId=${commodityId}`)
+    const ac = new AbortController();
+    fetch(`/api/prices/terminals?commodityId=${commodityId}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data: TerminalInfo[]) => setTerminals(data))
-      .catch(console.error);
+      .catch((err) => { if (err.name !== 'AbortError') console.error(err); });
+    return () => ac.abort();
   }, [commodityId]);
 
   // Pick top 5 buy terminals and top 5 sell terminals for charts
@@ -65,11 +75,13 @@ export default function CommodityDetailPage() {
       return;
     }
     setLoading(true);
-    fetch(`/api/prices?commodityId=${commodityId}&terminalIds=${chartTerminalIds.join(',')}&hours=${hours}`)
+    const ac = new AbortController();
+    fetch(`/api/prices?commodityId=${commodityId}&terminalIds=${chartTerminalIds.join(',')}&hours=${hours}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data: PricePoint[]) => setPriceData(data))
-      .catch(console.error)
+      .catch((err) => { if (err.name !== 'AbortError') console.error(err); })
       .finally(() => setLoading(false));
+    return () => ac.abort();
   }, [commodityId, chartTerminalIds, hours]);
 
   const { buyChartData, sellChartData, buyTerminalNames, sellTerminalNames } = useMemo(() => {

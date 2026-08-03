@@ -30,6 +30,7 @@ export default function HomePage() {
   const router = useRouter();
 
   const lastCommoditySyncRef = useRef<string | null>(null);
+  const [, setTick] = useState(0);
 
   const fetchCommodities = useCallback(async () => {
     try {
@@ -50,7 +51,6 @@ export default function HomePage() {
     } catch (err) {
       console.error(err);
       setError('数据加载失败，请稍后刷新重试');
-      throw err;
     }
   }, []);
 
@@ -58,18 +58,25 @@ export default function HomePage() {
     fetchCommodities().finally(() => setLoading(false));
   }, [fetchCommodities]);
 
+  // Tick every 30s to keep relative time display fresh
+  useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Poll for data sync every 60s, auto-refresh commodities
   useEffect(() => {
     const timer = setInterval(async () => {
       try {
         const res = await fetch('/api/data-freshness');
+        if (!res.ok) return;
         const { latestFetchedAt } = await res.json();
         if (latestFetchedAt && lastCommoditySyncRef.current && lastCommoditySyncRef.current !== latestFetchedAt) {
           await fetchCommodities();
           setFlipKey((k) => k + 1);
         }
         if (latestFetchedAt) lastCommoditySyncRef.current = latestFetchedAt;
-      } catch { /* ignore */ }
+      } catch { /* network error — retry next interval */ }
     }, 60_000);
     return () => clearInterval(timer);
   }, [fetchCommodities]);

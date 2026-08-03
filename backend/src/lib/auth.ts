@@ -22,7 +22,9 @@ export function verifyToken(token: string | undefined): boolean {
   if (!token) return false;
   const [expiryStr, sig] = token.split(':');
   if (!expiryStr || !sig) return false;
-  if (Date.now() > parseInt(expiryStr, 10)) return false;
+  const expiry = parseInt(expiryStr, 10);
+  if (isNaN(expiry)) return false;
+  if (Date.now() >= expiry) return false;
   const expected = hmacSign(expiryStr);
   return sig === expected;
 }

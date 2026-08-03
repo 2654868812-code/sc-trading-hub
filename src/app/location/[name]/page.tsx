@@ -205,7 +205,8 @@ export default function LocationDetailPage() {
 
   useEffect(() => {
     setFetchError(false);
-    fetch(`/api/locations/${encodeURIComponent(locationName)}`)
+    const ac = new AbortController();
+    fetch(`/api/locations/${encodeURIComponent(locationName)}`, { signal: ac.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -215,20 +216,22 @@ export default function LocationDetailPage() {
         setData(d);
       })
       .catch((err) => {
-        console.error(err);
-        setFetchError(true);
+        if (err.name !== 'AbortError') { console.error(err); setFetchError(true); }
       })
       .finally(() => setLoading(false));
+    return () => ac.abort();
   }, [locationName]);
 
   // Fetch chart data
   useEffect(() => {
     setChartLoading(true);
-    fetch(`/api/prices/location?locationName=${encodeURIComponent(locationName)}&hours=${hours}`)
+    const ac = new AbortController();
+    fetch(`/api/prices/location?locationName=${encodeURIComponent(locationName)}&hours=${hours}`, { signal: ac.signal })
       .then(r => r.json())
       .then((d: PricePoint[]) => setPriceData(d))
-      .catch(() => {})
+      .catch((err) => { if (err.name !== 'AbortError') console.error(err); })
       .finally(() => setChartLoading(false));
+    return () => ac.abort();
   }, [locationName, hours]);
 
   // Process chart data
@@ -264,7 +267,7 @@ export default function LocationDetailPage() {
 
   if (loading) return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
   if (fetchError) return <div className="text-center py-16 text-muted-foreground">数据加载失败，请稍后刷新重试</div>;
-  if (!data) return <div className="text-center py-16 text-muted-foreground">地点不存在</div>;
+  if (!data?.location) return <div className="text-center py-16 text-muted-foreground">地点不存在</div>;
 
   const loc = data.location;
   const subtitle = [loc.starSystemName, loc.planetName, loc.moonName].filter(Boolean).join(' · ');

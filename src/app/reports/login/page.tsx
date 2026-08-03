@@ -21,8 +21,7 @@ export default function LoginPage() {
       .then((res) => {
         if (res.ok && res.token) {
           // Cookie: signed token for proxy page-access validation
-          document.cookie = `auth_token=${res.token}; path=/; SameSite=Strict;${location.protocol === 'https:' ? ' Secure' : ''}`;
-          // Session storage: signed token for API Bearer auth (never store raw password)
+          // Token already set as HttpOnly cookie by backend; store in sessionStorage for Bearer auth
           sessionStorage.setItem('auth_token', res.token);
           router.push('/reports/edit');
         } else {

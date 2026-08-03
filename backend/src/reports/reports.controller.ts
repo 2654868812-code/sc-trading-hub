@@ -2,6 +2,7 @@ import { Controller, Get, Post, Req, Body, Res, UseGuards, Logger } from '@nestj
 import { Request, Response } from 'express';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as crypto from 'crypto';
 import { z } from 'zod';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { Public } from '../common/decorators/public.decorator';
@@ -44,6 +45,18 @@ function readData() {
   return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
 }
 
+const MAGIC_SIGS: Record<string, string[]> = {
+  'image/png':  ['89504e47'],
+  'image/jpeg': ['ffd8ff'],
+  'image/webp': ['52494646'],
+  'image/gif':  ['47494638'],
+};
+function verifyMagicBytes(hex: string, mimeType: string): boolean {
+  const sigs = MAGIC_SIGS[mimeType];
+  if (!sigs) return false;
+  return sigs.some(s => hex.startsWith(s));
+}
+
 @Controller('reports')
 export class ReportsController {
   private readonly logger = new Logger(ReportsController.name);
@@ -55,7 +68,6 @@ export class ReportsController {
   }
 
   @Post()
-  @UseGuards(AuthGuard)
   save(@Body() body: any, @Res() res: Response) {
     try {
       const data = ReportsSchema.parse(body);
@@ -70,13 +82,25 @@ export class ReportsController {
 
   @Post('auth')
   @Public()
-  auth(@Body() body: { password: string }) {
+  auth(@Body() body: { password: string }, @Res() res: Response) {
     const pwd = process.env.ADMIN_PASSWORD;
-    if (!pwd) throw new Error('ADMIN_PASSWORD is required');
-    if (body.password === pwd) {
-      return { ok: true, token: signToken() };
+    if (!pwd) { res.status(500).json({ error: 'Server misconfigured' }); return; }
+    if (!body.password) { res.status(400).json({ error: 'Password required' }); return; }
+    const bufA = Buffer.from(body.password);
+    const bufB = Buffer.from(pwd);
+    if (bufA.length !== bufB.length) { res.status(401).json({ ok: false }); return; }
+    if (crypto.timingSafeEqual(bufA, bufB)) {
+      const token = signToken();
+      res.cookie('auth_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/',
+        maxAge: 30 * 60 * 1000, // 30 min
+      });
+      return res.status(200).json({ ok: true, token });
     }
-    return { ok: false };
+    return res.status(401).json({ ok: false });
   }
 
   @Post('upload-image')
@@ -110,10 +134,41 @@ export class ReportsController {
         fileReceived = true;
         const mimeToExt: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif' };
         const ext = mimeToExt[info.mimeType] || 'png';
-        const filename = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+        const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
+        const filePath = path.join(UPLOAD_DIR, filename);
 
-        const ws = fs.createWriteStream(path.join(UPLOAD_DIR, filename));
-        file.pipe(ws);
+        // Verify file magic bytes to prevent MIME spoofing
+        const chunks: Buffer[] = [];
+        let magicChecked = false;
+        const ws = fs.createWriteStream(filePath);
+        file.on('data', (chunk: Buffer) => {
+          if (!magicChecked) {
+            chunks.push(chunk);
+            const totalLen = chunks.reduce((s, c) => s + c.length, 0);
+            if (totalLen >= 8) {
+              const magicBuf = Buffer.concat(chunks).subarray(0, 8);
+              const sig = magicBuf.toString('hex');
+              if (!verifyMagicBytes(sig, info.mimeType)) {
+                file.unpipe();
+                ws.destroy();
+                try { fs.unlinkSync(filePath); } catch {}
+                send(400, { error: 'File content does not match type' });
+                return;
+              }
+              magicChecked = true;
+              // Write buffered data then pipe the rest
+              for (const c of chunks) ws.write(c);
+              file.pipe(ws);
+            }
+          }
+        });
+        if (!magicChecked) {
+          file.once('end', () => {
+            // Small file: all data already buffered, write it
+            for (const c of chunks) ws.write(c);
+            ws.end();
+          });
+        }
         ws.on('finish', () => send(200, { ok: true, url: `/uploads/${filename}` }));
         ws.on('error', () => send(500, { error: 'Failed to upload image' }));
       });

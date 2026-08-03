@@ -35,13 +35,17 @@ export class RoutesController {
   ) {
     // Parse commodity: new multi-select takes priority, fallback to old single
     const cids = commodityIdsRaw
-      ? commodityIdsRaw.split(',').map(Number).filter(n => !isNaN(n))
+      ? commodityIdsRaw.split(',').slice(0, 200).map(Number).filter(n => !isNaN(n))
       : (commodityId ? [parseInt(commodityId)] : []);
     const commodityMode = commodityModeRaw || 'include';
 
     // Parse locations: new multi-select takes priority, fallback to old single
     const parseLocs = (raw: string | undefined, fallback: string | undefined) => {
-      if (raw) return raw.split(',').map(s => decodeURIComponent(s.trim())).filter(Boolean);
+      if (raw) {
+        try {
+          return raw.split(',').slice(0, 100).map(s => decodeURIComponent(s.trim())).filter(Boolean);
+        } catch { return raw.split(',').slice(0, 100).map(s => s.trim()).filter(Boolean); }
+      }
       if (fallback) return [fallback];
       return [];
     };

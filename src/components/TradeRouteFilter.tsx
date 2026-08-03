@@ -175,10 +175,8 @@ export function TradeRouteFilter({
   const originLocRef = useRef<HTMLDivElement>(null);
   const destLocRef = useRef<HTMLDivElement>(null);
 
-  // Load data + restore from sessionStorage if URL is empty (after hydration)
+  // Load reference data once on mount
   useEffect(() => {
-    const hasUrlParams = !!(f.shipId || f.commodityIds?.length || f.originLocations?.length || f.destLocations?.length || f.originSystem || f.destSystem);
-
     Promise.all([
       fetch('/api/vehicles').then((r) => r.json()),
       fetch('/api/locations').then((r) => r.json()),
@@ -192,50 +190,42 @@ export function TradeRouteFilter({
         kindZh: c.kindZh || '', isDazong: c.isDazong || false, isIllegal: c.isIllegal || false,
       }));
       setCommodities(commList);
-
-      let effectiveShipId = shipId;
-      let effectiveCommodityIds = commodityIds;
-      let stored: RouteFilters | null = null;
-
-      if (!hasUrlParams) {
-        stored = readFiltersFromStorage();
-      }
-
-      if (stored?.shipId) {
-        effectiveShipId = String(stored.shipId);
-        effectiveCommodityIds = stored.commodityIds || [];
-
-        setShipId(effectiveShipId);
-        if (stored.commodityIds) setCommodityIds(stored.commodityIds);
-        if (stored.commodityMode) setCommodityMode(stored.commodityMode);
-        if (stored.originSystem) setOriginSystem(stored.originSystem);
-        if (stored.destSystem) setDestSystem(stored.destSystem);
-        if (stored.originLocations) setOriginLocations(stored.originLocations);
-        if (stored.originLocationMode) setOriginLocationMode(stored.originLocationMode);
-        if (stored.destLocations) setDestLocations(stored.destLocations);
-        if (stored.destLocationMode) setDestLocationMode(stored.destLocationMode);
-        if (stored.maxInvestment) setMaxInvestment(String(stored.maxInvestment));
-        if (stored.maxDistance) setMaxDistance(String(stored.maxDistance));
-        if (stored.commodityType) setCommodityType(stored.commodityType);
-        if (stored.autoLoadType) setAutoLoadType(stored.autoLoadType);
-        if (stored.sortBy) setSortBy(stored.sortBy);
-        if (stored.roundTrip) setRoundTrip(stored.roundTrip);
-        if (stored.profitMode) setProfitMode(stored.profitMode);
-      }
-
-      // Restore ship search text
-      if (effectiveShipId) {
-        const s = shipsData.find((x: ShipOption) => x.id === parseInt(effectiveShipId));
-        if (s) setShipSearch(s.name);
-      }
-
-      // Auto-search if sessionStorage had filters (URL case handled by parent)
-      if (stored?.shipId) {
-        onFilterChange({ ...stored, sortOrder: 'desc' });
-      }
     }).catch(console.error);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Restore filters from sessionStorage when URL is empty
+  const restoredRef = useRef(false);
+  const fKey = `${f.shipId ?? ''}|${f.commodityIds?.join(',') ?? ''}|${f.originLocations?.join(',') ?? ''}|${f.destLocations?.join(',') ?? ''}|${f.originSystem ?? ''}|${f.destSystem ?? ''}`;
+  const hasUrlParams = !!(f.shipId || f.commodityIds?.length || f.originLocations?.length || f.destLocations?.length || f.originSystem || f.destSystem);
+  useEffect(() => {
+    if (hasUrlParams || restoredRef.current || !ships.length) return;
+    const stored = readFiltersFromStorage();
+    if (!stored?.shipId) return;
+    restoredRef.current = true;
+
+    setShipId(String(stored.shipId));
+    if (stored.commodityIds) setCommodityIds(stored.commodityIds);
+    if (stored.commodityMode) setCommodityMode(stored.commodityMode);
+    if (stored.originSystem) setOriginSystem(stored.originSystem);
+    if (stored.destSystem) setDestSystem(stored.destSystem);
+    if (stored.originLocations) setOriginLocations(stored.originLocations);
+    if (stored.originLocationMode) setOriginLocationMode(stored.originLocationMode);
+    if (stored.destLocations) setDestLocations(stored.destLocations);
+    if (stored.destLocationMode) setDestLocationMode(stored.destLocationMode);
+    if (stored.maxInvestment) setMaxInvestment(String(stored.maxInvestment));
+    if (stored.maxDistance) setMaxDistance(String(stored.maxDistance));
+    if (stored.commodityType) setCommodityType(stored.commodityType);
+    if (stored.autoLoadType) setAutoLoadType(stored.autoLoadType);
+    if (stored.sortBy) setSortBy(stored.sortBy);
+    if (stored.roundTrip) setRoundTrip(stored.roundTrip);
+    if (stored.profitMode) setProfitMode(stored.profitMode);
+
+    // Restore ship search text
+    const s = ships.find((x: ShipOption) => x.id === stored.shipId);
+    if (s) setShipSearch(s.name);
+
+    onFilterChange({ ...stored, sortOrder: 'desc' });
+  }, [hasUrlParams, fKey, onFilterChange, ships]);
 
   // Auto-persist filter changes to URL/sessionStorage without triggering search
   useEffect(() => {

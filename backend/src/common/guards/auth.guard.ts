@@ -21,9 +21,12 @@ export class AuthGuard implements CanActivate {
 
     const token = auth.slice(7);
 
-    // CRON_SECRET for cron endpoints
-    const cronSecret = process.env.CRON_SECRET;
-    if (cronSecret && token === cronSecret) return true;
+    // Only cron routes may use CRON_SECRET
+    const isCronRoute = request.url?.includes('/cron/');
+    if (isCronRoute) {
+      const cronSecret = process.env.CRON_SECRET;
+      if (cronSecret && token === cronSecret) return true;
+    }
 
     // Signed HMAC token for admin operations
     if (verifyToken(token)) return true;

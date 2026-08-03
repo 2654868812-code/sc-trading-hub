@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import Link from 'next/link';
 import { Noto_Sans_SC } from 'next/font/google';
 import './globals.css';
@@ -30,11 +31,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={`${notoSans.variable} min-h-screen bg-background text-foreground antialiased`}>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: '(function(){var s=document.createElement("style");s.id="vpz";var d='+DESIGN_W+',m=1024;function z(){var w=innerWidth;s.textContent="html{zoom:"+(w<d&&w>=m?w/d:1)+"}";}s.textContent="html{zoom:1}";document.head.appendChild(s);z();addEventListener("resize",z);})()',
-          }}
-        />
+        <Script id="viewport-zoom" strategy="beforeInteractive">
+          {`(function(){var s=document.createElement("style");s.id="vpz";var d=${DESIGN_W},m=1024;function z(){var w=innerWidth;s.textContent="html{zoom:"+(w<d&&w>=m?w/d:1)+"}";}s.textContent="html{zoom:1}";document.head.appendChild(s);z();addEventListener("resize",z);})()`}
+        </Script>
         <header className="bg-card">
           <div className="max-w-[1280px] px-3 sm:px-4 lg:px-6 py-2 lg:py-4 flex items-center gap-1.5 sm:gap-4 lg:gap-6 overflow-x-auto">
             <Link href="/" className="flex items-baseline gap-2 lg:gap-2.5 shrink-0">

@@ -53,9 +53,11 @@ export default function ReportsEditPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch('/api/reports').then((r) => r.json()),
-      fetch('/api/version').then((r) => r.json()),
-    ]).then(([d, ver]) => {
+      fetch('/api/reports'),
+      fetch('/api/version'),
+    ]).then(async ([reportsRes, verRes]) => {
+      if (reportsRes.status === 401) { window.location.href = '/reports/login'; return; }
+      const [d, ver] = await Promise.all([reportsRes.json(), verRes.json()]);
       setNews((d as ReportsData).news?.length ? (d as ReportsData).news : [emptyNews()]);
       setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
       setDate((d as ReportsData).date || '');

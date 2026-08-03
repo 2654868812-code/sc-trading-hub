@@ -28,7 +28,8 @@ export class LocationsController {
   @Get(':name')
   @Public()
   async detail(@Param('name') name: string, @Res({ passthrough: true }) res: Response) {
-    const locationName = decodeURIComponent(name);
+    let locationName: string;
+    try { locationName = decodeURIComponent(name); } catch { locationName = name; }
     const terminals = await this.prisma.terminal.findMany({
       where: { OR: [{ cityName: locationName }, { spaceStationName: locationName }, { name: locationName }] },
     });

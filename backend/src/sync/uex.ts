@@ -8,7 +8,7 @@ function uexHeaders(): Record<string, string> {
 
 export async function uexFetch<T>(path: string): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { headers: uexHeaders() });
+  const res = await fetch(url, { headers: uexHeaders(), cache: 'no-store' });
   if (!res.ok) throw new Error(`UEX API error: ${res.status} ${res.statusText} for ${url}`);
   const json = await res.json();
   if (json.status !== 'ok') throw new Error(`UEX API non-ok: ${JSON.stringify(json)}`);
