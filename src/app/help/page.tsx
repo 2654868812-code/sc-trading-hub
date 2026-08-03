@@ -245,7 +245,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">数值含义</h3>
-          <p className="text-xs">指数 60% 意味着按照最优买卖组合，每投入 100 万 aUEC 可获利 60 万。指数越高，市场利润空间越大。每 30 分钟数据同步时更新一次。</p>
+          <p className="text-xs">指数 60% 意味着按照最优买卖组合，每投入 100 万 aUEC 可获利 60 万。指数越高，市场利润空间越大。每 30 分钟数据更新时重新计算。</p>
         </div>
       </>
     ),
@@ -262,7 +262,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">更新频率</h3>
-          <p className="text-xs">每 30 分钟自动同步一次最新价格。页面顶部状态栏可查看上次更新时间。</p>
+          <p className="text-xs">每 30 分钟自动更新一次最新价格。页面顶部状态栏可查看上次更新时间。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格与库存</h3>

@@ -25,7 +25,7 @@ export default function MarketIndexPage() {
   }, []);
 
   if (loading) return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
-  if (!data || data.current == null) return <div className="text-center py-16 text-muted-foreground">暂无数据，等待数据同步后生成</div>;
+  if (!data || data.current == null) return <div className="text-center py-16 text-muted-foreground">暂无数据，等待数据更新后生成</div>;
 
   const high = Math.max(...data.history.map(h => h.v));
   const low = Math.min(...data.history.map(h => h.v));
@@ -96,8 +96,7 @@ export default function MarketIndexPage() {
       <div className="section-card p-5 space-y-3 text-sm leading-relaxed text-muted-foreground">
         <h3 className="text-foreground font-semibold text-xs">指数定义</h3>
         <p>泛天指数 = 全市场最优买卖组合的加权总回报率。每个商品取最新快照中最低买价和最高卖价，以该商品 UEX 历史最大买入量为权重：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。大宗商品（如废料、铁）权重高，小宗商品权重低。数值越高，跑商的资金回报率越高。</p>
-        <p>指数越高，跑商利润空间越大。指数为正表示平均有利可图，指数为负表示市场整体亏损。</p>
-        <p>每 30 分钟数据同步时更新一次，历史保留 90 天。可与先前值对比观察市场景气度变化趋势。</p>
+        <p>每 30 分钟数据更新时重新计算，历史保留 90 天。</p>
       </div>
     </div>
   );
