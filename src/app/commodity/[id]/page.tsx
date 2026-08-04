@@ -161,7 +161,7 @@ export default function CommodityDetailPage() {
 
       {/* Time range selector */}
       <div className="flex gap-1">
-        {[24, 72, 168].map((h) => (
+        {[24, 72, 168, 720, 2160].map((h) => (
           <button
             key={h}
             onClick={() => setHours(h)}
@@ -171,7 +171,7 @@ export default function CommodityDetailPage() {
                 : 'border-border/30 text-muted-foreground hover:text-foreground hover:border-border/60'
             }`}
           >
-            {h === 168 ? '7天' : `${h}小时`}
+            {h === 168 ? '7天' : h === 720 ? '30天' : h === 2160 ? '90天' : `${h}小时`}
           </button>
         ))}
       </div>

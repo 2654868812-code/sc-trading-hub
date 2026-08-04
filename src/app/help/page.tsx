@@ -174,7 +174,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">页面结构</h3>
-          <p className="text-xs">顶部显示商品中文名、英文名和种类标签。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该商品。下方有时间范围选择器（24小时 / 3天 / 7天），切换后图表和统计数据同步更新。</p>
+          <p className="text-xs">顶部显示商品中文名、英文名和种类标签。点击「查看贸易路线 →」可一键跳转到路线筛选器，自动带入该商品。下方有时间范围选择器（24h/3d/7d/30d/90d），切换后图表和统计数据同步更新。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格趋势图</h3>
