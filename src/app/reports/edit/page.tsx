@@ -137,7 +137,7 @@ export default function ReportsEditPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">维护商报</h1>
-          <p className="text-xs text-muted-foreground mt-1">编辑每周商业新闻与推荐跑商路线</p>
+          <p className="text-xs text-muted-foreground mt-1">编辑新闻、路线与小贴士</p>
           <div className="flex items-center gap-2 mt-1">
             {gameVersion && (
               <span className="px-1.5 py-0.5 rounded text-[10px] bg-primary/10 text-primary/80">
@@ -372,133 +372,32 @@ export default function ReportsEditPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-[100px_1fr] gap-3">
-              <span className="text-xs text-muted-foreground self-center">货船</span>
-              <input
-                type="text"
-                value={item.ship}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], ship: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="推荐货船，如 黑弯刀"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
-              <span className="text-xs text-muted-foreground self-center">商品</span>
-              <input
-                type="text"
-                value={item.commodity}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], commodity: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="商品名称"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
-              <span className="text-xs text-muted-foreground self-center">购买地</span>
-              <input
-                type="text"
-                value={item.origin}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], origin: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="终端或城市名称"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
-              <span className="text-xs text-muted-foreground self-center">出售地</span>
-              <input
-                type="text"
-                value={item.dest}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], dest: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="终端或城市名称"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
-              <span className="text-xs text-muted-foreground self-center">预期总利润</span>
-              <input
-                type="text"
-                value={item.profit}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], profit: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="如 +120k"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
-
-              <span className="text-xs text-muted-foreground self-center">备注</span>
-              <input
-                type="text"
-                value={item.note}
-                onChange={(e) => {
-                  const next = [...routes];
-                  next[idx] = { ...next[idx], note: e.target.value };
-                  setRoutes(next);
-                }}
-                placeholder="如 稳定路线，低风险"
-                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                           focus:border-primary/50 transition-colors"
-              />
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <input type="text" value={item.ship} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], ship: e.target.value }; setRoutes(next); }} placeholder="货船，如 黑弯刀" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+              <input type="text" value={item.commodity} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], commodity: e.target.value }; setRoutes(next); }} placeholder="商品名称" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+              <input type="text" value={item.origin} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], origin: e.target.value }; setRoutes(next); }} placeholder="购买地" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+              <input type="text" value={item.dest} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], dest: e.target.value }; setRoutes(next); }} placeholder="出售地" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+              <input type="text" value={item.profit} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], profit: e.target.value }; setRoutes(next); }} placeholder="预期总利润，如 +120k" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+              <input type="text" value={item.note} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], note: e.target.value }; setRoutes(next); }} placeholder="备注" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
             </div>
           </div>
         ))}
       </section>
 
       {/* Tips Section */}
-      <section className="space-y-4">
+      <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold">跑商小贴士</h2>
-            <p className="text-[11px] text-muted-foreground mt-0.5">首页右下角定时轮播展示，每条不超过 500 字</p>
-          </div>
-          <button
-            onClick={() => setTips(prev => [...prev, ''])}
-            className="text-xs px-3 py-1 rounded-md border border-border hover:bg-secondary transition-colors"
-          >
-            + 添加贴士
-          </button>
+          <h2 className="text-sm font-semibold">跑商小贴士</h2>
+          <span className="text-[10px] text-muted-foreground">一行一条，定时轮播</span>
         </div>
-
-        {tips.map((tip, idx) => (
-          <div key={idx} className="section-card p-3 flex items-start gap-3">
-            <span className="text-[10px] text-muted-foreground/50 shrink-0 mt-2 w-5 text-right">{idx + 1}.</span>
-            <input
-              type="text"
-              value={tip}
-              onChange={e => {
-                const next = [...tips];
-                next[idx] = e.target.value;
-                setTips(next);
-              }}
-              placeholder="输入贴士内容…"
-              className="flex-1 h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
-                         focus:border-primary/50 transition-colors"
-            />
-            <button
-              onClick={() => setTips(prev => prev.filter((_, i) => i !== idx))}
-              className="text-xs text-destructive hover:underline shrink-0 mt-1.5"
-            >
-              删除
-            </button>
-          </div>
-        ))}
+        <textarea
+          value={tips.join('\n')}
+          onChange={e => setTips(e.target.value.split('\n'))}
+          placeholder="每行一条贴士，空行自动过滤"
+          rows={Math.max(6, tips.length + 2)}
+          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm leading-relaxed outline-none
+                     focus:border-primary/50 transition-colors resize-y"
+        />
       </section>
 
       {/* Save */}
