@@ -29,6 +29,7 @@ const ReportsSchema = z.object({
     profit: z.string().max(50).optional().default(''),
     note: z.string().max(200).optional().default(''),
   })).max(100),
+  tips: z.array(z.string().max(500)).max(50).optional().default([]),
 });
 
 const DATA_FILE = process.env.REPORTS_DATA_FILE || path.join(process.cwd(), '..', 'data', 'reports.json');
@@ -39,10 +40,27 @@ function ensureDir(filePath: string) {
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 }
 
+const DEFAULT_TIPS = [
+  '大宗商品价格相对稳定，适合新手入门；小宗商品利润率高但风险也更大。',
+  '进货前务必查看目的地的库存量，避免空仓白跑一趟。',
+  '利润率高的商品往往流通速度慢，囤货需谨慎。',
+  '建议同时关注利润率变化趋势（▲/▼），持续上升说明路线正变得热门。',
+  '部分终端只支持特定尺寸货柜，选船前请确认终端的装卸能力。',
+  '非法商品利润极高，但被查获会血本无归，风险自负。',
+  '同一条路线往返利润率可能不同，善用"往返"模式对比。',
+  '建议每次跑商前刷新数据，UEX 每 30 分钟更新一次价格。',
+  'Hull 系列货船只能在有外部货柜设施的终端装卸货。',
+  '泛天指数上涨表示整体市场活跃，下跌则需谨慎操作。',
+  '终端设有医疗/精炼/加油/维修等设施，可在商品详情页查看。',
+  '长期不交易的路线利润率可能失真，建议优先选择近期有成交的路线。',
+];
+
 function readData() {
   ensureDir(DATA_FILE);
-  if (!fs.existsSync(DATA_FILE)) return { news: [], routes: [] };
-  return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  if (!fs.existsSync(DATA_FILE)) return { news: [], routes: [], tips: DEFAULT_TIPS };
+  const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  if (!data.tips || data.tips.length === 0) data.tips = DEFAULT_TIPS;
+  return data;
 }
 
 const MAGIC_SIGS: Record<string, string[]> = {
@@ -64,7 +82,7 @@ export class ReportsController {
   @Get()
   @Public()
   get() {
-    try { return readData(); } catch { return { news: [], routes: [] }; }
+    try { return readData(); } catch { return { news: [], routes: [], tips: DEFAULT_TIPS }; }
   }
 
   @Post()

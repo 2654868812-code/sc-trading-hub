@@ -24,6 +24,7 @@ interface ReportsData {
   date: string;
   news: NewsItem[];
   routes: RouteItem[];
+  tips: string[];
 }
 
 function emptyNews(): NewsItem {
@@ -42,6 +43,7 @@ function getToken(): string {
 export default function ReportsEditPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
+  const [tips, setTips] = useState<string[]>([]);
   const [date, setDate] = useState('');
   const [gameVersion, setGameVersion] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -60,6 +62,7 @@ export default function ReportsEditPage() {
       const [d, ver] = await Promise.all([reportsRes.json(), verRes.json()]);
       setNews((d as ReportsData).news?.length ? (d as ReportsData).news : [emptyNews()]);
       setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
+      setTips((d as ReportsData).tips || []);
       setDate((d as ReportsData).date || '');
       setGameVersion(ver.gameVersion);
       setLoaded(true);
@@ -100,6 +103,7 @@ export default function ReportsEditPage() {
     // Filter out empty items
     const nonEmptyNews = news.filter((n) => n.title || n.body || n.image);
     const nonEmptyRoutes = routes.filter((r) => r.commodity || r.origin || r.dest);
+    const nonEmptyTips = tips.filter(t => t.trim());
     setSaving(true);
     setMsg('');
     fetch('/api/reports', {
@@ -108,7 +112,7 @@ export default function ReportsEditPage() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
       },
-      body: JSON.stringify({ date, news: nonEmptyNews, routes: nonEmptyRoutes }),
+      body: JSON.stringify({ date, news: nonEmptyNews, routes: nonEmptyRoutes, tips: nonEmptyTips }),
     })
       .then((r) => r.json())
       .then((res) => {
@@ -453,6 +457,46 @@ export default function ReportsEditPage() {
                            focus:border-primary/50 transition-colors"
               />
             </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Tips Section */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">跑商小贴士</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">首页右下角定时轮播展示，每条不超过 500 字</p>
+          </div>
+          <button
+            onClick={() => setTips(prev => [...prev, ''])}
+            className="text-xs px-3 py-1 rounded-md border border-border hover:bg-secondary transition-colors"
+          >
+            + 添加贴士
+          </button>
+        </div>
+
+        {tips.map((tip, idx) => (
+          <div key={idx} className="section-card p-3 flex items-start gap-3">
+            <span className="text-[10px] text-muted-foreground/50 shrink-0 mt-2 w-5 text-right">{idx + 1}.</span>
+            <input
+              type="text"
+              value={tip}
+              onChange={e => {
+                const next = [...tips];
+                next[idx] = e.target.value;
+                setTips(next);
+              }}
+              placeholder="输入贴士内容…"
+              className="flex-1 h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                         focus:border-primary/50 transition-colors"
+            />
+            <button
+              onClick={() => setTips(prev => prev.filter((_, i) => i !== idx))}
+              className="text-xs text-destructive hover:underline shrink-0 mt-1.5"
+            >
+              删除
+            </button>
           </div>
         ))}
       </section>
