@@ -91,9 +91,16 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
-  // Per-group max for independent color scales (0 = floor, <0 = red)
-  const majorMax = major.reduce((m, c) => Math.max(m, c.profitMargin ?? 0), 0);
-  const minorMax = minor.reduce((m, c) => Math.max(m, c.profitMargin ?? 0), 0);
+  // Per-group min/max for color scales (≤0 = red, positive = gradient)
+  function groupRange(list: CommodityWithChange[]) {
+    const positives = list.map(c => c.profitMargin ?? 0).filter(m => m > 0);
+    return {
+      min: positives.length > 0 ? Math.min(...positives) : 0,
+      max: positives.length > 0 ? Math.max(...positives) : 1,
+    };
+  }
+  const majorRange = groupRange(major);
+  const minorRange = groupRange(minor);
 
   if (sorted.length === 0) {
     return (
@@ -117,7 +124,8 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
-              maxMargin={majorMax}
+              minMargin={majorRange.min}
+              maxMargin={majorRange.max}
               flipKey={flipKey}
               flipIndex={i}
               onClick={() => onCommodityClick(c.id)}
@@ -137,7 +145,8 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
-              maxMargin={minorMax}
+              minMargin={minorRange.min}
+              maxMargin={minorRange.max}
               flipKey={flipKey}
               flipIndex={major.length + i}
               onClick={() => onCommodityClick(c.id)}
