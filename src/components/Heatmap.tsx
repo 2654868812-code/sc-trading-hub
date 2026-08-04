@@ -91,14 +91,15 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
-  // Per-group trimmed min/max — strip 1 outlier at each end
+  // Per-group trimmed min/max — strip 3 outliers at each end
   function trimmedRange(list: CommodityWithChange[]): { min: number; max: number } {
     const margins = list.map(c => c.profitMargin ?? 0).sort((a, b) => a - b);
-    const trimmed = margins.slice(2, -2); // remove 2 lowest and 2 highest
+    const trimmed = margins.slice(3, -3);
     if (trimmed.length === 0) {
-      // Fall back to less aggressive trim or raw range
-      const inner = margins.slice(1, -1);
+      const inner = margins.slice(2, -2);
       if (inner.length > 0) return { min: inner[0], max: inner[inner.length - 1] };
+      const inner2 = margins.slice(1, -1);
+      if (inner2.length > 0) return { min: inner2[0], max: inner2[inner2.length - 1] };
       return { min: margins[0] ?? 0, max: margins[margins.length - 1] ?? 0 };
     }
     return { min: trimmed[0], max: trimmed[trimmed.length - 1] };
