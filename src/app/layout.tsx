@@ -4,6 +4,7 @@ import { Noto_Sans_SC } from 'next/font/google';
 import './globals.css';
 import { NavHeader } from '@/components/NavHeader';
 import { Footer } from '@/components/Footer';
+import { Suspense } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SearchFloat } from '@/components/SearchFloat';
 import TipsFloat from '@/components/TipsFloat';
@@ -50,7 +51,9 @@ export default function RootLayout({
         </main>
         <Footer />
         <SearchFloat />
-        <TipsFloat />
+        <Suspense fallback={null}>
+          <TipsFloat />
+        </Suspense>
       </body>
     </html>
   );

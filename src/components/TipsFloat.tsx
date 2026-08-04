@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
-const SHOW_DURATION = 9_000;    // 9s
-const INTERVAL = 90_000;        // 1.5min
+const SHOW_DURATION = 9_000;
+const INTERVAL = 90_000;
 
 async function fetchTips(): Promise<string[]> {
   try {
@@ -19,27 +20,37 @@ export default function TipsFloat() {
   const [open, setOpen] = useState(false);
   const [toastIndex, setToastIndex] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
-  const [muted, setMuted] = useState(() => {
-    if (typeof localStorage === 'undefined') return false;
-    return localStorage.getItem('tips_muted') === '1';
-  });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const muted = searchParams.get('tips') === 'muted';
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; }
   }, []);
+
+  function mute() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tips', 'muted');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   // Load tips
   useEffect(() => {
     fetchTips().then(setTips);
   }, []);
 
-  // Toast cycle
+  // Toast cycle — first toast after INTERVAL, not on load
   useEffect(() => {
     if (muted || tips.length === 0) return;
-    // Show first tip immediately
-    setToastIndex(Math.floor(Math.random() * tips.length));
-    setToastVisible(true);
+    clearTimer();
+    // First toast after full interval
+    timerRef.current = setTimeout(() => {
+      setToastIndex(Math.floor(Math.random() * tips.length));
+      setToastVisible(true);
+    }, INTERVAL);
 
     const cycle = setInterval(() => {
       setToastIndex(prev => {
@@ -51,16 +62,15 @@ export default function TipsFloat() {
       setTimeout(() => setToastVisible(false), SHOW_DURATION);
     }, INTERVAL);
 
-    return () => { clearInterval(cycle); };
-  }, [muted, tips]);
+    return () => { clearTimeout(timerRef.current!); clearInterval(cycle); };
+  }, [muted, tips, clearTimer]);
 
   // Hide toast after duration
   useEffect(() => {
     if (!toastVisible) return;
-    clearTimer();
-    timerRef.current = setTimeout(() => setToastVisible(false), SHOW_DURATION);
-    return clearTimer;
-  }, [toastVisible, clearTimer]);
+    const t = setTimeout(() => setToastVisible(false), SHOW_DURATION);
+    return () => clearTimeout(t);
+  }, [toastVisible]);
 
   return (
     <>
@@ -80,7 +90,7 @@ export default function TipsFloat() {
         </div>
       )}
 
-      {/* Trigger button — matches search icon style */}
+      {/* Trigger button */}
       <button
         onClick={() => setOpen(!open)}
         className="fixed bottom-[7rem] right-6 lg:bottom-32 lg:right-10 z-50
@@ -112,7 +122,7 @@ export default function TipsFloat() {
               <h3 className="text-sm font-bold">💡 跑商注意事项</h3>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => { setOpen(false); setMuted(true); setToastVisible(false); localStorage.setItem('tips_muted', '1'); }}
+                  onClick={() => { setOpen(false); mute(); setToastVisible(false); }}
                   className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5"
                 >
                   不再提示
