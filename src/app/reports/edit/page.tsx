@@ -462,19 +462,50 @@ export default function ReportsEditPage() {
       </section>
 
       {/* Tips Section */}
-      <section className="space-y-2">
+      <section className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold">跑商小贴士</h2>
-          <span className="text-[10px] text-muted-foreground">一行一条，定时轮播</span>
+          <div>
+            <h2 className="text-sm font-semibold">跑商小贴士</h2>
+            <p className="text-[11px] text-muted-foreground mt-0.5">首页右下角定时轮播展示</p>
+          </div>
+          <button
+            onClick={() => setTips(prev => [...prev, ''])}
+            className="text-xs px-3 py-1 rounded-md border border-border hover:bg-secondary transition-colors"
+          >
+            + 添加贴士
+          </button>
         </div>
-        <textarea
-          value={tips.join('\n')}
-          onChange={e => setTips(e.target.value.split('\n'))}
-          placeholder="每行一条贴士，空行自动过滤"
-          rows={Math.max(6, tips.length + 2)}
-          className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm leading-relaxed outline-none
-                     focus:border-primary/50 transition-colors resize-y"
-        />
+
+        {tips.map((tip, idx) => (
+          <div key={idx} className="section-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">贴士 #{idx + 1}</span>
+              {tips.length > 1 && (
+                <button
+                  onClick={() => setTips(prev => prev.filter((_, i) => i !== idx))}
+                  className="text-xs text-destructive hover:underline"
+                >
+                  删除
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-[100px_1fr] gap-3">
+              <span className="text-xs text-muted-foreground self-center">内容</span>
+              <input
+                type="text"
+                value={tip}
+                onChange={e => {
+                  const next = [...tips];
+                  next[idx] = e.target.value;
+                  setTips(next);
+                }}
+                placeholder="贴士内容"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+            </div>
+          </div>
+        ))}
       </section>
 
       {/* Save */}
