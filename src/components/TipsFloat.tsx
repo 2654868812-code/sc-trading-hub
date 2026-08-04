@@ -37,6 +37,13 @@ export default function TipsFloat() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
+  function unmute() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete('tips');
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }
+
   // Load tips
   useEffect(() => {
     fetchTips().then(setTips);
@@ -83,9 +90,16 @@ export default function TipsFloat() {
             className="max-w-[220px] sm:max-w-[260px] text-left px-3 py-2 rounded-xl
                        bg-card/95 backdrop-blur border border-border/60 shadow-lg
                        hover:border-primary/30 transition-all text-[11px] sm:text-xs
-                       leading-relaxed text-foreground/80 cursor-pointer"
+                       leading-relaxed text-foreground/80 cursor-pointer flex items-start gap-2"
           >
-            💡 {tips[toastIndex]}
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                 strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
+                 className="shrink-0 mt-px opacity-50">
+              <path d="M10 2a5 5 0 0 0-3 9v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1a5 5 0 0 0-3-9Z" />
+              <line x1="8" y1="15" x2="12" y2="15" />
+              <line x1="9" y1="17" x2="11" y2="17" />
+            </svg>
+            {tips[toastIndex]}
           </button>
         </div>
       )}
@@ -119,13 +133,21 @@ export default function TipsFloat() {
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold">💡 跑商注意事项</h3>
+              <h3 className="text-sm font-bold flex items-center gap-1.5">
+                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+                     strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
+                  <path d="M10 2a5 5 0 0 0-3 9v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1a5 5 0 0 0-3-9Z" />
+                  <line x1="8" y1="15" x2="12" y2="15" />
+                  <line x1="9" y1="17" x2="11" y2="17" />
+                </svg>
+                跑商注意事项
+              </h3>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => { setOpen(false); mute(); setToastVisible(false); }}
-                  className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5"
+                  onClick={() => { setToastVisible(false); muted ? unmute() : mute(); }}
+                  className={`text-[10px] transition-colors px-2 py-0.5 rounded ${muted ? 'text-chart-2 bg-chart-2/10' : 'text-muted-foreground hover:text-foreground'}`}
                 >
-                  不再提示
+                  {muted ? '✓ 已静音' : '不再提示'}
                 </button>
                 <button
                   onClick={() => setOpen(false)}
