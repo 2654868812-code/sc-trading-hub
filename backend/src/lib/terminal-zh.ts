@@ -74,7 +74,7 @@ const TERMINAL_EN_TO_ZH: Record<string, string> = {
   "Platinum Bay - Stanton Gateway (Nyx)": "白金湾 - 斯坦顿星门 (尼克斯)",
   "Platinum Bay - Stanton Gateway (Pyro)": "白金湾 - 斯坦顿星门 (派罗)",
   "Platinum Bay - Terra Gateway (Stanton)": "白金湾 - 特拉星门 (斯坦顿)",
-  "TDD - Trade and Development Division - Area 18": "TDD - 贸易&发展司 - 18区",
+  "TDD - Trade and Development Division - Area 18": "TDD - 贸易与发展司 - 18区",
   "TDD - Trade and Development Division - Cloudview Center - Orison": "TDD - 贸易与发展司 - 云景中心 - 奥里森",
   "TDD - Trade and Development Division - Commons - New Babbage": "TDD - 贸易与发展司 - 市民广场 - 新巴贝奇",
 };
