@@ -94,8 +94,8 @@ const CATEGORIES: HelpCategory[] = [
           <p className="text-xs">历史最大买入量 ≥ 2,000 SCU 归为大宗，流通量大、供需稳定，适合大批量跑商。小宗商品单利可能更高但供应不稳定。搜索框和排序切换可快速定位目标商品。</p>
         </div>
         <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">利润率</h3>
-          <p className="text-xs">利润率 = (当前卖均价 − 当前买均价) / 当前买均价 × 100%，基于最新快照实时计算。绿色越深利润越高，红色表示亏损。</p>
+          <h3 className="text-foreground font-semibold text-xs mb-1">利润率与色阶</h3>
+          <p className="text-xs">利润率 = (当前卖均价 − 当前买均价) / 当前买均价 × 100%。颜色从红（低）到绿（高）渐变，大宗商品和小宗商品各自独立计算色阶范围，互不干扰。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">排序方式</h3>
@@ -230,6 +230,23 @@ const CATEGORIES: HelpCategory[] = [
     ),
   },
   {
+    id: 'tips',
+    title: '跑商贴士',
+    dotColor: '#2dd4bf',
+    content: (
+      <>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">贴士浮窗</h3>
+          <p className="text-xs">页面右下角灯泡按钮（搜索按钮上方）可在任意页面查看全部跑商注意事项。点击按钮或弹出的气泡即可打开列表。每 1.5 分钟自动轮播一条新贴士，显示 9 秒后自动消失。点击「不再提示」可将当前页面静音，静音状态通过链接参数保存。</p>
+        </div>
+        <div>
+          <h3 className="text-foreground font-semibold text-xs mb-1">内容维护</h3>
+          <p className="text-xs">贴士内容由商报维护人员在编辑页面统一管理，支持增删改。修改后保存即在全站生效。</p>
+        </div>
+      </>
+    ),
+  },
+  {
     id: 'market-index',
     title: '泛天指数',
     dotColor: '#c9a94e',
@@ -262,7 +279,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">更新频率</h3>
-          <p className="text-xs">每 30 分钟自动更新一次最新价格。页面顶部状态栏可查看上次更新时间。</p>
+          <p className="text-xs">每 30 分钟从 UEX 自动拉取一次最新价格。全部历史数据永久存储，价格趋势图可回溯任意时间段。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格与库存</h3>

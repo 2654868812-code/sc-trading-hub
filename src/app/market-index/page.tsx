@@ -53,7 +53,7 @@ export default function MarketIndexPage() {
             </span>
           )}
         </div>
-        <div className="text-xs text-muted-foreground mt-2">基于 {data.commodityCount} 种可交易商品 · 上次同步时计算</div>
+        <div className="text-xs text-muted-foreground mt-2">基于 {data.commodityCount} 种可交易商品 · 上次更新时计算</div>
       </div>
 
       {/* Line chart */}
@@ -96,7 +96,7 @@ export default function MarketIndexPage() {
       <div className="section-card p-5 space-y-3 text-sm leading-relaxed text-muted-foreground">
         <h3 className="text-foreground font-semibold text-xs">指数定义</h3>
         <p>泛天指数 = 全市场最优买卖组合的加权总回报率。每个商品取最新快照中最低买价和最高卖价，以该商品 UEX 历史最大买入量为权重：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。大宗商品（如废料、铁）权重高，小宗商品权重低。数值越高，跑商的资金回报率越高。</p>
-        <p>每 30 分钟数据更新时重新计算，历史保留 90 天。</p>
+        <p>每 30 分钟数据更新时重新计算，历史数据永久保存。</p>
       </div>
     </div>
   );
