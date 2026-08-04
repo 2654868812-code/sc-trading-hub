@@ -91,21 +91,17 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
-  // Per-group trimmed min/max — strip 3 outliers at each end
-  function trimmedRange(list: CommodityWithChange[]): { min: number; max: number } {
-    const margins = list.map(c => c.profitMargin ?? 0).sort((a, b) => a - b);
-    const trimmed = margins.slice(3, -3);
-    if (trimmed.length === 0) {
-      const inner = margins.slice(2, -2);
-      if (inner.length > 0) return { min: inner[0], max: inner[inner.length - 1] };
-      const inner2 = margins.slice(1, -1);
-      if (inner2.length > 0) return { min: inner2[0], max: inner2[inner2.length - 1] };
-      return { min: margins[0] ?? 0, max: margins[margins.length - 1] ?? 0 };
-    }
-    return { min: trimmed[0], max: trimmed[trimmed.length - 1] };
-  }
-  const majorRange = trimmedRange(major);
-  const minorRange = trimmedRange(minor);
+  // Per-group min/max for independent color scales
+  const majorRange = {
+    min: major.reduce((m, c) => Math.min(m, c.profitMargin ?? 0), Infinity),
+    max: major.reduce((m, c) => Math.max(m, c.profitMargin ?? 0), 0),
+  };
+  const minorRange = {
+    min: minor.reduce((m, c) => Math.min(m, c.profitMargin ?? 0), Infinity),
+    max: minor.reduce((m, c) => Math.max(m, c.profitMargin ?? 0), 0),
+  };
+  if (majorRange.min === Infinity) majorRange.min = 0;
+  if (minorRange.min === Infinity) minorRange.min = 0;
 
   if (sorted.length === 0) {
     return (
