@@ -91,8 +91,10 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
-  // Per-group max profit margin for independent color scales
+  // Per-group min/max profit margin for independent color scales
+  const majorMin = major.reduce((min, c) => Math.min(min, c.profitMargin ?? 0), Infinity);
   const majorMax = major.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
+  const minorMin = minor.reduce((min, c) => Math.min(min, c.profitMargin ?? 0), Infinity);
   const minorMax = minor.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
 
   if (sorted.length === 0) {
@@ -117,6 +119,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              minMargin={majorMin === Infinity ? 0 : majorMin}
               maxMargin={majorMax}
               flipKey={flipKey}
               flipIndex={i}
@@ -137,6 +140,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              minMargin={minorMin === Infinity ? 0 : minorMin}
               maxMargin={minorMax}
               flipKey={flipKey}
               flipIndex={major.length + i}
