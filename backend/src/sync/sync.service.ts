@@ -261,9 +261,9 @@ export class SyncService {
     const index = Math.round((totalProfit / totalCost) * 1000) / 10;
 
     await this.prisma.marketIndex.create({ data: { value: index, commodityCount: count } });
-    // Keep last 90 days
-    const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
-    await this.prisma.marketIndex.deleteMany({ where: { fetchedAt: { lt: cutoff } } });
+    // Cleanup disabled — permanent storage
+    // const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+    // await this.prisma.marketIndex.deleteMany({ where: { fetchedAt: { lt: cutoff } } });
     this.logger.log(`Market index: ${index.toFixed(1)}% (${count} commodities, stock-weighted)`);
   }
 
