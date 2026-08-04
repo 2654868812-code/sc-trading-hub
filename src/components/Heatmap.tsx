@@ -91,11 +91,15 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
-  // Per-group min/max profit margin for independent color scales
-  const majorMin = major.reduce((min, c) => Math.min(min, c.profitMargin ?? 0), Infinity);
-  const majorMax = major.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
-  const minorMin = minor.reduce((min, c) => Math.min(min, c.profitMargin ?? 0), Infinity);
-  const minorMax = minor.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
+  // Per-group trimmed min/max — strip 1 outlier at each end
+  function trimmedRange(list: CommodityWithChange[]): { min: number; max: number } {
+    const margins = list.map(c => c.profitMargin ?? 0).sort((a, b) => a - b);
+    const trimmed = margins.slice(1, -1); // remove lowest and highest
+    if (trimmed.length === 0) return { min: margins[0] ?? 0, max: margins[0] ?? 0 };
+    return { min: trimmed[0], max: trimmed[trimmed.length - 1] };
+  }
+  const majorRange = trimmedRange(major);
+  const minorRange = trimmedRange(minor);
 
   if (sorted.length === 0) {
     return (
@@ -119,8 +123,8 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
-              minMargin={majorMin === Infinity ? 0 : majorMin}
-              maxMargin={majorMax}
+              minMargin={majorRange.min}
+              maxMargin={majorRange.max}
               flipKey={flipKey}
               flipIndex={i}
               onClick={() => onCommodityClick(c.id)}
@@ -140,8 +144,8 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
-              minMargin={minorMin === Infinity ? 0 : minorMin}
-              maxMargin={minorMax}
+              minMargin={minorRange.min}
+              maxMargin={minorRange.max}
               flipKey={flipKey}
               flipIndex={major.length + i}
               onClick={() => onCommodityClick(c.id)}
