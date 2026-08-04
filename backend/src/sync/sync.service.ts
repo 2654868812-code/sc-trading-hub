@@ -30,7 +30,6 @@ export class SyncService {
 
   private async syncCommodities() {
     const data = await uexFetch<any[]>('/commodities');
-    // Use dynamic import for zh name mapping
     const { getZhName } = require('../lib/commodity-zh');
     for (const c of data) {
       await this.prisma.commodity.upsert({

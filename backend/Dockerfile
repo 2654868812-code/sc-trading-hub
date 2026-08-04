@@ -2,18 +2,13 @@ FROM node:22-alpine AS base
 WORKDIR /app
 
 FROM base AS deps
-COPY backend/package.json backend/package-lock.json* ./
+COPY package.json package-lock.json* ./
 RUN npm ci --only=production
 
 FROM base AS builder
-COPY backend/package.json backend/package-lock.json* ./
+COPY package.json package-lock.json* ./
 RUN npm ci
-COPY backend/ .
-# Overwrite with shared zh translations from frontend (single source of truth)
-COPY src/lib/commodity-zh.ts src/lib/commodity-zh.ts
-COPY src/lib/terminal-zh.ts src/lib/terminal-zh.ts
-COPY src/lib/location-zh.ts src/lib/location-zh.ts
-COPY src/lib/ship-zh.ts src/lib/ship-zh.ts
+COPY . .
 RUN rm -rf src/generated/prisma && ./node_modules/.bin/prisma generate
 RUN npm run build
 
