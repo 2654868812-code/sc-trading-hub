@@ -7,6 +7,7 @@ const SHOW_DURATION = 9_000;
 const INTERVAL = 90_000;
 const STORAGE_NEXT = 'tips_next_at';
 const STORAGE_IDX = 'tips_idx';
+const STORAGE_MUTED = 'tips_muted';
 
 function readStorage(key: string): number | null {
   try { const v = sessionStorage.getItem(key); return v ? parseInt(v, 10) : null; }
@@ -35,19 +36,27 @@ export default function TipsFloat() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const muted = searchParams.get('tips') === 'muted';
+  // URL param or sessionStorage — persists across page navigation
+  const muted = searchParams.get('tips') === 'muted' || readStorageMuted();
+
+  function readStorageMuted(): boolean {
+    try { return sessionStorage.getItem(STORAGE_MUTED) === '1'; }
+    catch { return false; }
+  }
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) { clearTimeout(timerRef.current); timerRef.current = null; }
   }, []);
 
   function mute() {
+    try { sessionStorage.setItem(STORAGE_MUTED, '1'); } catch { /* ignore */ }
     const params = new URLSearchParams(searchParams.toString());
     params.set('tips', 'muted');
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }
 
   function unmute() {
+    try { sessionStorage.removeItem(STORAGE_MUTED); } catch { /* ignore */ }
     const params = new URLSearchParams(searchParams.toString());
     params.delete('tips');
     const qs = params.toString();
