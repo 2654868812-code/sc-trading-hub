@@ -231,17 +231,13 @@ const CATEGORIES: HelpCategory[] = [
   },
   {
     id: 'tips',
-    title: '跑商贴士',
+    title: '泛天小贴士',
     dotColor: '#2dd4bf',
     content: (
       <>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">贴士浮窗</h3>
-          <p className="text-xs">页面右下角灯泡按钮（搜索按钮上方）可在任意页面查看全部跑商注意事项。点击按钮或弹出的气泡即可打开列表。每 1.5 分钟自动轮播一条新贴士，显示 9 秒后自动消失。点击「不再提示」可将当前页面静音，静音状态通过链接参数保存。</p>
-        </div>
-        <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">内容维护</h3>
-          <p className="text-xs">贴士内容由商报维护人员在编辑页面统一管理，支持增删改。修改后保存即在全站生效。</p>
+          <p className="text-xs">页面右下角灯泡按钮（搜索按钮上方）可查看泛天小贴士，涵盖跑商注意事项和实用建议。点击按钮或弹出的气泡即可打开完整列表。每 1.5 分钟自动轮播一条新贴士，显示 9 秒后自动消失。点击「不再提示」可静音，静音状态随链接保存。</p>
         </div>
       </>
     ),

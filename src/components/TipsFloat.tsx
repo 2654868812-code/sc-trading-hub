@@ -157,7 +157,7 @@ export default function TipsFloat() {
                    bg-primary text-primary-foreground shadow-lg
                    hover:shadow-xl hover:bg-primary/90 active:scale-95
                    transition-all duration-200 flex items-center justify-center"
-        title="跑商贴士"
+        title="泛天小贴士"
       >
         <svg width="22" height="22" viewBox="0 0 20 20" fill="none" stroke="currentColor"
              strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"
@@ -186,7 +186,7 @@ export default function TipsFloat() {
                   <line x1="8" y1="15" x2="12" y2="15" />
                   <line x1="9" y1="17" x2="11" y2="17" />
                 </svg>
-                跑商注意事项
+                泛天小贴士
               </h3>
               <div className="flex items-center gap-1">
                 <button

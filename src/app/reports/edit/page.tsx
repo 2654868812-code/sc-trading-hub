@@ -465,7 +465,7 @@ export default function ReportsEditPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-semibold">跑商小贴士</h2>
+            <h2 className="text-sm font-semibold">泛天小贴士</h2>
             <p className="text-[11px] text-muted-foreground mt-0.5">首页右下角定时轮播展示</p>
           </div>
           <button
