@@ -19,7 +19,10 @@ export default function TipsFloat() {
   const [open, setOpen] = useState(false);
   const [toastIndex, setToastIndex] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(() => {
+    if (typeof localStorage === 'undefined') return false;
+    return localStorage.getItem('tips_muted') === '1';
+  });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearTimer = useCallback(() => {
@@ -34,10 +37,9 @@ export default function TipsFloat() {
   // Toast cycle
   useEffect(() => {
     if (muted || tips.length === 0) return;
-    const initial = setTimeout(() => {
-      setToastIndex(Math.floor(Math.random() * tips.length));
-      setToastVisible(true);
-    }, 2000);
+    // Show first tip immediately
+    setToastIndex(Math.floor(Math.random() * tips.length));
+    setToastVisible(true);
 
     const cycle = setInterval(() => {
       setToastIndex(prev => {
@@ -49,7 +51,7 @@ export default function TipsFloat() {
       setTimeout(() => setToastVisible(false), SHOW_DURATION);
     }, INTERVAL);
 
-    return () => { clearTimeout(initial); clearInterval(cycle); };
+    return () => { clearInterval(cycle); };
   }, [muted, tips]);
 
   // Hide toast after duration
@@ -110,7 +112,7 @@ export default function TipsFloat() {
               <h3 className="text-sm font-bold">💡 跑商注意事项</h3>
               <div className="flex items-center gap-1">
                 <button
-                  onClick={() => { setOpen(false); setMuted(true); setToastVisible(false); }}
+                  onClick={() => { setOpen(false); setMuted(true); setToastVisible(false); localStorage.setItem('tips_muted', '1'); }}
                   className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5"
                 >
                   不再提示

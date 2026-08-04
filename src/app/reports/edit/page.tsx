@@ -372,13 +372,90 @@ export default function ReportsEditPage() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-              <input type="text" value={item.ship} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], ship: e.target.value }; setRoutes(next); }} placeholder="货船，如 黑弯刀" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
-              <input type="text" value={item.commodity} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], commodity: e.target.value }; setRoutes(next); }} placeholder="商品名称" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
-              <input type="text" value={item.origin} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], origin: e.target.value }; setRoutes(next); }} placeholder="购买地" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
-              <input type="text" value={item.dest} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], dest: e.target.value }; setRoutes(next); }} placeholder="出售地" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
-              <input type="text" value={item.profit} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], profit: e.target.value }; setRoutes(next); }} placeholder="预期总利润，如 +120k" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
-              <input type="text" value={item.note} onChange={e => { const next = [...routes]; next[idx] = { ...next[idx], note: e.target.value }; setRoutes(next); }} placeholder="备注" className="h-8 rounded-md border border-border bg-card px-2.5 text-xs outline-none focus:border-primary/50 transition-colors" />
+            <div className="grid grid-cols-[100px_1fr] gap-3">
+              <span className="text-xs text-muted-foreground self-center">货船</span>
+              <input
+                type="text"
+                value={item.ship}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], ship: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="推荐货船，如 黑弯刀"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+
+              <span className="text-xs text-muted-foreground self-center">商品</span>
+              <input
+                type="text"
+                value={item.commodity}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], commodity: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="商品名称"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+
+              <span className="text-xs text-muted-foreground self-center">购买地</span>
+              <input
+                type="text"
+                value={item.origin}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], origin: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="终端或城市名称"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+
+              <span className="text-xs text-muted-foreground self-center">出售地</span>
+              <input
+                type="text"
+                value={item.dest}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], dest: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="终端或城市名称"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+
+              <span className="text-xs text-muted-foreground self-center">预期总利润</span>
+              <input
+                type="text"
+                value={item.profit}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], profit: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="如 +120k"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
+
+              <span className="text-xs text-muted-foreground self-center">备注</span>
+              <input
+                type="text"
+                value={item.note}
+                onChange={(e) => {
+                  const next = [...routes];
+                  next[idx] = { ...next[idx], note: e.target.value };
+                  setRoutes(next);
+                }}
+                placeholder="如 稳定路线，低风险"
+                className="h-9 rounded-md border border-border bg-card px-3 text-sm outline-none
+                           focus:border-primary/50 transition-colors"
+              />
             </div>
           </div>
         ))}
