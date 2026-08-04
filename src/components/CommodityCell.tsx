@@ -8,7 +8,6 @@ interface CommodityCellProps {
   kindZh: string;
   profitMargin: number | null;
   profitChange: number | null;
-  minMargin: number;
   maxMargin: number;
   flipKey?: number;
   flipIndex?: number;
@@ -21,13 +20,11 @@ function fmtChange(n: number): string {
   return abs.toLocaleString();
 }
 
-function marginColor(margin: number, minMargin: number, maxMargin: number): string {
-  const floor = minMargin;
+function marginColor(margin: number, maxMargin: number): string {
+  if (margin <= 0) return '#c4554d';
   const ceiling = maxMargin || 200;
-  if (margin <= floor) return '#c4554d';
   if (margin >= ceiling) return '#2d8a4e';
-  const range = ceiling - floor;
-  const t = range > 0 ? (margin - floor) / range : 0.5;
+  const t = margin / ceiling;
   const hue = t * 142;
   return `hsl(${hue}, 70%, 35%)`;
 }
@@ -38,7 +35,6 @@ export function CommodityCell({
   kindZh,
   profitMargin,
   profitChange,
-  minMargin,
   maxMargin,
   flipKey,
   flipIndex = 0,
@@ -68,7 +64,7 @@ export function CommodityCell({
           {profitMargin != null && (
             <span
               className="text-[9px] sm:text-[10px] tabular-nums font-bold flex-shrink-0"
-              style={{ color: marginColor(profitMargin, minMargin, maxMargin) }}
+              style={{ color: marginColor(profitMargin, maxMargin) }}
             >
               {profitMargin >= 0 ? '+' : ''}{profitMargin}%
             </span>
