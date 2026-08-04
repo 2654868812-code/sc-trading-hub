@@ -23,7 +23,8 @@ export class SyncService {
     await this.computeAverages3d();
     await this.updatePriceChanges();
     await this.computeMarketIndex();
-    await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
+    // Cleanup disabled — permanent storage
+    // await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
     this.logger.log('Full sync complete');
   }
 
