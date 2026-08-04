@@ -81,7 +81,7 @@ const SHIP_ZH: Record<string, string> = {
   'RSI Zeus Mk II ES': 'RSI 宙斯 MK II ES',
   'Drake Golem': '德雷克 魔像',
   'Esperia Prowler Utility': '埃斯佩里亚 徘徊者 多功能',
-  "Grey's Market Shiv": '灰色市场 匕首',
+  "Grey's Market Shiv": '灰色市场 锈刃',
   'Anvil Valkyrie Liberator Edition': '铁砧 女武神 解放版',
   'C.O. Nomad': '联合外域 游牧者',
   'Origin 600i Touring': '起源 600i 旅行版',
