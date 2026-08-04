@@ -5,6 +5,16 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const SHOW_DURATION = 9_000;
 const INTERVAL = 90_000;
+const STORAGE_NEXT = 'tips_next_at';
+const STORAGE_IDX = 'tips_idx';
+
+function readStorage(key: string): number | null {
+  try { const v = sessionStorage.getItem(key); return v ? parseInt(v, 10) : null; }
+  catch { return null; }
+}
+function writeStorage(key: string, val: number) {
+  try { sessionStorage.setItem(key, String(val)); } catch { /* ignore */ }
+}
 
 async function fetchTips(): Promise<string[]> {
   try {
@@ -49,27 +59,62 @@ export default function TipsFloat() {
     fetchTips().then(setTips);
   }, []);
 
-  // Toast cycle — first toast after INTERVAL, not on load
+  // Toast cycle — synced across pages via sessionStorage
   useEffect(() => {
     if (muted || tips.length === 0) return;
     clearTimer();
-    // First toast after full interval
-    timerRef.current = setTimeout(() => {
-      setToastIndex(Math.floor(Math.random() * tips.length));
-      setToastVisible(true);
-    }, INTERVAL);
 
-    const cycle = setInterval(() => {
-      setToastIndex(prev => {
-        let next = Math.floor(Math.random() * tips.length);
-        if (tips.length > 1) while (next === prev) next = Math.floor(Math.random() * tips.length);
-        return next;
-      });
-      setToastVisible(true);
-      setTimeout(() => setToastVisible(false), SHOW_DURATION);
-    }, INTERVAL);
+    function pickIndex(prev: number | null): number {
+      let next = Math.floor(Math.random() * tips.length);
+      if (tips.length > 1 && prev !== null) while (next === prev) next = Math.floor(Math.random() * tips.length);
+      return next;
+    }
 
-    return () => { clearTimeout(timerRef.current!); clearInterval(cycle); };
+    function scheduleNext() {
+      clearTimer();
+      const nextAt = Date.now() + INTERVAL;
+      writeStorage(STORAGE_NEXT, nextAt);
+      timerRef.current = setTimeout(() => {
+        setToastIndex(prev => {
+          const next = pickIndex(prev);
+          writeStorage(STORAGE_IDX, next);
+          return next;
+        });
+        setToastVisible(true);
+        // Hide after SHOW_DURATION, then schedule next
+        setTimeout(() => setToastVisible(false), SHOW_DURATION);
+        scheduleNext();
+      }, INTERVAL);
+    }
+
+    // Resume or start fresh
+    const storedNext = readStorage(STORAGE_NEXT);
+    const storedIdx = readStorage(STORAGE_IDX);
+    const now = Date.now();
+
+    if (storedNext && storedNext > now) {
+      // Still waiting — resume countdown
+      const remaining = storedNext - now;
+      const idx = storedIdx ?? 0;
+      setToastIndex(idx);
+      timerRef.current = setTimeout(() => {
+        setToastVisible(true);
+        setTimeout(() => setToastVisible(false), SHOW_DURATION);
+        scheduleNext();
+      }, remaining);
+    } else if (storedNext && storedNext <= now && storedNext > now - SHOW_DURATION - 5000) {
+      // Just expired — might have been showing on previous page
+      const idx = storedIdx ?? 0;
+      setToastIndex(idx);
+      setToastVisible(true);
+      setTimeout(() => setToastVisible(false), Math.max(1000, SHOW_DURATION - (now - storedNext)));
+      scheduleNext();
+    } else {
+      // Fresh start or long-expired — first toast after full interval
+      scheduleNext();
+    }
+
+    return clearTimer;
   }, [muted, tips, clearTimer]);
 
   // Hide toast after duration
