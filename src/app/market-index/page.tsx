@@ -46,7 +46,7 @@ export default function MarketIndexPage() {
       <div className="section-card p-6">
         <div className="text-[11px] tracking-wider text-muted-foreground uppercase mb-1">当前指数</div>
         <div className="flex items-baseline gap-3">
-          <span className="text-4xl font-bold tabular-nums text-chart-2">{data.current}%</span>
+          <span className="text-4xl font-bold tabular-nums text-chart-2">{data.current.toFixed(1)}%</span>
           {data.change != null && (
             <span className={`text-lg font-semibold tabular-nums ${data.change >= 0 ? 'text-chart-2' : 'text-destructive'}`}>
               {data.change >= 0 ? '↑' : '↓'} {Math.abs(data.change)}%

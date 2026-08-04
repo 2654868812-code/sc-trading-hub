@@ -108,7 +108,7 @@ export default function HomePage() {
                   const h = Math.round(pct * 142);
                   return `hsl(${h}, 65%, 45%)`;
                 })(),
-              }}>{index.current}%</span>
+              }}>{index.current.toFixed(1)}%</span>
             </button>
           </>
         )}
