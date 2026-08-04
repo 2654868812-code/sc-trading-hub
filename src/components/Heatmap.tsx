@@ -91,6 +91,10 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
   const major = sorted.filter((c) => c.isDazong);
   const minor = sorted.filter((c) => !c.isDazong);
 
+  // Per-group max profit margin for independent color scales
+  const majorMax = major.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
+  const minorMax = minor.reduce((max, c) => Math.max(max, c.profitMargin ?? 0), 0);
+
   if (sorted.length === 0) {
     return (
       <div className="text-center py-16 text-muted-foreground">
@@ -113,6 +117,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              maxMargin={majorMax}
               flipKey={flipKey}
               flipIndex={i}
               onClick={() => onCommodityClick(c.id)}
@@ -132,6 +137,7 @@ export function Heatmap({ commodities, loading, search, sort = 'name', flipKey, 
               kindZh={c.kindZh}
               profitMargin={c.profitMargin}
               profitChange={c.profitChange}
+              maxMargin={minorMax}
               flipKey={flipKey}
               flipIndex={major.length + i}
               onClick={() => onCommodityClick(c.id)}
