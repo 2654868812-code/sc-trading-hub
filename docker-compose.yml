@@ -1,6 +1,8 @@
 services:
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     environment:
       DATABASE_URL: "postgresql://trading:${DB_PASSWORD:-trading123}@postgres:5432/trading"
       REPORTS_DATA_FILE: "/data/reports.json"
