@@ -28,7 +28,7 @@ export default function TipsFloat() {
       {/* Trigger button — same style as search button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-[7.5rem] right-6 lg:bottom-[8.5rem] lg:right-10 z-50
+        className="fixed bottom-24 right-6 lg:bottom-28 lg:right-10 z-50
                    w-14 h-14 lg:w-[64px] lg:h-[64px] rounded-full
                    bg-primary text-primary-foreground shadow-lg
                    hover:shadow-xl hover:bg-primary/90 active:scale-95
