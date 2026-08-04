@@ -19,16 +19,13 @@ const TIPS = [
 
 export default function TipsFloat() {
   const [open, setOpen] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-
-  if (dismissed) return null;
 
   return (
     <>
       {/* Trigger button — same style as search button */}
       <button
         onClick={() => setOpen(!open)}
-        className="fixed bottom-24 right-6 lg:bottom-28 lg:right-10 z-50
+        className="fixed bottom-[7rem] right-6 lg:bottom-32 lg:right-10 z-50
                    w-14 h-14 lg:w-[64px] lg:h-[64px] rounded-full
                    bg-primary text-primary-foreground shadow-lg
                    hover:shadow-xl hover:bg-primary/90 active:scale-95
@@ -49,22 +46,14 @@ export default function TipsFloat() {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-bold">💡 跑商注意事项</h3>
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => { setOpen(false); setDismissed(true); }}
-                  className="text-[10px] text-muted-foreground hover:text-foreground transition-colors px-2 py-0.5"
-                >
-                  不再显示
-                </button>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
-                >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M5 5l8 8M13 5l-8 8" />
-                  </svg>
-                </button>
-              </div>
+              <button
+                onClick={() => setOpen(false)}
+                className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
+              >
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M5 5l8 8M13 5l-8 8" />
+                </svg>
+              </button>
             </div>
             <ul className="space-y-2">
               {TIPS.map((tip, i) => (
