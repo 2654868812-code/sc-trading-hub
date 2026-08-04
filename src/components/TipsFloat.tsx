@@ -168,18 +168,19 @@ export default function TipsFloat() {
         </svg>
       </button>
 
-      {/* Full tips panel */}
+      {/* Full tips panel — matches search modal style */}
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4"
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh] bg-background/60 backdrop-blur-sm"
              onClick={() => setOpen(false)}>
           <div
-            className="w-full max-w-sm max-h-[70vh] overflow-y-auto rounded-xl border border-border
-                        bg-card shadow-2xl p-5 space-y-3 animate-in slide-in-from-bottom-4 duration-200"
+            className="w-[95vw] lg:w-[480px] max-h-[60vh] overflow-y-auto rounded-xl border border-border/60
+                        bg-card shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold flex items-center gap-1.5">
-                <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor"
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/30">
+              <h3 className="text-sm font-semibold flex items-center gap-1.5">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor"
                      strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70">
                   <path d="M10 2a5 5 0 0 0-3 9v1a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1a5 5 0 0 0-3-9Z" />
                   <line x1="8" y1="15" x2="12" y2="15" />
@@ -198,24 +199,27 @@ export default function TipsFloat() {
                   onClick={() => setOpen(false)}
                   className="text-muted-foreground hover:text-foreground transition-colors p-0.5"
                 >
-                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M5 5l8 8M13 5l-8 8" />
                   </svg>
                 </button>
               </div>
             </div>
-            {tips.length === 0 ? (
-              <p className="text-xs text-muted-foreground">暂无贴士</p>
-            ) : (
-              <ul className="space-y-2">
-                {tips.map((tip, i) => (
-                  <li key={i} className="flex items-start gap-2 text-[12px] leading-relaxed">
-                    <span className="text-muted-foreground/40 shrink-0 mt-0.5 text-[10px]">{i + 1}.</span>
-                    <span className="text-foreground/80">{tip}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            {/* Body */}
+            <div className="p-4">
+              {tips.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">暂无贴士</p>
+              ) : (
+                <ul className="space-y-2">
+                  {tips.map((tip, i) => (
+                    <li key={i} className="flex items-start gap-2 text-[12px] leading-relaxed">
+                      <span className="text-muted-foreground/40 shrink-0 mt-0.5 text-[10px]">{i + 1}.</span>
+                      <span className="text-foreground/80">{tip}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </div>
       )}
