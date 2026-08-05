@@ -100,7 +100,7 @@ export default function HomePage() {
               onClick={() => router.push('/market-index')}
               className="hover:opacity-80 transition-opacity flex items-center gap-1"
             >
-              <span className="text-primary">泛天指数：</span>
+              <span className="text-primary">数据趋势：</span>
               <span className="tabular-nums font-semibold" style={{
                 color: (() => {
                   const range = index.max - index.min || 1;

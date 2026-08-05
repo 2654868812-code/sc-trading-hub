@@ -9,8 +9,9 @@ const app_module_1 = require("./app.module");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     app.use((0, helmet_1.default)());
+    const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:3000';
     app.enableCors({
-        origin: true,
+        origin: corsOrigin,
         methods: ['GET', 'POST'],
         allowedHeaders: ['Content-Type', 'Authorization'],
     });
@@ -20,12 +21,30 @@ async function bootstrap() {
         transform: true,
     }));
     app.setGlobalPrefix('api');
-    const intervalMin = parseInt(process.env.FETCH_INTERVAL_MINUTES || '30', 10);
+    const intervalMinRaw = parseInt(process.env.FETCH_INTERVAL_MINUTES || '30', 10);
+    const intervalMin = (intervalMinRaw >= 1 && intervalMinRaw <= 59) ? intervalMinRaw : 30;
     const { SyncService } = await Promise.resolve().then(() => require('./sync/sync.service'));
     const syncService = app.get(SyncService);
-    cron.schedule(`*/${intervalMin} * * * *`, () => {
-        syncService.fullSync().catch(err => console.error('Cron sync failed:', err));
-    });
+    let syncing = false;
+    const runSync = async () => {
+        if (syncing) {
+            console.log('Sync already running, skipping');
+            return;
+        }
+        syncing = true;
+        try {
+            await syncService.fullSync();
+        }
+        catch (err) {
+            console.error('Sync failed:', err);
+        }
+        finally {
+            syncing = false;
+        }
+    };
+    console.log('Running initial data sync...');
+    runSync();
+    cron.schedule(`*/${intervalMin} * * * *`, () => runSync());
     console.log(`Cron: data sync every ${intervalMin} minutes`);
     const port = process.env.PORT || 4000;
     await app.listen(port);

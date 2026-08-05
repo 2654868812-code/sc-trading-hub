@@ -137,7 +137,8 @@ let CommoditiesController = class CommoditiesController {
             const v = r.gameVersion;
             counts[v] = (counts[v] || 0) + 1;
         }
-        return { gameVersion: Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0] };
+        const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+        return { gameVersion: entries[0]?.[0] ?? null };
     }
     async marketIndex(daysRaw) {
         const days = Math.min(parseInt(daysRaw || '7', 10) || 7, 90);

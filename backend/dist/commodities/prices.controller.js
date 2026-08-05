@@ -25,7 +25,7 @@ let PricesController = class PricesController {
         const cid = parseInt(commodityId);
         if (!cid)
             return [];
-        const ids = (terminalIds || '').split(',').map(Number).filter(Boolean);
+        const ids = (terminalIds || '').split(',').map(Number).filter(n => !isNaN(n));
         const hRaw = parseInt(hours || '24');
         const h = Math.min(Math.max(hRaw || 24, 1), 168);
         const since = new Date(Date.now() - h * 60 * 60 * 1000);
@@ -41,7 +41,13 @@ let PricesController = class PricesController {
         return snapshots.map(s => ({ fetchedAt: s.fetchedAt.toISOString(), priceBuy: s.priceBuy, priceSell: s.priceSell, terminalName: s.terminal.name }));
     }
     async locationPrices(locationName, hours) {
-        const name = decodeURIComponent(locationName || '');
+        let name;
+        try {
+            name = decodeURIComponent(locationName || '');
+        }
+        catch {
+            name = locationName || '';
+        }
         if (!name)
             return [];
         const terminals = await this.prisma.terminal.findMany({

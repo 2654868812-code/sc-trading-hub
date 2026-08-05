@@ -38,7 +38,7 @@ export default function MarketIndexPage() {
       </button>
 
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">泛天指数</h1>
+        <h1 className="text-2xl font-bold tracking-tight">数据趋势指数</h1>
         <p className="text-sm text-muted-foreground mt-1">全市场最优买卖组合的库存加权回报率，衡量跑商市场景气度</p>
       </div>
 
@@ -68,7 +68,7 @@ export default function MarketIndexPage() {
               <Tooltip
                 contentStyle={{ backgroundColor: '#ffffff', border: '1px solid hsl(36 22% 72%)', borderRadius: 8, color: 'hsl(220 15% 15%)' }}
                 labelStyle={{ color: 'hsl(220 5% 42%)' }}
-                formatter={(value: any) => [`${value}%`, '泛天指数']}
+                formatter={(value: any) => [`${value}%`, '数据趋势指数']}
               />
               <Line type="monotone" dataKey="v" stroke="#c9a94e" dot={false} strokeWidth={2} />
             </LineChart>
@@ -95,7 +95,7 @@ export default function MarketIndexPage() {
       {/* Definition */}
       <div className="section-card p-5 space-y-3 text-sm leading-relaxed text-muted-foreground">
         <h3 className="text-foreground font-semibold text-xs">指数定义</h3>
-        <p>泛天指数 = 全市场最优买卖组合的加权总回报率。每个商品取最新快照中最低买价和最高卖价，以该商品 UEX 历史最大买入量为权重：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。大宗商品（如废料、铁）权重高，小宗商品权重低。数值越高，跑商的资金回报率越高。</p>
+        <p>数据趋势指数 = 全市场最优买卖组合的加权总回报率。每个商品取最新快照中最低买价和最高卖价，以该商品 UEX 历史最大买入量为权重：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。大宗商品（如废料、铁）权重高，小宗商品权重低。数值越高，跑商的资金回报率越高。</p>
         <p>每 30 分钟数据更新时重新计算，历史数据永久保存。</p>
       </div>
     </div>

@@ -25,12 +25,18 @@ let RoutesController = class RoutesController {
     }
     async findRoutes(commodityId, commodityIdsRaw, commodityModeRaw, shipId, originSystem, destSystem, originLocation, originLocationsRaw, originLocationModeRaw, destLocation, destLocationsRaw, destLocationModeRaw, maxInvestment, maxDistance, commodityType, autoLoadType, sortBy, sortOrder, roundTrip, profitMode) {
         const cids = commodityIdsRaw
-            ? commodityIdsRaw.split(',').map(Number).filter(n => !isNaN(n))
+            ? commodityIdsRaw.split(',').slice(0, 200).map(Number).filter(n => !isNaN(n))
             : (commodityId ? [parseInt(commodityId)] : []);
         const commodityMode = commodityModeRaw || 'include';
         const parseLocs = (raw, fallback) => {
-            if (raw)
-                return raw.split(',').map(s => decodeURIComponent(s.trim())).filter(Boolean);
+            if (raw) {
+                try {
+                    return raw.split(',').slice(0, 100).map(s => decodeURIComponent(s.trim())).filter(Boolean);
+                }
+                catch {
+                    return raw.split(',').slice(0, 100).map(s => s.trim()).filter(Boolean);
+                }
+            }
             if (fallback)
                 return [fallback];
             return [];
