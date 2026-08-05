@@ -53,7 +53,7 @@ export class SyncService {
       if (!type) return false;
       const t = type.toLowerCase();
       if (t === 'space_station' || t === 'spacestation') return true;
-      if (t === 'city' || t === 'landing_zone') return true;
+      if (t === 'city') return true;
       if (t.startsWith('lagrange')) return true;
       if (t === 'gate') return true;
       return false;
