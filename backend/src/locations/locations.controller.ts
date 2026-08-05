@@ -36,7 +36,7 @@ export class LocationsController {
     if (!terminals.length) { res.status(404); return { error: 'location not found' }; }
 
     const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
-    if (!latest) return { location: { name: locationName, terminalCount: terminals.length }, terminals: [], commodities: [] };
+    if (!latest) return { location: { name: locationName, terminalCount: terminals.length, terminalTypes: [...new Set(terminals.map(t => t.type).filter(Boolean))] }, terminals: [], commodities: [] };
 
     const ids = terminals.map(t => t.id);
 
@@ -83,7 +83,7 @@ export class LocationsController {
     }
 
     return {
-      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length },
+      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length, terminalTypes: [...new Set(terminals.map(t => t.type).filter(Boolean))] },
       terminals: [...termMap.values()],
       gameVersion: gameVer?.gameVersion ?? null,
     };
