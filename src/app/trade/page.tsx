@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: '玩家交易 - 泛天',
+  title: '玩家交易 - 泛天贸易中心',
 };
 
 export default function TradePage() {
