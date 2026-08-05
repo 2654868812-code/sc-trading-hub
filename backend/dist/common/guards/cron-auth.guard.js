@@ -14,7 +14,7 @@ let CronAuthGuard = class CronAuthGuard {
         const auth = request.headers['authorization'];
         const secret = process.env.CRON_SECRET;
         if (!secret)
-            throw new common_1.UnauthorizedException('CRON_SECRET not configured');
+            throw new Error('CRON_SECRET environment variable is required');
         if (!auth || auth !== `Bearer ${secret}`) {
             throw new common_1.UnauthorizedException('Unauthorized');
         }

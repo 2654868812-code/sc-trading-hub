@@ -34,6 +34,7 @@ let SyncService = SyncService_1 = class SyncService {
         await this.computeAverages3d();
         await this.updatePriceChanges();
         await this.computeMarketIndex();
+        await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
         this.logger.log('Full sync complete');
     }
     async syncCommodities() {
@@ -178,9 +179,7 @@ let SyncService = SyncService_1 = class SyncService {
                     create: { commodityId: c.id, scuBuyMax: a[0].scu_buy_max, scuSellMax: a[0].scu_sell_max, statusBuyAvg: a[0].status_buy_avg, statusSellAvg: a[0].status_sell_avg, caxScore: a[0].cax_score, gameVersion: a[0].game_version, dateModified: a[0].date_modified, fetchedAt: new Date() },
                 });
             }
-            catch (err) {
-                this.logger.warn(`syncCommodityAverages failed for commodity ${c.id}: ${err}`);
-            }
+            catch { }
             await new Promise(r => setTimeout(r, 100));
         }
     }
@@ -196,27 +195,15 @@ let SyncService = SyncService_1 = class SyncService {
                     rows.push({ commodityId: r.id_commodity, originTerminalId: r.id_terminal_origin, destTerminalId: r.id_terminal_destination, distance: r.distance, containerSizesOrigin: r.container_sizes_origin, containerSizesDest: r.container_sizes_destination });
                 }
             }
-            catch (err) {
-                this.logger.warn(`syncCargoRoutes failed for commodity ${c.id}: ${err}`);
-            }
+            catch { }
             await new Promise(r => setTimeout(r, 50));
         }
         const seen = new Map();
         for (const r of rows)
             seen.set(`${r.commodityId}-${r.originTerminalId}-${r.destTerminalId}`, r);
         const deduped = [...seen.values()];
-        await this.prisma.$transaction(async (tx) => {
-            for (let i = 0; i < deduped.length; i += 1000) {
-                await tx.cargoRoute.createMany({ data: deduped.slice(i, i + 1000), skipDuplicates: true });
-            }
-            const newKeys = deduped.map(r => `${r.commodityId}-${r.originTerminalId}-${r.destTerminalId}`);
-            const allExisting = await tx.cargoRoute.findMany({ select: { commodityId: true, originTerminalId: true, destTerminalId: true } });
-            for (const old of allExisting) {
-                if (!seen.has(`${old.commodityId}-${old.originTerminalId}-${old.destTerminalId}`)) {
-                    await tx.cargoRoute.delete({ where: { commodityId_originTerminalId_destTerminalId: old } });
-                }
-            }
-        });
+        await this.prisma.$transaction(async (tx) => { await tx.cargoRoute.deleteMany(); for (let i = 0; i < deduped.length; i += 1000)
+            await tx.cargoRoute.createMany({ data: deduped.slice(i, i + 1000) }); });
         this.logger.log(`Synced ${deduped.length} cargo routes`);
     }
     async syncVehicles() {
@@ -239,9 +226,7 @@ let SyncService = SyncService_1 = class SyncService {
                     });
                 }
             }
-            catch (err) {
-                this.logger.warn(`syncTerminalCommodityMax failed for commodity ${c.id}: ${err}`);
-            }
+            catch { }
             await new Promise(r => setTimeout(r, 50));
         }
     }
@@ -281,6 +266,8 @@ let SyncService = SyncService_1 = class SyncService {
             return;
         const index = Math.round((totalProfit / totalCost) * 1000) / 10;
         await this.prisma.marketIndex.create({ data: { value: index, commodityCount: count } });
+        const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        await this.prisma.marketIndex.deleteMany({ where: { fetchedAt: { lt: cutoff } } });
         this.logger.log(`Market index: ${index.toFixed(1)}% (${count} commodities, stock-weighted)`);
     }
     async cleanupOldSnapshots(days) {

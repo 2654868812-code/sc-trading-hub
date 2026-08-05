@@ -18,8 +18,8 @@ const notoSans = Noto_Sans_SC({
 });
 
 export const metadata: Metadata = {
-  title: '泛天数据展示',
-  description: '数据可视化与技术实践个人站点',
+  title: '泛天贸易中心',
+  description: '星际公民交易数据平台',
   icons: { icon: '/logo-square.png' },
 };
 

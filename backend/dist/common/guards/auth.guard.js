@@ -31,12 +31,9 @@ let AuthGuard = class AuthGuard {
         if (!auth?.startsWith('Bearer '))
             throw new common_1.UnauthorizedException('Unauthorized');
         const token = auth.slice(7);
-        const isCronRoute = request.url?.includes('/cron/');
-        if (isCronRoute) {
-            const cronSecret = process.env.CRON_SECRET;
-            if (cronSecret && token === cronSecret)
-                return true;
-        }
+        const cronSecret = process.env.CRON_SECRET;
+        if (cronSecret && token === cronSecret)
+            return true;
         if ((0, auth_1.verifyToken)(token))
             return true;
         throw new common_1.UnauthorizedException('Unauthorized');

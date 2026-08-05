@@ -244,17 +244,17 @@ const CATEGORIES: HelpCategory[] = [
   },
   {
     id: 'market-index',
-    title: '数据趋势指数',
+    title: '泛天指数',
     dotColor: '#c9a94e',
     content: (
       <>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">指数定义</h3>
-          <p className="text-xs">数据趋势指数衡量全市场跑商景气度。公式：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。取每个商品最新快照中的最低买价和最高卖价，以 UEX 历史最大买入量为权重加权计算。大宗商品（如废料）权重高，小宗商品（如稀有种子）权重低。</p>
+          <p className="text-xs">泛天指数衡量全市场跑商景气度。公式：Σ[(最高卖价 − 最低买价) × 最大库存] / Σ(最低买价 × 最大库存) × 100%。取每个商品最新快照中的最低买价和最高卖价，以 UEX 历史最大买入量为权重加权计算。大宗商品（如废料）权重高，小宗商品（如稀有种子）权重低。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">如何查看</h3>
-          <p className="text-xs">首页状态栏显示「数据趋势指数：XX%」，数字颜色从红（低）到绿（高）反映当前水平在 90 日历史中的位置。点击进入详情页可查看折线走势图、最高最低值和完整定义。</p>
+          <p className="text-xs">首页状态栏显示「泛天指数：XX%」，数字颜色从红（低）到绿（高）反映当前水平在 90 日历史中的位置。点击进入详情页可查看折线走势图、最高最低值和完整定义。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">数值含义</h3>
@@ -271,7 +271,7 @@ const CATEGORIES: HelpCategory[] = [
       <>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">数据来源</h3>
-          <p className="text-xs">价格数据来自 UEX Corp 公开接口。感谢 UEX 和汉化盒子的数据支持。数据趋势指数为本站自行计算的市场景气度指标，详见数据趋势指数分类。本工具为非官方辅助工具。</p>
+          <p className="text-xs">价格数据来自 UEX Corp 公开接口。感谢 UEX 和汉化盒子的数据支持。泛天指数为本站自行计算的市场景气度指标，详见泛天指数分类。本工具为非官方辅助工具。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">更新频率</h3>

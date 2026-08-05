@@ -38,13 +38,7 @@ let LocationsController = class LocationsController {
         return [...seen.values()];
     }
     async detail(name, res) {
-        let locationName;
-        try {
-            locationName = decodeURIComponent(name);
-        }
-        catch {
-            locationName = name;
-        }
+        const locationName = decodeURIComponent(name);
         const terminals = await this.prisma.terminal.findMany({
             where: { OR: [{ cityName: locationName }, { spaceStationName: locationName }, { name: locationName }] },
         });

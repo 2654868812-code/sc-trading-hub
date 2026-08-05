@@ -5,7 +5,12 @@ export declare class ReportsController {
     save(body: any, res: Response): Response<any, Record<string, any>>;
     auth(body: {
         password: string;
-    }, res: Response): Response<any, Record<string, any>> | undefined;
-    serveFile(filename: string, res: Response): Response<any, Record<string, any>> | undefined;
+    }): {
+        ok: boolean;
+        token: string;
+    } | {
+        ok: boolean;
+        token?: undefined;
+    };
     uploadImage(req: Request, res: Response): Promise<Response<any, Record<string, any>> | undefined>;
 }

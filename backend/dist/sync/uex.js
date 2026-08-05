@@ -10,7 +10,7 @@ function uexHeaders() {
 }
 async function uexFetch(path) {
     const url = `${API_BASE}${path}`;
-    const res = await fetch(url, { headers: uexHeaders(), cache: 'no-store' });
+    const res = await fetch(url, { headers: uexHeaders() });
     if (!res.ok)
         throw new Error(`UEX API error: ${res.status} ${res.statusText} for ${url}`);
     const json = await res.json();
