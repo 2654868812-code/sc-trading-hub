@@ -4,6 +4,20 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Public } from '../common/decorators/public.decorator';
 import { getZhKind } from '../lib/commodity-zh';
 
+function guessLocationType(terminals: any[], locationName: string): string {
+  const name = locationName || '';
+  // Gate
+  if (name.includes('星门') || name.includes('之门')) return '星门';
+  // Lagrange point
+  if (/[A-Z]+\s*L\d/i.test(name) || name.includes('拉格朗日')) return '拉格朗日点';
+  // City: any terminal with a city name
+  if (terminals.some(t => t.cityName)) return '主城';
+  // Space station: has space station name but no city
+  if (terminals.some(t => t.spaceStationName && !t.cityName)) return '空间站';
+  // Otherwise outpost/surface
+  return '地面站';
+}
+
 @Controller('locations')
 export class LocationsController {
   constructor(private readonly prisma: PrismaService) {}
@@ -36,7 +50,7 @@ export class LocationsController {
     if (!terminals.length) { res.status(404); return { error: 'location not found' }; }
 
     const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
-    if (!latest) return { location: { name: locationName, terminalCount: terminals.length, terminalTypes: [...new Set(terminals.map(t => t.type).filter(Boolean))] }, terminals: [], commodities: [] };
+    if (!latest) return { location: { name: locationName, terminalCount: terminals.length, locationType: guessLocationType(terminals, locationName) }, terminals: [], commodities: [] };
 
     const ids = terminals.map(t => t.id);
 
@@ -83,7 +97,7 @@ export class LocationsController {
     }
 
     return {
-      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length, terminalTypes: [...new Set(terminals.map(t => t.type).filter(Boolean))] },
+      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length, locationType: guessLocationType(terminals, locationName) },
       terminals: [...termMap.values()],
       gameVersion: gameVer?.gameVersion ?? null,
     };

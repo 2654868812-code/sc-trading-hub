@@ -16,17 +16,7 @@ interface LocationInfo {
   moonName: string | null;
   moonNameEn: string | null;
   terminalCount: number;
-  terminalTypes: string[];
-}
-
-function terminalTypeLabel(type: string): string {
-  const t = (type || '').toLowerCase();
-  if (t === 'space_station' || t === 'spacestation') return '空间站';
-  if (t === 'city') return '主城';
-  if (t.startsWith('lagrange')) return '拉格朗日点';
-  if (t === 'gate') return '星门';
-  if (t === 'outpost') return '地面站';
-  return '其他';
+  locationType: string;
 }
 
 interface TermCommodity {
@@ -298,11 +288,9 @@ export default function LocationDetailPage() {
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-baseline gap-3">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">{loc.name}</h1>
-          {(loc.terminalTypes || []).map(t => (
-            <span key={t} className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
-              {terminalTypeLabel(t)}
-            </span>
-          ))}
+          <span className="text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">
+            {loc.locationType || '其他'}
+          </span>
         </div>
         <button
           onClick={() => router.push(`/routes?originLocation=${encodeURIComponent(loc.name)}`)}
