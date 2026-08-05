@@ -39,7 +39,7 @@ export default function RootLayout({
                 泛天
               </h1>
               <span className="text-[7px] sm:text-[9px] lg:text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60">
-                Trading Hub
+                数据展示
               </span>
             </Link>
             <NavHeader />
