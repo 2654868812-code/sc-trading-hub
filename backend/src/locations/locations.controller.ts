@@ -50,7 +50,7 @@ export class LocationsController {
 
     // 3-day price stats
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const [snapshots, buyStats, sellStats, termMax, commAvgs, gameVer] = await Promise.all([
+    const [snapshots, buyStats, sellStats, termMax, gameVer] = await Promise.all([
       this.prisma.priceSnapshot.findMany({
         where: { terminalId: { in: ids }, fetchedAt: latest.fetchedAt },
         include: { commodity: { select: { id: true, name: true, nameEn: true, code: true, kind: true, isIllegal: true, profitMargin: true } } },
@@ -58,7 +58,6 @@ export class LocationsController {
       (this.prisma as any).priceSnapshot.groupBy({ by: ['terminalId', 'commodityId'], where: { terminalId: { in: ids }, priceBuy: { gt: 0 }, fetchedAt: { gte: oneDayAgo } }, _avg: { priceBuy: true }, _max: { priceBuy: true }, _min: { priceBuy: true } }),
       (this.prisma as any).priceSnapshot.groupBy({ by: ['terminalId', 'commodityId'], where: { terminalId: { in: ids }, priceSell: { gt: 0 }, fetchedAt: { gte: oneDayAgo } }, _avg: { priceSell: true }, _max: { priceSell: true }, _min: { priceSell: true } }),
       this.prisma.terminalCommodityMax.findMany({ where: { terminalId: { in: ids } }, select: { terminalId: true, commodityId: true, scuBuyMax: true, scuSellMax: true, scuBuyMaxLocal: true, scuSellMaxLocal: true, scuBuyStockAvg24h: true, scuSellStockAvg24h: true, priceBuyAvg: true, priceSellAvg: true } }),
-      this.prisma.commodityAverage.findMany({ select: { commodityId: true, scuBuyMax: true, scuSellMax: true } }),
       this.prisma.commodityAverage.findFirst({ where: { gameVersion: { not: null } }, select: { gameVersion: true }, orderBy: { fetchedAt: 'desc' } }),
     ]);
 
@@ -73,9 +72,6 @@ export class LocationsController {
       scuBuyStockAvg24h: m.scuBuyStockAvg24h ?? null, scuSellStockAvg24h: m.scuSellStockAvg24h ?? null,
       priceBuyAvg24h: m.priceBuyAvg ?? null, priceSellAvg24h: m.priceSellAvg ?? null,
     });
-    const globalMaxMap = new Map<number, any>();
-    for (const a of commAvgs) globalMaxMap.set(a.commodityId, { buyMax: a.scuBuyMax || 0, sellMax: a.scuSellMax || 0 });
-
     const termMap = new Map<number, any>();
     for (const t of terminals) termMap.set(t.id, { id: t.id, name: t.name, nameEn: t.nameEn, type: t.type, hasCargoCenter: t.hasCargoCenter, hasDockingPort: t.hasDockingPort, hasFreightElevator: t.hasFreightElevator, hasLoadingDock: t.hasLoadingDock, isAutoLoad: t.isAutoLoad, isRefinery: t.isRefinery, isMedical: t.isMedical, isFood: t.isFood, isRefuel: t.isRefuel, isRepair: t.isRepair, isHabitation: t.isHabitation, buys: [], sells: [] });
 
@@ -92,7 +88,7 @@ export class LocationsController {
         priceSell: s.priceSell, priceSellAvg: sStat?.avg ?? null, priceSellMax: sStat?.max ?? null, priceSellMin: sStat?.min ?? null,
         priceBuyAvg24h: sm?.priceBuyAvg24h ?? null, priceSellAvg24h: sm?.priceSellAvg24h ?? null,
         scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
-        scuBuyMax: (sm?.scuBuyMax || sm?.scuBuyMaxLocal || s.scuBuyStock || globalMaxMap.get(s.commodityId)?.buyMax) || null, scuSellMax: (sm?.scuSellMax || sm?.scuSellMaxLocal || s.scuSellStock || globalMaxMap.get(s.commodityId)?.sellMax) || null,
+        scuBuyMax: (sm?.scuBuyMax || sm?.scuBuyMaxLocal || s.scuBuyStock) || null, scuSellMax: (sm?.scuSellMax || sm?.scuSellMaxLocal || s.scuSellStock) || null,
         scuBuyStockAvg24h: sm?.scuBuyStockAvg24h ?? null, scuSellStockAvg24h: sm?.scuSellStockAvg24h ?? null,
         updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),
       };

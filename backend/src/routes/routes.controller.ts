@@ -153,11 +153,12 @@ export class RoutesController {
         const commAvg = commAvgMap.get(buy.commodityId);
 
         // Three profit modes:
-        //   expected (default): 24h avg price + 24h avg stock
-        //   live:               current price + current stock
+        //   live (default):     current price + current stock
+        //   expected:           24h weighted avg price + 24h weighted avg stock
         //   max:                current price + UEX historical max stock
         const mode = profitMode || 'live';
 
+        // price_buy/price_sell in UEX are from PLAYER perspective: priceBuy = what player pays, priceSell = what player receives
         const buyPriceRaw = buy.priceBuy ?? 0;
         const sellPriceRaw = sell.priceSell ?? 0;
         const buyPrice = mode === 'expected'
@@ -170,29 +171,26 @@ export class RoutesController {
 
         const profitPerScu = sellPrice - buyPrice;
 
-        // Stock cascade by mode:
-        //   live:     current snapshot → UEX global → 1
-        //   expected: 24h weighted avg → current snapshot → UEX global → 1
-        //   max:      UEX max → 24h peak → current snapshot → UEX global → 1
-        let originStock: number;
+        // UEX fields are all from PLAYER perspective:
+        //   priceBuy / scuBuyStock = what player pays / how much player can BUY
+        //   priceSell / scuSellStock = what player receives / how much player can SELL
+        //
+        //   origin = buySnap terminal → player BUYS here → use scuBuy*
+        //   dest   = sellSnap terminal → player SELLS here → use scuSell* (display only, no constraint)
+        //
+        // Origin stock cascade by mode:
+        //   live:     current snapshot → 1
+        //   expected: 24h weighted avg → current snapshot → 1
+        //   max:      UEX max → local peak → current snapshot → 1
+        let originAvail: number;
         if (mode === 'max') {
-          originStock = oStock?.scuBuyMax
-            || oStock?.scuBuyMaxLocal
-            || buy.scuBuyStock
-            || commAvg?.scuBuyMax
-            || 1;
+          originAvail = oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || 1;
         } else if (mode === 'expected') {
-          originStock = Math.round(oStock?.scuBuyStockAvg24h ?? oStock?.scuBuyAvg ?? 0)
-            || buy.scuBuyStock
-            || commAvg?.scuBuyMax
-            || 1;
+          originAvail = Math.round(oStock?.scuBuyStockAvg24h ?? oStock?.scuBuyAvg ?? 0) || buy.scuBuyStock || 1;
         } else {
-          // live: current snapshot stock
-          originStock = buy.scuBuyStock
-            || commAvg?.scuBuyMax
-            || 1;
+          originAvail = buy.scuBuyStock || 1;
         }
-        const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
+        const loadScu = shipScu > 0 ? Math.min(shipScu, originAvail > 0 ? originAvail : 1) : 1;
         const sellScu = loadScu;
         const totalInvestment = buyPrice * sellScu;
         const totalProfit = profitPerScu * sellScu;
@@ -224,7 +222,7 @@ export class RoutesController {
           totalProfit, totalInvestment, loadScu, sellScu, shipScu,
           originStock: Math.round(oStock?.scuBuyStockAvg24h || oStock?.scuBuyAvg || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellStockAvg24h || dStock?.scuSellAvg || sell.scuSellStock || commAvg?.scuSellMax || 0),
           originStockLive: Math.round(buy.scuBuyStock || 0), destStockLive: Math.round(sell.scuSellStock || 0),
-          originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
+          originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || commAvg?.scuSellMax || oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0),
           originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
           destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
           isAutoLoadOrigin: buy.terminal.isAutoLoad, isAutoLoadDest: sell.terminal.isAutoLoad,

@@ -74,7 +74,7 @@ function pickStock(mode: string | undefined, live: number, avg: number, max: num
 
 function stockLabel(mode: string | undefined) {
   if (mode === 'max') return '最大库存';
-  if (mode === 'expected') return '24h均库存';
+  if (mode === 'expected') return '平均库存';
   return '当前库存';
 }
 
@@ -134,12 +134,12 @@ export function RouteTable(props: RouteTableProps) {
             <thead>
               <tr>
                 <th className="th-cell" style={{ width: '8%' }}>商品</th>
-                <th className="th-cell" style={{ width: '9%' }}>购买地</th>
+                <th className="th-cell">购买地</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>买价</th>
                 <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}</th>
-                <th className="th-cell" style={{ width: '9%' }}>出售地</th>
+                <th className="th-cell">出售地</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
-                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}</th>
+                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">几乎所有售卖地最大库存都无法准确获取，以下仅展示基于最大数据的预测</span></span></th>
                 <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
                 <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>
@@ -282,10 +282,10 @@ function RouteTableCells({ route: r, router, profitMode, onCommodityClick }: {
       </td>
       <td className="td-cell"><StockBar stock={pickStock(profitMode, r.destStockLive, r.destStock, r.destStockMax)} max={r.destStockMax} mode={profitMode} /></td>
       <td className="td-cell--right">
-        <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`买价(${fmtM(r.buyPrice)}) × 可售量(${r.sellScu}) = ${fmtM(r.totalInvestment)}`}>{fmtM(r.totalInvestment)}</span>
+        <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`${fmtM(r.buyPrice)} × ${r.sellScu}`}>{fmtM(r.totalInvestment)}</span>
       </td>
       <td className="td-cell--right text-chart-2 font-semibold">
-        <span className="cursor-help border-b border-dotted border-chart-2/30" title={`${fmtM(r.profitPerScu)}/SCU × ${r.sellScu} = ${fmtM(r.totalProfit)}`}>+{fmtM(r.totalProfit)}</span>
+        <span className="cursor-help border-b border-dotted border-chart-2/30" title={`${fmtM(r.profitPerScu)} × ${r.sellScu}`}>+{fmtM(r.totalProfit)}</span>
       </td>
       <td className="td-cell--right">{fmtM(r.profitPerScu)}</td>
       <td className="td-cell--right">
@@ -322,16 +322,16 @@ function RouteTableInner({ routes, router, profitMode, onCommodityClick, flipKey
 }) {
   const shouldAnimate = flipKey && flipKey > 1;
   return (
-    <table className="w-full table-zebra">
+    <table className="w-full table-fixed table-zebra">
       <thead>
         <tr>
-          <th className="th-cell">商品</th>
+          <th className="th-cell" style={{ width: '8%' }}>商品</th>
           <th className="th-cell">购买地</th>
           <th className="th-cell--right" style={{ width: '6%' }}>买价</th>
           <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}</th>
           <th className="th-cell">出售地</th>
           <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
-          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}</th>
+          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">几乎所有售卖地最大库存都无法准确获取，以下仅展示基于最大数据的预测</span></span></th>
           <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
           <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
           <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>
