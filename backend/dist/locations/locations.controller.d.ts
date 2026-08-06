@@ -14,6 +14,7 @@ export declare class LocationsController {
         location: {
             name: string;
             terminalCount: any;
+            locationType: string;
             starSystemName?: undefined;
             starSystemNameEn?: undefined;
             planetName?: undefined;
@@ -35,6 +36,7 @@ export declare class LocationsController {
             moonName: any;
             moonNameEn: any;
             terminalCount: any;
+            locationType: string;
         };
         terminals: any[];
         gameVersion: any;

@@ -138,10 +138,13 @@ model TerminalCommodityMax {
   scuSellMax   Int?
   scuBuyMaxLocal Int?
   scuSellMaxLocal Int?
+  scuBuyStockAvg24h Float?
+  scuSellStockAvg24h Float?
   scuBuyAvg    Float?
   scuSellAvg   Float?
   priceBuyAvg  Float?
   priceSellAvg Float?
+  containerSizes String?
   dateModified Int?
   fetchedAt    DateTime
 
@@ -149,6 +152,14 @@ model TerminalCommodityMax {
   terminal     Terminal       @relation(fields: [terminalId], references: [id], onDelete: Cascade)
 
   @@id([commodityId, terminalId])
+}
+
+model TerminalDistance {
+  originTerminalId Int
+  destTerminalId   Int
+  distanceGm       Float
+
+  @@id([originTerminalId, destTerminalId])
 }
 
 model MarketIndex {

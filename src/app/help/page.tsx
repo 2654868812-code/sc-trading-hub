@@ -127,14 +127,15 @@ const CATEGORIES: HelpCategory[] = [
           <p className="text-xs">每条路线显示购买地/出售地、买卖价格、库存状态、总投资额、总利润、单位利润 (/SCU)、利润率、距离和货箱规格（最小-最大）。鼠标悬停可查看计算公式。</p>
         </div>
         <div>
-          <h3 className="text-foreground font-semibold text-xs mb-1">库存条</h3>
-          <p className="text-xs">购买地和出售地均显示「近3日均库存 / 历史最高库存」。进度条颜色：红色库存紧张、黄色适中、绿色充足。</p>
+          <h3 className="text-foreground font-semibold text-xs mb-1">库存显示</h3>
+          <p className="text-xs">路线表库存列对应算法：即时→当前库存、期望→24h加权均库存、最大→历史最高。详情页显示「当前 / 24h均 / 最高」三值。24h加权 = 近6h×3 + 前6-24h×1。</p>
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">利润算法</h3>
           <p className="text-xs">
-            <strong>期望利润</strong>：按近3日买入地平均库存估算载货量，利润数字反映当前真实交易水平。<br />
-            <strong>最大利润</strong>：按买入地历史最高库存估算载货量（理想上限，当前库存往往达不到），利润是理论上限。
+            <strong>即时利润（默认）</strong>：价格取当前快照价，库存取当前快照库存，并基于此计算总利润，参考价值最高。<br />
+            <strong>期望利润</strong>：价格取24h加权平均值，库存取24h加权平均值，并基于此计算总利润。如果您追求更稳健的路线参考，请选择此算法。<br />
+            <strong>最大利润</strong>：价格取当前快照价，库存取历史最大库存，并基于此计算总利润。展示当前理论利润天花板，实际可买量通常远低于历史峰值。如果您追求更激进的路线参考，请选择此算法。
           </p>
         </div>
         <div>
@@ -152,7 +153,7 @@ const CATEGORIES: HelpCategory[] = [
             <strong>商品类型</strong>：大宗/小宗，与首页标准一致（历史最大买入量 ≥ 2,000 SCU 为大宗）。<br />
             <strong>自动装卸</strong>：全程自动（两端都有）/ 半程自动 / 全手动。<br />
             <strong>排序</strong>：按总利润 / 利润率 / 距离排序。<br />
-            <strong>利润算法</strong>：期望利润（3日均库存）或最大利润（五级回退取最优库存）。
+            <strong>利润算法</strong>：即时利润（默认，当前价+当前库存）/ 期望利润（24h加权均价+24h加权库存）/ 最大利润（当前价+历史最大库存）。详见上方「利润算法」条目。
           </p>
         </div>
         <div>
@@ -182,7 +183,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">可购买 / 可售出地点</h3>
-          <p className="text-xs">图表下方双栏列出所有可购买和可售出该商品的终端。每行显示：地点名（点击进入地点详情）、星系·行星·卫星、当前库存（格式：当前 / 最大）、当前买价/卖价、近3日均价/最高价/最低价。价格下方显示该商品在该终端的最后更新时间。</p>
+          <p className="text-xs">图表下方双栏列出所有可购买和可售出该商品的终端。每行显示：地点名（点击进入地点详情）、星系·行星·卫星、库存三值（当前 / 24h均 / 历史最大）、当前买价/卖价、24h均价/最高价。价格下方显示该商品在该终端的最后更新时间。</p>
         </div>
       </>
     ),
@@ -207,7 +208,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">可购买 / 可售出商品</h3>
-          <p className="text-xs">双栏列出该地点所有终端可购买和可售出的商品。每行显示：商品名（点击进入商品详情）、种类标签、终端名·英文名·商品代码、当前库存（格式：当前 / 最大）、利润率、当前价格、近3日均价/最高价/最低价，以及更新时间。</p>
+          <p className="text-xs">双栏列出该地点所有终端可购买和可售出的商品。每行显示：商品名（点击进入商品详情）、种类标签、终端名·英文名·商品代码、库存三值（当前 / 24h均 / 历史最大）、利润率、当前价格、24h均价/最高价，以及更新时间。</p>
         </div>
       </>
     ),
@@ -279,7 +280,7 @@ const CATEGORIES: HelpCategory[] = [
         </div>
         <div>
           <h3 className="text-foreground font-semibold text-xs mb-1">价格与库存</h3>
-          <p className="text-xs">买卖价格来自最新快照的实时数据，非历史均价。路线利润基于当前差价计算。库存列和载货量计算使用五级回退链：UEX终端历史最大 → 本地快照历史最大 → 当前快照库存 → UEX全宇宙历史最大 → 兜底值1。确保在任何数据缺失情况下都能得到合理的库存估值。</p>
+          <p className="text-xs">价格：即时/最大取当前快照价，期望取24h加权均价。库存：即时取当前快照库存，期望取24h加权库存（近6h x3 + 前6-24h x1），最大取历史最高。</p>
         </div>
       </>
     ),

@@ -51,6 +51,9 @@ export interface PrismaClient<in LogOpts extends Prisma.LogLevel = never, in out
     get terminalCommodityMax(): Prisma.TerminalCommodityMaxDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;
+    get terminalDistance(): Prisma.TerminalDistanceDelegate<ExtArgs, {
+        omit: OmitOpts;
+    }>;
     get marketIndex(): Prisma.MarketIndexDelegate<ExtArgs, {
         omit: OmitOpts;
     }>;

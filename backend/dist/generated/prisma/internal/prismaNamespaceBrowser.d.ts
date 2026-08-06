@@ -18,6 +18,7 @@ export declare const ModelName: {
     readonly Vehicle: "Vehicle";
     readonly CommodityAverage: "CommodityAverage";
     readonly TerminalCommodityMax: "TerminalCommodityMax";
+    readonly TerminalDistance: "TerminalDistance";
     readonly MarketIndex: "MarketIndex";
 };
 export type ModelName = (typeof ModelName)[keyof typeof ModelName];
@@ -76,6 +77,7 @@ export declare const TerminalScalarFieldEnum: {
     readonly isRefuel: "isRefuel";
     readonly isRepair: "isRepair";
     readonly isHabitation: "isHabitation";
+    readonly locationType: "locationType";
 };
 export type TerminalScalarFieldEnum = (typeof TerminalScalarFieldEnum)[keyof typeof TerminalScalarFieldEnum];
 export declare const PriceSnapshotScalarFieldEnum: {
@@ -135,14 +137,23 @@ export declare const TerminalCommodityMaxScalarFieldEnum: {
     readonly scuSellMax: "scuSellMax";
     readonly scuBuyMaxLocal: "scuBuyMaxLocal";
     readonly scuSellMaxLocal: "scuSellMaxLocal";
+    readonly scuBuyStockAvg24h: "scuBuyStockAvg24h";
+    readonly scuSellStockAvg24h: "scuSellStockAvg24h";
     readonly scuBuyAvg: "scuBuyAvg";
     readonly scuSellAvg: "scuSellAvg";
     readonly priceBuyAvg: "priceBuyAvg";
     readonly priceSellAvg: "priceSellAvg";
+    readonly containerSizes: "containerSizes";
     readonly dateModified: "dateModified";
     readonly fetchedAt: "fetchedAt";
 };
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum];
+export declare const TerminalDistanceScalarFieldEnum: {
+    readonly originTerminalId: "originTerminalId";
+    readonly destTerminalId: "destTerminalId";
+    readonly distanceGm: "distanceGm";
+};
+export type TerminalDistanceScalarFieldEnum = (typeof TerminalDistanceScalarFieldEnum)[keyof typeof TerminalDistanceScalarFieldEnum];
 export declare const MarketIndexScalarFieldEnum: {
     readonly id: "id";
     readonly value: "value";

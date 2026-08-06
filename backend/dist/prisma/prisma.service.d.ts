@@ -10,6 +10,7 @@ export declare class PrismaService implements OnModuleInit, OnModuleDestroy {
     readonly commodityAverage: any;
     readonly terminalCommodityMax: any;
     readonly marketIndex: any;
+    readonly terminalDistance: any;
     readonly $transaction: any;
     constructor();
     onModuleInit(): Promise<void>;

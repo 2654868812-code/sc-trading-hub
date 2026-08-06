@@ -58,6 +58,7 @@ export const ModelName = {
   Vehicle: 'Vehicle',
   CommodityAverage: 'CommodityAverage',
   TerminalCommodityMax: 'TerminalCommodityMax',
+  TerminalDistance: 'TerminalDistance',
   MarketIndex: 'MarketIndex'
 } as const
 
@@ -127,7 +128,8 @@ export const TerminalScalarFieldEnum = {
   isFood: 'isFood',
   isRefuel: 'isRefuel',
   isRepair: 'isRepair',
-  isHabitation: 'isHabitation'
+  isHabitation: 'isHabitation',
+  locationType: 'locationType'
 } as const
 
 export type TerminalScalarFieldEnum = (typeof TerminalScalarFieldEnum)[keyof typeof TerminalScalarFieldEnum]
@@ -202,15 +204,27 @@ export const TerminalCommodityMaxScalarFieldEnum = {
   scuSellMax: 'scuSellMax',
   scuBuyMaxLocal: 'scuBuyMaxLocal',
   scuSellMaxLocal: 'scuSellMaxLocal',
+  scuBuyStockAvg24h: 'scuBuyStockAvg24h',
+  scuSellStockAvg24h: 'scuSellStockAvg24h',
   scuBuyAvg: 'scuBuyAvg',
   scuSellAvg: 'scuSellAvg',
   priceBuyAvg: 'priceBuyAvg',
   priceSellAvg: 'priceSellAvg',
+  containerSizes: 'containerSizes',
   dateModified: 'dateModified',
   fetchedAt: 'fetchedAt'
 } as const
 
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum]
+
+
+export const TerminalDistanceScalarFieldEnum = {
+  originTerminalId: 'originTerminalId',
+  destTerminalId: 'destTerminalId',
+  distanceGm: 'distanceGm'
+} as const
+
+export type TerminalDistanceScalarFieldEnum = (typeof TerminalDistanceScalarFieldEnum)[keyof typeof TerminalDistanceScalarFieldEnum]
 
 
 export const MarketIndexScalarFieldEnum = {

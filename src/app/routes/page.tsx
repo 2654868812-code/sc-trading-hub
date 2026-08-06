@@ -72,8 +72,6 @@ function RoutesContent() {
   const currentFiltersRef = useRef<RouteFilters | null>(null);
   const lastSyncRef = useRef<string | null>(null);
   const searchAbortRef = useRef<AbortController | null>(null);
-  const mountedRef = useRef(true);
-
   // Read initial filters from URL only (sessionStorage handled client-side after mount)
   const initialFilters = readFiltersFromParams(searchParams);
 
@@ -101,7 +99,6 @@ function RoutesContent() {
       const res = await fetch(`/api/routes?${params.toString()}`, { signal: ac.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      if (ac.signal.aborted || !mountedRef.current) return;
       if (data.roundTrip) {
         setRoutePairs(data.pairs || []);
         setRoutes([]);
@@ -112,15 +109,16 @@ function RoutesContent() {
       setSearchError(null);
     } catch (err: any) {
       if (err?.name === 'AbortError') return;
-      if (!mountedRef.current) return;
       console.error(err);
       setSearchError('查询失败，请稍后重试');
       setRoutes([]);
       setRoutePairs([]);
     } finally {
-      if (!silent && !ac.signal.aborted && mountedRef.current) setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
+  const doSearchRef = useRef(doSearch);
+  doSearchRef.current = doSearch;
 
   // Auto-search on mount if shipId present in URL
   useEffect(() => {
@@ -128,7 +126,6 @@ function RoutesContent() {
       currentFiltersRef.current = initialFilters;
       doSearch(initialFilters);
     }
-    return () => { mountedRef.current = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -164,17 +161,18 @@ function RoutesContent() {
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     let isChecking = false;
+    let active = true;
     async function check() {
       if (isChecking) return;
       isChecking = true;
       try {
         const res = await fetch('/api/data-freshness');
-        if (!mountedRef.current || !res.ok) return;
+        if (!active || !res.ok) return;
         const { latestFetchedAt } = await res.json();
         if (!latestFetchedAt) return;
         if (lastSyncRef.current && lastSyncRef.current !== latestFetchedAt && currentFiltersRef.current) {
-          await doSearch(currentFiltersRef.current, true);
-          if (mountedRef.current) setFlipKey((k) => k + 1);
+          await doSearchRef.current(currentFiltersRef.current, true);
+          if (active) setFlipKey((k) => k + 1);
         }
         lastSyncRef.current = latestFetchedAt;
       } catch { /* network error — retry next interval */ }
@@ -182,8 +180,8 @@ function RoutesContent() {
     }
     check();
     timer = setInterval(check, 60_000);
-    return () => { mountedRef.current = false; clearInterval(timer); };
-  }, [doSearch]);
+    return () => { active = false; clearInterval(timer); };
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -207,6 +205,7 @@ function RoutesContent() {
           loading={loading}
           roundTrip={roundTrip}
           flipKey={flipKey}
+          profitMode={searchParams.get('profitMode') || 'live'}
           onCommodityClick={handleCommodityClick}
         />
       )}

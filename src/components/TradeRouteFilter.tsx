@@ -160,7 +160,7 @@ export function TradeRouteFilter({
   const [autoLoadType, setAutoLoadType] = useState(f.autoLoadType || '');
   const [sortBy, setSortBy] = useState<string>(f.sortBy || 'profit');
   const [roundTrip, setRoundTrip] = useState(f.roundTrip || false);
-  const [profitMode, setProfitMode] = useState<string>(f.profitMode || 'expected');
+  const [profitMode, setProfitMode] = useState<string>(f.profitMode || 'live');
 
   // Location multi-select
   const [locations, setLocations] = useState<LocationOption[]>([]);
@@ -645,7 +645,7 @@ export function TradeRouteFilter({
                 <text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text>
               </svg>
               <span className="absolute left-0 bottom-full mb-1 w-56 p-2.5 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 whitespace-pre-line hidden group-hover/help:block">
-{'期望利润：按近3日买入地平均库存估算你能买到的载货量，并基于此计算总利润\n最大利润：按买入地历史最高库存估算载货量（理想上限，当前库存往往达不到），并基于此计算总利润'}
+{'即时利润（默认）：价格取当前快照价，库存取当前快照库存，并基于此计算总利润，参考价值最高。\n\n期望利润：价格取24h加权平均值，库存取24h加权平均值，并基于此计算总利润。如果您追求更稳健的路线参考，请选择此算法。\n\n最大利润：价格取当前快照价，库存取历史最大库存，并基于此计算总利润。展示当前理论利润天花板，实际可买量通常远低于历史峰值。如果您追求更激进的路线参考，请选择此算法。'}
               </span>
             </span>
           </span>
@@ -656,6 +656,7 @@ export function TradeRouteFilter({
                        focus:border-primary/60 focus:ring-1 focus:ring-primary/30 outline-none
                        transition-colors appearance-none cursor-pointer"
           >
+            <option value="live">即时利润</option>
             <option value="expected">期望利润</option>
             <option value="max">最大利润</option>
           </select>

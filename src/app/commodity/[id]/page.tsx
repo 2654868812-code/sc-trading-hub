@@ -324,8 +324,7 @@ export default function CommodityDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] tabular-nums text-muted-foreground/50">
-                          库存: {t.scuBuyStock != null ? t.scuBuyStock.toLocaleString() : '—'}
-                          {t.scuBuyMax ? ` / ${t.scuBuyMax.toLocaleString()}` : ''}
+                          库存: {t.scuBuyStock != null ? t.scuBuyStock.toLocaleString() : '—'} / {t.scuBuyStockAvg24h != null ? t.scuBuyStockAvg24h.toLocaleString() : '—'} / {t.scuBuyMax ? t.scuBuyMax.toLocaleString() : '—'}
                         </span>
                       </div>
                     </div>
@@ -335,13 +334,11 @@ export default function CommodityDetailPage() {
                           {t.priceBuy.toLocaleString()} aUEC
                         </div>
                       )}
-                      {hasStats && (
-                        <div className="text-[10px] tabular-nums text-muted-foreground/70 flex gap-1.5 justify-end mt-0.5">
-                          {t.priceBuyAvg != null && <span title="历史均价">均{t.priceBuyAvg.toFixed(0)}</span>}
-                          {t.priceBuyMax != null && <span title="历史最高">高{t.priceBuyMax.toFixed(0)}</span>}
-                          {t.priceBuyMin != null && <span title="历史最低">低{t.priceBuyMin.toFixed(0)}</span>}
-                        </div>
-                      )}
+                      <div className="text-[10px] tabular-nums text-muted-foreground/50 flex gap-1 justify-end mt-0.5">
+                        <span title="24h均价">{t.priceBuyAvg24h != null ? t.priceBuyAvg24h.toFixed(0) : '—'}</span>
+                        <span className="text-border/40">/</span>
+                        <span title="24h最高">{t.priceBuyMax != null ? t.priceBuyMax.toFixed(0) : '—'}</span>
+                      </div>
                       {t.updatedAt && (
                         <div className="text-[9px] text-muted-foreground/30 mt-0.5">
                           {fmtRelativeTime(t.updatedAt)}
@@ -389,8 +386,7 @@ export default function CommodityDetailPage() {
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] tabular-nums text-muted-foreground/50">
-                          库存: {t.scuSellStock != null ? t.scuSellStock.toLocaleString() : '—'}
-                          {t.scuSellMax ? ` / ${t.scuSellMax.toLocaleString()}` : ''}
+                          库存: {t.scuSellStock != null ? t.scuSellStock.toLocaleString() : '—'} / {t.scuSellStockAvg24h != null ? t.scuSellStockAvg24h.toLocaleString() : '—'} / {t.scuSellMax ? t.scuSellMax.toLocaleString() : '—'}
                         </span>
                       </div>
                     </div>
@@ -400,13 +396,11 @@ export default function CommodityDetailPage() {
                           {t.priceSell.toLocaleString()} aUEC
                         </div>
                       )}
-                      {hasStats && (
-                        <div className="text-[10px] tabular-nums text-muted-foreground/70 flex gap-1.5 justify-end mt-0.5">
-                          {t.priceSellAvg != null && <span title="历史均价">均{t.priceSellAvg.toFixed(0)}</span>}
-                          {t.priceSellMax != null && <span title="历史最高">高{t.priceSellMax.toFixed(0)}</span>}
-                          {t.priceSellMin != null && <span title="历史最低">低{t.priceSellMin.toFixed(0)}</span>}
-                        </div>
-                      )}
+                      <div className="text-[10px] tabular-nums text-muted-foreground/50 flex gap-1 justify-end mt-0.5">
+                        <span title="24h均价">{t.priceSellAvg24h != null ? t.priceSellAvg24h.toFixed(0) : '—'}</span>
+                        <span className="text-border/40">/</span>
+                        <span title="24h最高">{t.priceSellMax != null ? t.priceSellMax.toFixed(0) : '—'}</span>
+                      </div>
                       {t.updatedAt && (
                         <div className="text-[9px] text-muted-foreground/30 mt-0.5">
                           {fmtRelativeTime(t.updatedAt)}

@@ -34,6 +34,7 @@ export class SyncService {
     await this.syncSpaceStations();
     await this.syncTerminals();
     await this.syncVehicles();
+    await this.syncTerminalDistances();
     this.logger.log('Metadata sync complete');
   }
 
@@ -59,7 +60,7 @@ export class SyncService {
   /** Post-price computations: averages, profit changes, market index */
   async syncComputations() {
     this.logger.log('Starting post-price computations...');
-    await this.computeAverages3d();
+    await this.computeAverages24h();
     await this.updatePriceChanges();
     await this.computeMarketIndex();
     this.logger.log('Post-price computations complete');
@@ -136,6 +137,49 @@ export class SyncService {
     this.logger.log(`Synced ${ships.length} vehicles`);
   }
 
+  /** One-time: pull terminal pair distances, skip existing */
+  private async syncTerminalDistances() {
+    const terminals = await this.prisma.terminal.findMany({ select: { id: true } });
+    if (terminals.length < 2) return;
+
+    // Check existing count — if already populated, skip
+    const existCount = await this.prisma.terminalDistance.count();
+    const totalPairs = terminals.length * (terminals.length - 1);
+    if (existCount >= totalPairs * 0.9) {
+      this.logger.log(`Terminal distances already populated (${existCount}/${totalPairs}), skipping`);
+      return;
+    }
+
+    let fetched = 0, skipped = 0;
+    for (const origin of terminals) {
+      for (const dest of terminals) {
+        if (origin.id === dest.id) continue;
+        // Skip if already exists
+        const exist = await this.prisma.terminalDistance.findUnique({
+          where: { originTerminalId_destTerminalId: { originTerminalId: origin.id, destTerminalId: dest.id } },
+          select: { originTerminalId: true },
+        });
+        if (exist) { skipped++; continue; }
+
+        try {
+          const data = await uexFetch<any[]>(`/terminals_distances?id_terminal_origin=${origin.id}&id_terminal_destination=${dest.id}`);
+          if (data?.[0]?.distance != null) {
+            await this.prisma.terminalDistance.create({
+              data: { originTerminalId: origin.id, destTerminalId: dest.id, distanceGm: data[0].distance },
+            });
+            fetched++;
+          }
+        } catch (err) {
+          // rate limit or timeout — pause then continue
+          await new Promise(r => setTimeout(r, 200));
+        }
+        // 50ms between calls to avoid rate limiting
+        if (fetched % 10 === 0) await new Promise(r => setTimeout(r, 100));
+      }
+    }
+    this.logger.log(`Terminal distances: ${fetched} new, ${skipped} skipped`);
+  }
+
   // ── Price data (fast / 30min) ────────────────────────────────
 
   private async syncPrices() {
@@ -157,46 +201,114 @@ export class SyncService {
     this.logger.log(`Inserted ${batch.length} price snapshots`);
   }
 
-  // Compute 3-day rolling averages (matches Next.js computeAverages3d)
-  private async computeAverages3d() {
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+  // Compute 24h weighted averages (recent 6h ×3 + older 6-24h ×1 / 4)
+  private async computeAverages24h() {
+    const now = Date.now();
+    const recentCutoff = new Date(now - 6 * 60 * 60 * 1000);
+    const dayCutoff = new Date(now - 24 * 60 * 60 * 1000);
 
-    // Per-terminal averages + local max (from our own 3-day snapshots)
-    const rows = await (this.prisma as any).priceSnapshot.groupBy({
-      by: ['commodityId', 'terminalId'],
-      where: { fetchedAt: { gte: threeDaysAgo } },
-      _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
-      _max: { scuBuyStock: true, scuSellStock: true },
-    });
+    const RECENT_W = 3, OLDER_W = 1, TOTAL_W = RECENT_W + OLDER_W;
+
+    // Per-terminal: two windows for weighted average
+    const [recentRows, olderRows] = await Promise.all([
+      (this.prisma as any).priceSnapshot.groupBy({
+        by: ['commodityId', 'terminalId'],
+        where: { fetchedAt: { gte: recentCutoff } },
+        _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+        _max: { scuBuyStock: true, scuSellStock: true },
+      }),
+      (this.prisma as any).priceSnapshot.groupBy({
+        by: ['commodityId', 'terminalId'],
+        where: { fetchedAt: { gte: dayCutoff, lt: recentCutoff } },
+        _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+        _max: { scuBuyStock: true, scuSellStock: true },
+      }),
+    ]);
+
+    // Merge two windows
+    const merged = new Map<string, { recent: any; older: any }>();
+    for (const r of recentRows) merged.set(`${r.commodityId}-${r.terminalId}`, { recent: r, older: null });
+    for (const r of olderRows) {
+      const k = `${r.commodityId}-${r.terminalId}`;
+      const e = merged.get(k);
+      if (e) e.older = r; else merged.set(k, { recent: null, older: r });
+    }
+
+    // Weighted combine helper
+    const wavg = (recent: number | null, older: number | null): number | null => {
+      if (recent != null && older != null) return (recent * RECENT_W + older * OLDER_W) / TOTAL_W;
+      if (recent != null) return recent;
+      if (older != null) return older;
+      return null;
+    };
 
     let updated = 0;
-    for (const r of rows) {
+    for (const [key, { recent, older }] of merged) {
+      const [cid, tid] = key.split('-').map(Number);
+      const priceBuyAvg = wavg(recent?._avg?.priceBuy ?? null, older?._avg?.priceBuy ?? null);
+      const priceSellAvg = wavg(recent?._avg?.priceSell ?? null, older?._avg?.priceSell ?? null);
+      const scuBuyAvgW = wavg(recent?._avg?.scuBuyStock ?? null, older?._avg?.scuBuyStock ?? null);
+      const scuSellAvgW = wavg(recent?._avg?.scuSellStock ?? null, older?._avg?.scuSellStock ?? null);
+      // Peak: max across both windows
+      const buyMaxPeak = Math.max(recent?._max?.scuBuyStock ?? 0, older?._max?.scuBuyStock ?? 0) || null;
+      const sellMaxPeak = Math.max(recent?._max?.scuSellStock ?? 0, older?._max?.scuSellStock ?? 0) || null;
+
       await (this.prisma as any).terminalCommodityMax.upsert({
-        where: { commodityId_terminalId: { commodityId: r.commodityId, terminalId: r.terminalId } },
-        update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, scuBuyMaxLocal: r._max.scuBuyStock ?? null, scuSellMaxLocal: r._max.scuSellStock ?? null },
-        create: { commodityId: r.commodityId, terminalId: r.terminalId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, scuBuyMaxLocal: r._max.scuBuyStock ?? null, scuSellMaxLocal: r._max.scuSellStock ?? null, fetchedAt: new Date() },
+        where: { commodityId_terminalId: { commodityId: cid, terminalId: tid } },
+        update: {
+          priceBuyAvg, priceSellAvg,
+          scuBuyAvg: scuBuyAvgW, scuSellAvg: scuSellAvgW,
+          scuBuyStockAvg24h: scuBuyAvgW, scuSellStockAvg24h: scuSellAvgW,
+          scuBuyMaxLocal: buyMaxPeak, scuSellMaxLocal: sellMaxPeak,
+        },
+        create: {
+          commodityId: cid, terminalId: tid,
+          priceBuyAvg, priceSellAvg,
+          scuBuyAvg: scuBuyAvgW, scuSellAvg: scuSellAvgW,
+          scuBuyStockAvg24h: scuBuyAvgW, scuSellStockAvg24h: scuSellAvgW,
+          scuBuyMaxLocal: buyMaxPeak, scuSellMaxLocal: sellMaxPeak,
+          fetchedAt: new Date(),
+        },
       });
       updated++;
     }
 
-    // Per-commodity average (keep UEX max, only update avg fields)
-    const commRows = await (this.prisma as any).priceSnapshot.groupBy({
-      by: ['commodityId'],
-      where: { fetchedAt: { gte: threeDaysAgo } },
-      _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
-    });
+    // Per-commodity: same weighted approach
+    const [commRecent, commOlder] = await Promise.all([
+      (this.prisma as any).priceSnapshot.groupBy({
+        by: ['commodityId'],
+        where: { fetchedAt: { gte: recentCutoff } },
+        _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+      }),
+      (this.prisma as any).priceSnapshot.groupBy({
+        by: ['commodityId'],
+        where: { fetchedAt: { gte: dayCutoff, lt: recentCutoff } },
+        _avg: { priceBuy: true, priceSell: true, scuBuyStock: true, scuSellStock: true },
+      }),
+    ]);
+
+    const commMerged = new Map<number, { recent: any; older: any }>();
+    for (const r of commRecent) commMerged.set(r.commodityId, { recent: r, older: null });
+    for (const r of commOlder) {
+      const e = commMerged.get(r.commodityId);
+      if (e) e.older = r; else commMerged.set(r.commodityId, { recent: null, older: r });
+    }
 
     let commUpdated = 0;
-    for (const r of commRows) {
+    for (const [cid, { recent, older }] of commMerged) {
+      const pb = wavg(recent?._avg?.priceBuy ?? null, older?._avg?.priceBuy ?? null);
+      const ps = wavg(recent?._avg?.priceSell ?? null, older?._avg?.priceSell ?? null);
+      const sb = wavg(recent?._avg?.scuBuyStock ?? null, older?._avg?.scuBuyStock ?? null);
+      const ss = wavg(recent?._avg?.scuSellStock ?? null, older?._avg?.scuSellStock ?? null);
       await (this.prisma as any).commodityAverage.upsert({
-        where: { commodityId: r.commodityId },
-        update: { priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null },
-        create: { commodityId: r.commodityId, priceBuyAvg: r._avg.priceBuy ?? null, priceSellAvg: r._avg.priceSell ?? null, scuBuyAvg: r._avg.scuBuyStock ?? null, scuSellAvg: r._avg.scuSellStock ?? null, fetchedAt: new Date() },
+        where: { commodityId: cid },
+        update: { priceBuyAvg: pb, priceSellAvg: ps, scuBuyAvg: sb, scuSellAvg: ss },
+        create: { commodityId: cid, priceBuyAvg: pb, priceSellAvg: ps, scuBuyAvg: sb, scuSellAvg: ss, fetchedAt: new Date() },
       });
       commUpdated++;
     }
 
-    this.logger.log(`Computed 3d averages: ${updated} terminal pairs, ${commUpdated} commodities`);
+    this.logger.log(`Computed 24h weighted averages: ${updated} terminal pairs, ${commUpdated} commodities`);
   }
 
   private async updatePriceChanges() {
@@ -287,8 +399,8 @@ export class SyncService {
         for (const t of data) {
           await this.prisma.terminalCommodityMax.upsert({
             where: { commodityId_terminalId: { commodityId: t.id_commodity, terminalId: t.id_terminal } },
-            update: { scuBuyMax: t.scu_buy_max, scuSellMax: t.scu_sell_max, scuBuyAvg: t.scu_buy_avg, scuSellAvg: t.scu_sell_avg, dateModified: t.date_modified, fetchedAt: new Date() },
-            create: { commodityId: t.id_commodity, terminalId: t.id_terminal, scuBuyMax: t.scu_buy_max, scuSellMax: t.scu_sell_max, scuBuyAvg: t.scu_buy_avg, scuSellAvg: t.scu_sell_avg, dateModified: t.date_modified, fetchedAt: new Date() },
+            update: { scuBuyMax: t.scu_buy_max, scuSellMax: t.scu_sell_max, scuBuyAvg: t.scu_buy_avg, scuSellAvg: t.scu_sell_avg, containerSizes: t.container_sizes || null, dateModified: t.date_modified, fetchedAt: new Date() },
+            create: { commodityId: t.id_commodity, terminalId: t.id_terminal, scuBuyMax: t.scu_buy_max, scuSellMax: t.scu_sell_max, scuBuyAvg: t.scu_buy_avg, scuSellAvg: t.scu_sell_avg, containerSizes: t.container_sizes || null, dateModified: t.date_modified, fetchedAt: new Date() },
           });
         }
       } catch (err) { this.logger.warn(`syncTerminalCommodityMax failed for commodity ${c.id}: ${err}`); }

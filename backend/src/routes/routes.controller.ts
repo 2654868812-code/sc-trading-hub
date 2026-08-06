@@ -108,13 +108,16 @@ export class RoutesController {
     // Fetch cargo routes + terminal stock + commodity averages for dazong threshold
     const allCommodityIds = [...new Set([...buySnaps.map(s => s.commodityId), ...sellSnaps.map(s => s.commodityId)])];
     const DAZONG_THRESHOLD = 2000;
-    const [cargoRoutes, termMaxRows, commAvgs] = await Promise.all([
+    const [cargoRoutes, termMaxRows, commAvgs, termDistances] = await Promise.all([
       this.prisma.cargoRoute.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, originTerminalId: true, destTerminalId: true, distance: true, containerSizesOrigin: true, containerSizesDest: true } }),
-      this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyMaxLocal: true, scuSellMaxLocal: true, scuBuyAvg: true, scuSellAvg: true, priceBuyAvg: true, priceSellAvg: true } }),
+      this.prisma.terminalCommodityMax.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyMaxLocal: true, scuSellMaxLocal: true, scuBuyAvg: true, scuSellAvg: true, scuBuyStockAvg24h: true, scuSellStockAvg24h: true, priceBuyAvg: true, priceSellAvg: true, containerSizes: true } }),
       this.prisma.commodityAverage.findMany({ where: { commodityId: { in: allCommodityIds } }, select: { commodityId: true, scuBuyMax: true, scuSellMax: true } }),
+      this.prisma.terminalDistance.findMany({ select: { originTerminalId: true, destTerminalId: true, distanceGm: true } }),
     ]);
     const cargoMap = new Map<string, typeof cargoRoutes[number]>();
     for (const cr of cargoRoutes) cargoMap.set(`${cr.commodityId}-${cr.originTerminalId}-${cr.destTerminalId}`, cr);
+    const distMap = new Map<string, number>();
+    for (const d of termDistances) distMap.set(`${d.originTerminalId}-${d.destTerminalId}`, d.distanceGm);
     const stockMap = new Map<string, typeof termMaxRows[number]>();
     for (const t of termMaxRows) stockMap.set(`${t.commodityId}-${t.terminalId}`, t);
     const commAvgMap = new Map<number, typeof commAvgs[number]>();
@@ -149,26 +152,46 @@ export class RoutesController {
         const dStock = stockMap.get(`${sell.commodityId}-${sell.terminalId}`);
         const commAvg = commAvgMap.get(buy.commodityId);
 
-        // Use current snapshot prices for real-time accuracy
-        const buyPrice = buy.priceBuy ?? 0;
-        const sellPrice = sell.priceSell ?? 0;
+        // Three profit modes:
+        //   expected (default): 24h avg price + 24h avg stock
+        //   live:               current price + current stock
+        //   max:                current price + UEX historical max stock
+        const mode = profitMode || 'live';
+
+        const buyPriceRaw = buy.priceBuy ?? 0;
+        const sellPriceRaw = sell.priceSell ?? 0;
+        const buyPrice = mode === 'expected'
+          ? (oStock?.priceBuyAvg ?? buyPriceRaw)
+          : buyPriceRaw;
+        const sellPrice = mode === 'expected'
+          ? (dStock?.priceSellAvg ?? sellPriceRaw)
+          : sellPriceRaw;
         if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice) continue;
 
         const profitPerScu = sellPrice - buyPrice;
 
-        // Stock constraint: cascade fallback
-        // 1. UEX terminal max/avg
-        // 2. local DB max (our own 3-day snapshot peak)
-        // 3. current snapshot stock
-        // 4. UEX global historical max (CommodityAverage)
-        // 5. last resort: 1
-        const isMaxMode = profitMode === 'max';
-        const originStockPrimary = isMaxMode ? oStock?.scuBuyMax : Math.round(oStock?.scuBuyAvg ?? 0);
-        const originStock = originStockPrimary
-          || oStock?.scuBuyMaxLocal
-          || buy.scuBuyStock
-          || commAvg?.scuBuyMax
-          || 1;
+        // Stock cascade by mode:
+        //   live:     current snapshot → UEX global → 1
+        //   expected: 24h weighted avg → current snapshot → UEX global → 1
+        //   max:      UEX max → 24h peak → current snapshot → UEX global → 1
+        let originStock: number;
+        if (mode === 'max') {
+          originStock = oStock?.scuBuyMax
+            || oStock?.scuBuyMaxLocal
+            || buy.scuBuyStock
+            || commAvg?.scuBuyMax
+            || 1;
+        } else if (mode === 'expected') {
+          originStock = Math.round(oStock?.scuBuyStockAvg24h ?? oStock?.scuBuyAvg ?? 0)
+            || buy.scuBuyStock
+            || commAvg?.scuBuyMax
+            || 1;
+        } else {
+          // live: current snapshot stock
+          originStock = buy.scuBuyStock
+            || commAvg?.scuBuyMax
+            || 1;
+        }
         const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
         const sellScu = loadScu;
         const totalInvestment = buyPrice * sellScu;
@@ -197,14 +220,15 @@ export class RoutesController {
           destPlanetName: sell.terminal.planetName || '', destPlanetNameEn: sell.terminal.planetNameEn || '',
           destMoonName: sell.terminal.moonName || '', destMoonNameEn: sell.terminal.moonNameEn || '',
           sellPrice, profitPerScu, roi,
-          distanceGm: cargo?.distance ?? null,
+          distanceGm: cargo?.distance ?? distMap.get(`${buy.terminalId}-${sell.terminalId}`) ?? null,
           totalProfit, totalInvestment, loadScu, sellScu, shipScu,
-          originStock: Math.round(oStock?.scuBuyAvg || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellAvg || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
+          originStock: Math.round(oStock?.scuBuyStockAvg24h || oStock?.scuBuyAvg || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellStockAvg24h || dStock?.scuSellAvg || sell.scuSellStock || commAvg?.scuSellMax || 0),
+          originStockLive: Math.round(buy.scuBuyStock || 0), destStockLive: Math.round(sell.scuSellStock || 0),
           originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
           originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
           destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
           isAutoLoadOrigin: buy.terminal.isAutoLoad, isAutoLoadDest: sell.terminal.isAutoLoad,
-          containerSizesOrigin: cargo?.containerSizesOrigin ?? null, containerSizesDest: cargo?.containerSizesDest ?? null, isIllegal: buy.commodity.isIllegal,
+          containerSizesOrigin: oStock?.containerSizes ?? null, containerSizesDest: dStock?.containerSizes ?? null, isIllegal: buy.commodity.isIllegal,
         });
       }
     }
@@ -284,7 +308,7 @@ export class RoutesController {
         if (a.distanceGm == null && b.distanceGm == null) return 0;
         if (a.distanceGm == null) return 1;
         if (b.distanceGm == null) return -1;
-        return (a.distanceGm - b.distanceGm) * order;
+        return a.distanceGm - b.distanceGm; // always asc: nearest first
       }
       return (a.totalProfit - b.totalProfit) * order;
     });

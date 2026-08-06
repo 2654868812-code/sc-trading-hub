@@ -33,6 +33,8 @@ export type TerminalCommodityMaxAvgAggregateOutputType = {
   scuSellMax: number | null
   scuBuyMaxLocal: number | null
   scuSellMaxLocal: number | null
+  scuBuyStockAvg24h: number | null
+  scuSellStockAvg24h: number | null
   scuBuyAvg: number | null
   scuSellAvg: number | null
   priceBuyAvg: number | null
@@ -47,6 +49,8 @@ export type TerminalCommodityMaxSumAggregateOutputType = {
   scuSellMax: number | null
   scuBuyMaxLocal: number | null
   scuSellMaxLocal: number | null
+  scuBuyStockAvg24h: number | null
+  scuSellStockAvg24h: number | null
   scuBuyAvg: number | null
   scuSellAvg: number | null
   priceBuyAvg: number | null
@@ -61,10 +65,13 @@ export type TerminalCommodityMaxMinAggregateOutputType = {
   scuSellMax: number | null
   scuBuyMaxLocal: number | null
   scuSellMaxLocal: number | null
+  scuBuyStockAvg24h: number | null
+  scuSellStockAvg24h: number | null
   scuBuyAvg: number | null
   scuSellAvg: number | null
   priceBuyAvg: number | null
   priceSellAvg: number | null
+  containerSizes: string | null
   dateModified: number | null
   fetchedAt: Date | null
 }
@@ -76,10 +83,13 @@ export type TerminalCommodityMaxMaxAggregateOutputType = {
   scuSellMax: number | null
   scuBuyMaxLocal: number | null
   scuSellMaxLocal: number | null
+  scuBuyStockAvg24h: number | null
+  scuSellStockAvg24h: number | null
   scuBuyAvg: number | null
   scuSellAvg: number | null
   priceBuyAvg: number | null
   priceSellAvg: number | null
+  containerSizes: string | null
   dateModified: number | null
   fetchedAt: Date | null
 }
@@ -91,10 +101,13 @@ export type TerminalCommodityMaxCountAggregateOutputType = {
   scuSellMax: number
   scuBuyMaxLocal: number
   scuSellMaxLocal: number
+  scuBuyStockAvg24h: number
+  scuSellStockAvg24h: number
   scuBuyAvg: number
   scuSellAvg: number
   priceBuyAvg: number
   priceSellAvg: number
+  containerSizes: number
   dateModified: number
   fetchedAt: number
   _all: number
@@ -108,6 +121,8 @@ export type TerminalCommodityMaxAvgAggregateInputType = {
   scuSellMax?: true
   scuBuyMaxLocal?: true
   scuSellMaxLocal?: true
+  scuBuyStockAvg24h?: true
+  scuSellStockAvg24h?: true
   scuBuyAvg?: true
   scuSellAvg?: true
   priceBuyAvg?: true
@@ -122,6 +137,8 @@ export type TerminalCommodityMaxSumAggregateInputType = {
   scuSellMax?: true
   scuBuyMaxLocal?: true
   scuSellMaxLocal?: true
+  scuBuyStockAvg24h?: true
+  scuSellStockAvg24h?: true
   scuBuyAvg?: true
   scuSellAvg?: true
   priceBuyAvg?: true
@@ -136,10 +153,13 @@ export type TerminalCommodityMaxMinAggregateInputType = {
   scuSellMax?: true
   scuBuyMaxLocal?: true
   scuSellMaxLocal?: true
+  scuBuyStockAvg24h?: true
+  scuSellStockAvg24h?: true
   scuBuyAvg?: true
   scuSellAvg?: true
   priceBuyAvg?: true
   priceSellAvg?: true
+  containerSizes?: true
   dateModified?: true
   fetchedAt?: true
 }
@@ -151,10 +171,13 @@ export type TerminalCommodityMaxMaxAggregateInputType = {
   scuSellMax?: true
   scuBuyMaxLocal?: true
   scuSellMaxLocal?: true
+  scuBuyStockAvg24h?: true
+  scuSellStockAvg24h?: true
   scuBuyAvg?: true
   scuSellAvg?: true
   priceBuyAvg?: true
   priceSellAvg?: true
+  containerSizes?: true
   dateModified?: true
   fetchedAt?: true
 }
@@ -166,10 +189,13 @@ export type TerminalCommodityMaxCountAggregateInputType = {
   scuSellMax?: true
   scuBuyMaxLocal?: true
   scuSellMaxLocal?: true
+  scuBuyStockAvg24h?: true
+  scuSellStockAvg24h?: true
   scuBuyAvg?: true
   scuSellAvg?: true
   priceBuyAvg?: true
   priceSellAvg?: true
+  containerSizes?: true
   dateModified?: true
   fetchedAt?: true
   _all?: true
@@ -268,10 +294,13 @@ export type TerminalCommodityMaxGroupByOutputType = {
   scuSellMax: number | null
   scuBuyMaxLocal: number | null
   scuSellMaxLocal: number | null
+  scuBuyStockAvg24h: number | null
+  scuSellStockAvg24h: number | null
   scuBuyAvg: number | null
   scuSellAvg: number | null
   priceBuyAvg: number | null
   priceSellAvg: number | null
+  containerSizes: string | null
   dateModified: number | null
   fetchedAt: Date
   _count: TerminalCommodityMaxCountAggregateOutputType | null
@@ -306,10 +335,13 @@ export type TerminalCommodityMaxWhereInput = {
   scuSellMax?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
+  scuBuyStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  scuSellStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  containerSizes?: Prisma.StringNullableFilter<"TerminalCommodityMax"> | string | null
   dateModified?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   fetchedAt?: Prisma.DateTimeFilter<"TerminalCommodityMax"> | Date | string
   commodity?: Prisma.XOR<Prisma.CommodityScalarRelationFilter, Prisma.CommodityWhereInput>
@@ -323,10 +355,13 @@ export type TerminalCommodityMaxOrderByWithRelationInput = {
   scuSellMax?: Prisma.SortOrderInput | Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrderInput | Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrderInput | Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrderInput | Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrderInput | Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   priceSellAvg?: Prisma.SortOrderInput | Prisma.SortOrder
+  containerSizes?: Prisma.SortOrderInput | Prisma.SortOrder
   dateModified?: Prisma.SortOrderInput | Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
   commodity?: Prisma.CommodityOrderByWithRelationInput
@@ -344,10 +379,13 @@ export type TerminalCommodityMaxWhereUniqueInput = Prisma.AtLeast<{
   scuSellMax?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
+  scuBuyStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  scuSellStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  containerSizes?: Prisma.StringNullableFilter<"TerminalCommodityMax"> | string | null
   dateModified?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   fetchedAt?: Prisma.DateTimeFilter<"TerminalCommodityMax"> | Date | string
   commodity?: Prisma.XOR<Prisma.CommodityScalarRelationFilter, Prisma.CommodityWhereInput>
@@ -361,10 +399,13 @@ export type TerminalCommodityMaxOrderByWithAggregationInput = {
   scuSellMax?: Prisma.SortOrderInput | Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrderInput | Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrderInput | Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrderInput | Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrderInput | Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrderInput | Prisma.SortOrder
   priceSellAvg?: Prisma.SortOrderInput | Prisma.SortOrder
+  containerSizes?: Prisma.SortOrderInput | Prisma.SortOrder
   dateModified?: Prisma.SortOrderInput | Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
   _count?: Prisma.TerminalCommodityMaxCountOrderByAggregateInput
@@ -384,10 +425,13 @@ export type TerminalCommodityMaxScalarWhereWithAggregatesInput = {
   scuSellMax?: Prisma.IntNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   scuBuyMaxLocal?: Prisma.IntNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   scuSellMaxLocal?: Prisma.IntNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
+  scuBuyStockAvg24h?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
+  scuSellStockAvg24h?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   scuBuyAvg?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   scuSellAvg?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   priceBuyAvg?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   priceSellAvg?: Prisma.FloatNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
+  containerSizes?: Prisma.StringNullableWithAggregatesFilter<"TerminalCommodityMax"> | string | null
   dateModified?: Prisma.IntNullableWithAggregatesFilter<"TerminalCommodityMax"> | number | null
   fetchedAt?: Prisma.DateTimeWithAggregatesFilter<"TerminalCommodityMax"> | Date | string
 }
@@ -397,10 +441,13 @@ export type TerminalCommodityMaxCreateInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
   commodity: Prisma.CommodityCreateNestedOneWithoutTerminalMaxInput
@@ -414,10 +461,13 @@ export type TerminalCommodityMaxUncheckedCreateInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -427,10 +477,13 @@ export type TerminalCommodityMaxUpdateInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   commodity?: Prisma.CommodityUpdateOneRequiredWithoutTerminalMaxNestedInput
@@ -444,10 +497,13 @@ export type TerminalCommodityMaxUncheckedUpdateInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -459,10 +515,13 @@ export type TerminalCommodityMaxCreateManyInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -472,10 +531,13 @@ export type TerminalCommodityMaxUpdateManyMutationInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -487,10 +549,13 @@ export type TerminalCommodityMaxUncheckedUpdateManyInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -517,10 +582,13 @@ export type TerminalCommodityMaxCountOrderByAggregateInput = {
   scuSellMax?: Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrder
   priceSellAvg?: Prisma.SortOrder
+  containerSizes?: Prisma.SortOrder
   dateModified?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
@@ -532,6 +600,8 @@ export type TerminalCommodityMaxAvgOrderByAggregateInput = {
   scuSellMax?: Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrder
@@ -546,10 +616,13 @@ export type TerminalCommodityMaxMaxOrderByAggregateInput = {
   scuSellMax?: Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrder
   priceSellAvg?: Prisma.SortOrder
+  containerSizes?: Prisma.SortOrder
   dateModified?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
@@ -561,10 +634,13 @@ export type TerminalCommodityMaxMinOrderByAggregateInput = {
   scuSellMax?: Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrder
   priceSellAvg?: Prisma.SortOrder
+  containerSizes?: Prisma.SortOrder
   dateModified?: Prisma.SortOrder
   fetchedAt?: Prisma.SortOrder
 }
@@ -576,6 +652,8 @@ export type TerminalCommodityMaxSumOrderByAggregateInput = {
   scuSellMax?: Prisma.SortOrder
   scuBuyMaxLocal?: Prisma.SortOrder
   scuSellMaxLocal?: Prisma.SortOrder
+  scuBuyStockAvg24h?: Prisma.SortOrder
+  scuSellStockAvg24h?: Prisma.SortOrder
   scuBuyAvg?: Prisma.SortOrder
   scuSellAvg?: Prisma.SortOrder
   priceBuyAvg?: Prisma.SortOrder
@@ -672,10 +750,13 @@ export type TerminalCommodityMaxCreateWithoutCommodityInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
   terminal: Prisma.TerminalCreateNestedOneWithoutTerminalMaxInput
@@ -687,10 +768,13 @@ export type TerminalCommodityMaxUncheckedCreateWithoutCommodityInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -731,10 +815,13 @@ export type TerminalCommodityMaxScalarWhereInput = {
   scuSellMax?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellMaxLocal?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
+  scuBuyStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  scuSellStockAvg24h?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   scuSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceBuyAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
   priceSellAvg?: Prisma.FloatNullableFilter<"TerminalCommodityMax"> | number | null
+  containerSizes?: Prisma.StringNullableFilter<"TerminalCommodityMax"> | string | null
   dateModified?: Prisma.IntNullableFilter<"TerminalCommodityMax"> | number | null
   fetchedAt?: Prisma.DateTimeFilter<"TerminalCommodityMax"> | Date | string
 }
@@ -744,10 +831,13 @@ export type TerminalCommodityMaxCreateWithoutTerminalInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
   commodity: Prisma.CommodityCreateNestedOneWithoutTerminalMaxInput
@@ -759,10 +849,13 @@ export type TerminalCommodityMaxUncheckedCreateWithoutTerminalInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -799,10 +892,13 @@ export type TerminalCommodityMaxCreateManyCommodityInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -812,10 +908,13 @@ export type TerminalCommodityMaxUpdateWithoutCommodityInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   terminal?: Prisma.TerminalUpdateOneRequiredWithoutTerminalMaxNestedInput
@@ -827,10 +926,13 @@ export type TerminalCommodityMaxUncheckedUpdateWithoutCommodityInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -841,10 +943,13 @@ export type TerminalCommodityMaxUncheckedUpdateManyWithoutCommodityInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -855,10 +960,13 @@ export type TerminalCommodityMaxCreateManyTerminalInput = {
   scuSellMax?: number | null
   scuBuyMaxLocal?: number | null
   scuSellMaxLocal?: number | null
+  scuBuyStockAvg24h?: number | null
+  scuSellStockAvg24h?: number | null
   scuBuyAvg?: number | null
   scuSellAvg?: number | null
   priceBuyAvg?: number | null
   priceSellAvg?: number | null
+  containerSizes?: string | null
   dateModified?: number | null
   fetchedAt: Date | string
 }
@@ -868,10 +976,13 @@ export type TerminalCommodityMaxUpdateWithoutTerminalInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   commodity?: Prisma.CommodityUpdateOneRequiredWithoutTerminalMaxNestedInput
@@ -883,10 +994,13 @@ export type TerminalCommodityMaxUncheckedUpdateWithoutTerminalInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -897,10 +1011,13 @@ export type TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalInput = {
   scuSellMax?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuBuyMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   scuSellMaxLocal?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  scuBuyStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  scuSellStockAvg24h?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   scuSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceBuyAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
   priceSellAvg?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  containerSizes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dateModified?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   fetchedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -914,10 +1031,13 @@ export type TerminalCommodityMaxSelect<ExtArgs extends runtime.Types.Extensions.
   scuSellMax?: boolean
   scuBuyMaxLocal?: boolean
   scuSellMaxLocal?: boolean
+  scuBuyStockAvg24h?: boolean
+  scuSellStockAvg24h?: boolean
   scuBuyAvg?: boolean
   scuSellAvg?: boolean
   priceBuyAvg?: boolean
   priceSellAvg?: boolean
+  containerSizes?: boolean
   dateModified?: boolean
   fetchedAt?: boolean
   commodity?: boolean | Prisma.CommodityDefaultArgs<ExtArgs>
@@ -931,10 +1051,13 @@ export type TerminalCommodityMaxSelectCreateManyAndReturn<ExtArgs extends runtim
   scuSellMax?: boolean
   scuBuyMaxLocal?: boolean
   scuSellMaxLocal?: boolean
+  scuBuyStockAvg24h?: boolean
+  scuSellStockAvg24h?: boolean
   scuBuyAvg?: boolean
   scuSellAvg?: boolean
   priceBuyAvg?: boolean
   priceSellAvg?: boolean
+  containerSizes?: boolean
   dateModified?: boolean
   fetchedAt?: boolean
   commodity?: boolean | Prisma.CommodityDefaultArgs<ExtArgs>
@@ -948,10 +1071,13 @@ export type TerminalCommodityMaxSelectUpdateManyAndReturn<ExtArgs extends runtim
   scuSellMax?: boolean
   scuBuyMaxLocal?: boolean
   scuSellMaxLocal?: boolean
+  scuBuyStockAvg24h?: boolean
+  scuSellStockAvg24h?: boolean
   scuBuyAvg?: boolean
   scuSellAvg?: boolean
   priceBuyAvg?: boolean
   priceSellAvg?: boolean
+  containerSizes?: boolean
   dateModified?: boolean
   fetchedAt?: boolean
   commodity?: boolean | Prisma.CommodityDefaultArgs<ExtArgs>
@@ -965,15 +1091,18 @@ export type TerminalCommodityMaxSelectScalar = {
   scuSellMax?: boolean
   scuBuyMaxLocal?: boolean
   scuSellMaxLocal?: boolean
+  scuBuyStockAvg24h?: boolean
+  scuSellStockAvg24h?: boolean
   scuBuyAvg?: boolean
   scuSellAvg?: boolean
   priceBuyAvg?: boolean
   priceSellAvg?: boolean
+  containerSizes?: boolean
   dateModified?: boolean
   fetchedAt?: boolean
 }
 
-export type TerminalCommodityMaxOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"commodityId" | "terminalId" | "scuBuyMax" | "scuSellMax" | "scuBuyMaxLocal" | "scuSellMaxLocal" | "scuBuyAvg" | "scuSellAvg" | "priceBuyAvg" | "priceSellAvg" | "dateModified" | "fetchedAt", ExtArgs["result"]["terminalCommodityMax"]>
+export type TerminalCommodityMaxOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"commodityId" | "terminalId" | "scuBuyMax" | "scuSellMax" | "scuBuyMaxLocal" | "scuSellMaxLocal" | "scuBuyStockAvg24h" | "scuSellStockAvg24h" | "scuBuyAvg" | "scuSellAvg" | "priceBuyAvg" | "priceSellAvg" | "containerSizes" | "dateModified" | "fetchedAt", ExtArgs["result"]["terminalCommodityMax"]>
 export type TerminalCommodityMaxInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   commodity?: boolean | Prisma.CommodityDefaultArgs<ExtArgs>
   terminal?: boolean | Prisma.TerminalDefaultArgs<ExtArgs>
@@ -1000,10 +1129,13 @@ export type $TerminalCommodityMaxPayload<ExtArgs extends runtime.Types.Extension
     scuSellMax: number | null
     scuBuyMaxLocal: number | null
     scuSellMaxLocal: number | null
+    scuBuyStockAvg24h: number | null
+    scuSellStockAvg24h: number | null
     scuBuyAvg: number | null
     scuSellAvg: number | null
     priceBuyAvg: number | null
     priceSellAvg: number | null
+    containerSizes: string | null
     dateModified: number | null
     fetchedAt: Date
   }, ExtArgs["result"]["terminalCommodityMax"]>
@@ -1437,10 +1569,13 @@ export interface TerminalCommodityMaxFieldRefs {
   readonly scuSellMax: Prisma.FieldRef<"TerminalCommodityMax", 'Int'>
   readonly scuBuyMaxLocal: Prisma.FieldRef<"TerminalCommodityMax", 'Int'>
   readonly scuSellMaxLocal: Prisma.FieldRef<"TerminalCommodityMax", 'Int'>
+  readonly scuBuyStockAvg24h: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
+  readonly scuSellStockAvg24h: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
   readonly scuBuyAvg: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
   readonly scuSellAvg: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
   readonly priceBuyAvg: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
   readonly priceSellAvg: Prisma.FieldRef<"TerminalCommodityMax", 'Float'>
+  readonly containerSizes: Prisma.FieldRef<"TerminalCommodityMax", 'String'>
   readonly dateModified: Prisma.FieldRef<"TerminalCommodityMax", 'Int'>
   readonly fetchedAt: Prisma.FieldRef<"TerminalCommodityMax", 'DateTime'>
 }

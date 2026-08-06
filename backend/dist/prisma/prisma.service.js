@@ -25,9 +25,12 @@ let PrismaService = PrismaService_1 = class PrismaService {
     commodityAverage;
     terminalCommodityMax;
     marketIndex;
+    terminalDistance;
     $transaction;
     constructor() {
-        const url = process.env.DATABASE_URL || 'postgresql://trading:trading@localhost:5432/trading';
+        const url = process.env.DATABASE_URL;
+        if (!url)
+            throw new Error('DATABASE_URL environment variable is required');
         const { PrismaPg } = require('@prisma/adapter-pg');
         const { Pool } = require('pg');
         const pool = new Pool({ connectionString: url });
@@ -41,6 +44,7 @@ let PrismaService = PrismaService_1 = class PrismaService {
         this.commodityAverage = this.client.commodityAverage;
         this.terminalCommodityMax = this.client.terminalCommodityMax;
         this.marketIndex = this.client.marketIndex;
+        this.terminalDistance = this.client.terminalDistance;
         this.$transaction = this.client.$transaction.bind(this.client);
     }
     async onModuleInit() { await this.client.$connect(); }

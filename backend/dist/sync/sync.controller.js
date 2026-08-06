@@ -24,7 +24,11 @@ let SyncController = class SyncController {
     }
     async fetch() {
         await this.syncService.fullSync();
-        return { status: 'ok', message: 'Sync completed' };
+        return { status: 'ok', message: 'Full sync completed' };
+    }
+    async metaSync() {
+        await this.syncService.syncMetadata();
+        return { status: 'ok', message: 'Metadata sync completed' };
     }
     async freshness() {
         const latest = await this.prisma.priceSnapshot.findFirst({
@@ -43,6 +47,14 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SyncController.prototype, "fetch", null);
+__decorate([
+    (0, common_1.Get)('cron/meta-sync'),
+    (0, common_1.HttpCode)(200),
+    (0, common_1.UseGuards)(cron_auth_guard_1.CronAuthGuard),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SyncController.prototype, "metaSync", null);
 __decorate([
     (0, common_1.Get)('data-freshness'),
     (0, public_decorator_1.Public)(),

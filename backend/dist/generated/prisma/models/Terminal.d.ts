@@ -41,6 +41,7 @@ export type TerminalMinAggregateOutputType = {
     isRefuel: boolean | null;
     isRepair: boolean | null;
     isHabitation: boolean | null;
+    locationType: string | null;
 };
 export type TerminalMaxAggregateOutputType = {
     id: number | null;
@@ -69,6 +70,7 @@ export type TerminalMaxAggregateOutputType = {
     isRefuel: boolean | null;
     isRepair: boolean | null;
     isHabitation: boolean | null;
+    locationType: string | null;
 };
 export type TerminalCountAggregateOutputType = {
     id: number;
@@ -97,6 +99,7 @@ export type TerminalCountAggregateOutputType = {
     isRefuel: number;
     isRepair: number;
     isHabitation: number;
+    locationType: number;
     _all: number;
 };
 export type TerminalAvgAggregateInputType = {
@@ -132,6 +135,7 @@ export type TerminalMinAggregateInputType = {
     isRefuel?: true;
     isRepair?: true;
     isHabitation?: true;
+    locationType?: true;
 };
 export type TerminalMaxAggregateInputType = {
     id?: true;
@@ -160,6 +164,7 @@ export type TerminalMaxAggregateInputType = {
     isRefuel?: true;
     isRepair?: true;
     isHabitation?: true;
+    locationType?: true;
 };
 export type TerminalCountAggregateInputType = {
     id?: true;
@@ -188,6 +193,7 @@ export type TerminalCountAggregateInputType = {
     isRefuel?: true;
     isRepair?: true;
     isHabitation?: true;
+    locationType?: true;
     _all?: true;
 };
 export type TerminalAggregateArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -245,6 +251,7 @@ export type TerminalGroupByOutputType = {
     isRefuel: boolean;
     isRepair: boolean;
     isHabitation: boolean;
+    locationType: string | null;
     _count: TerminalCountAggregateOutputType | null;
     _avg: TerminalAvgAggregateOutputType | null;
     _sum: TerminalSumAggregateOutputType | null;
@@ -284,6 +291,7 @@ export type TerminalWhereInput = {
     isRefuel?: Prisma.BoolFilter<"Terminal"> | boolean;
     isRepair?: Prisma.BoolFilter<"Terminal"> | boolean;
     isHabitation?: Prisma.BoolFilter<"Terminal"> | boolean;
+    locationType?: Prisma.StringNullableFilter<"Terminal"> | string | null;
     priceSnapshots?: Prisma.PriceSnapshotListRelationFilter;
     cargoRoutesOrigin?: Prisma.CargoRouteListRelationFilter;
     cargoRoutesDest?: Prisma.CargoRouteListRelationFilter;
@@ -316,6 +324,7 @@ export type TerminalOrderByWithRelationInput = {
     isRefuel?: Prisma.SortOrder;
     isRepair?: Prisma.SortOrder;
     isHabitation?: Prisma.SortOrder;
+    locationType?: Prisma.SortOrderInput | Prisma.SortOrder;
     priceSnapshots?: Prisma.PriceSnapshotOrderByRelationAggregateInput;
     cargoRoutesOrigin?: Prisma.CargoRouteOrderByRelationAggregateInput;
     cargoRoutesDest?: Prisma.CargoRouteOrderByRelationAggregateInput;
@@ -351,6 +360,7 @@ export type TerminalWhereUniqueInput = Prisma.AtLeast<{
     isRefuel?: Prisma.BoolFilter<"Terminal"> | boolean;
     isRepair?: Prisma.BoolFilter<"Terminal"> | boolean;
     isHabitation?: Prisma.BoolFilter<"Terminal"> | boolean;
+    locationType?: Prisma.StringNullableFilter<"Terminal"> | string | null;
     priceSnapshots?: Prisma.PriceSnapshotListRelationFilter;
     cargoRoutesOrigin?: Prisma.CargoRouteListRelationFilter;
     cargoRoutesDest?: Prisma.CargoRouteListRelationFilter;
@@ -383,6 +393,7 @@ export type TerminalOrderByWithAggregationInput = {
     isRefuel?: Prisma.SortOrder;
     isRepair?: Prisma.SortOrder;
     isHabitation?: Prisma.SortOrder;
+    locationType?: Prisma.SortOrderInput | Prisma.SortOrder;
     _count?: Prisma.TerminalCountOrderByAggregateInput;
     _avg?: Prisma.TerminalAvgOrderByAggregateInput;
     _max?: Prisma.TerminalMaxOrderByAggregateInput;
@@ -419,6 +430,7 @@ export type TerminalScalarWhereWithAggregatesInput = {
     isRefuel?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean;
     isRepair?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean;
     isHabitation?: Prisma.BoolWithAggregatesFilter<"Terminal"> | boolean;
+    locationType?: Prisma.StringNullableWithAggregatesFilter<"Terminal"> | string | null;
 };
 export type TerminalCreateInput = {
     id: number;
@@ -447,6 +459,7 @@ export type TerminalCreateInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput;
@@ -479,6 +492,7 @@ export type TerminalUncheckedCreateInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput;
@@ -511,6 +525,7 @@ export type TerminalUpdateInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput;
@@ -543,6 +558,7 @@ export type TerminalUncheckedUpdateInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput;
@@ -575,6 +591,7 @@ export type TerminalCreateManyInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
 };
 export type TerminalUpdateManyMutationInput = {
     id?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -603,6 +620,7 @@ export type TerminalUpdateManyMutationInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type TerminalUncheckedUpdateManyInput = {
     id?: Prisma.IntFieldUpdateOperationsInput | number;
@@ -631,6 +649,7 @@ export type TerminalUncheckedUpdateManyInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
 };
 export type TerminalCountOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -659,6 +678,7 @@ export type TerminalCountOrderByAggregateInput = {
     isRefuel?: Prisma.SortOrder;
     isRepair?: Prisma.SortOrder;
     isHabitation?: Prisma.SortOrder;
+    locationType?: Prisma.SortOrder;
 };
 export type TerminalAvgOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -690,6 +710,7 @@ export type TerminalMaxOrderByAggregateInput = {
     isRefuel?: Prisma.SortOrder;
     isRepair?: Prisma.SortOrder;
     isHabitation?: Prisma.SortOrder;
+    locationType?: Prisma.SortOrder;
 };
 export type TerminalMinOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -718,6 +739,7 @@ export type TerminalMinOrderByAggregateInput = {
     isRefuel?: Prisma.SortOrder;
     isRepair?: Prisma.SortOrder;
     isHabitation?: Prisma.SortOrder;
+    locationType?: Prisma.SortOrder;
 };
 export type TerminalSumOrderByAggregateInput = {
     id?: Prisma.SortOrder;
@@ -801,6 +823,7 @@ export type TerminalCreateWithoutPriceSnapshotsInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput;
@@ -832,6 +855,7 @@ export type TerminalUncheckedCreateWithoutPriceSnapshotsInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput;
@@ -876,6 +900,7 @@ export type TerminalUpdateWithoutPriceSnapshotsInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput;
@@ -907,6 +932,7 @@ export type TerminalUncheckedUpdateWithoutPriceSnapshotsInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput;
@@ -938,6 +964,7 @@ export type TerminalCreateWithoutCargoRoutesOriginInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput;
@@ -969,6 +996,7 @@ export type TerminalUncheckedCreateWithoutCargoRoutesOriginInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput;
@@ -1004,6 +1032,7 @@ export type TerminalCreateWithoutCargoRoutesDestInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxCreateNestedManyWithoutTerminalInput;
@@ -1035,6 +1064,7 @@ export type TerminalUncheckedCreateWithoutCargoRoutesDestInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedCreateNestedManyWithoutTerminalInput;
@@ -1079,6 +1109,7 @@ export type TerminalUpdateWithoutCargoRoutesOriginInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput;
@@ -1110,6 +1141,7 @@ export type TerminalUncheckedUpdateWithoutCargoRoutesOriginInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput;
@@ -1150,6 +1182,7 @@ export type TerminalUpdateWithoutCargoRoutesDestInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUpdateManyWithoutTerminalNestedInput;
@@ -1181,6 +1214,7 @@ export type TerminalUncheckedUpdateWithoutCargoRoutesDestInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput;
     terminalMax?: Prisma.TerminalCommodityMaxUncheckedUpdateManyWithoutTerminalNestedInput;
@@ -1212,6 +1246,7 @@ export type TerminalCreateWithoutTerminalMaxInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteCreateNestedManyWithoutDestTerminalInput;
@@ -1243,6 +1278,7 @@ export type TerminalUncheckedCreateWithoutTerminalMaxInput = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedCreateNestedManyWithoutTerminalInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutOriginTerminalInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedCreateNestedManyWithoutDestTerminalInput;
@@ -1287,6 +1323,7 @@ export type TerminalUpdateWithoutTerminalMaxInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUpdateManyWithoutDestTerminalNestedInput;
@@ -1318,6 +1355,7 @@ export type TerminalUncheckedUpdateWithoutTerminalMaxInput = {
     isRefuel?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isRepair?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     isHabitation?: Prisma.BoolFieldUpdateOperationsInput | boolean;
+    locationType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     priceSnapshots?: Prisma.PriceSnapshotUncheckedUpdateManyWithoutTerminalNestedInput;
     cargoRoutesOrigin?: Prisma.CargoRouteUncheckedUpdateManyWithoutOriginTerminalNestedInput;
     cargoRoutesDest?: Prisma.CargoRouteUncheckedUpdateManyWithoutDestTerminalNestedInput;
@@ -1376,6 +1414,7 @@ export type TerminalSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: boolean;
     priceSnapshots?: boolean | Prisma.Terminal$priceSnapshotsArgs<ExtArgs>;
     cargoRoutesOrigin?: boolean | Prisma.Terminal$cargoRoutesOriginArgs<ExtArgs>;
     cargoRoutesDest?: boolean | Prisma.Terminal$cargoRoutesDestArgs<ExtArgs>;
@@ -1409,6 +1448,7 @@ export type TerminalSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: boolean;
 }, ExtArgs["result"]["terminal"]>;
 export type TerminalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
     id?: boolean;
@@ -1437,6 +1477,7 @@ export type TerminalSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: boolean;
 }, ExtArgs["result"]["terminal"]>;
 export type TerminalSelectScalar = {
     id?: boolean;
@@ -1465,8 +1506,9 @@ export type TerminalSelectScalar = {
     isRefuel?: boolean;
     isRepair?: boolean;
     isHabitation?: boolean;
+    locationType?: boolean;
 };
-export type TerminalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "nameEn" | "code" | "type" | "starSystemName" | "starSystemNameEn" | "planetName" | "planetNameEn" | "moonName" | "moonNameEn" | "cityName" | "cityNameEn" | "spaceStationName" | "spaceStationNameEn" | "hasCargoCenter" | "hasDockingPort" | "hasFreightElevator" | "hasLoadingDock" | "isAutoLoad" | "isRefinery" | "isMedical" | "isFood" | "isRefuel" | "isRepair" | "isHabitation", ExtArgs["result"]["terminal"]>;
+export type TerminalOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "nameEn" | "code" | "type" | "starSystemName" | "starSystemNameEn" | "planetName" | "planetNameEn" | "moonName" | "moonNameEn" | "cityName" | "cityNameEn" | "spaceStationName" | "spaceStationNameEn" | "hasCargoCenter" | "hasDockingPort" | "hasFreightElevator" | "hasLoadingDock" | "isAutoLoad" | "isRefinery" | "isMedical" | "isFood" | "isRefuel" | "isRepair" | "isHabitation" | "locationType", ExtArgs["result"]["terminal"]>;
 export type TerminalInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     priceSnapshots?: boolean | Prisma.Terminal$priceSnapshotsArgs<ExtArgs>;
     cargoRoutesOrigin?: boolean | Prisma.Terminal$cargoRoutesOriginArgs<ExtArgs>;
@@ -1511,6 +1553,7 @@ export type $TerminalPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
         isRefuel: boolean;
         isRepair: boolean;
         isHabitation: boolean;
+        locationType: string | null;
     }, ExtArgs["result"]["terminal"]>;
     composites: {};
 };
@@ -1598,6 +1641,7 @@ export interface TerminalFieldRefs {
     readonly isRefuel: Prisma.FieldRef<"Terminal", 'Boolean'>;
     readonly isRepair: Prisma.FieldRef<"Terminal", 'Boolean'>;
     readonly isHabitation: Prisma.FieldRef<"Terminal", 'Boolean'>;
+    readonly locationType: Prisma.FieldRef<"Terminal", 'String'>;
 }
 export type TerminalFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     select?: Prisma.TerminalSelect<ExtArgs> | null;

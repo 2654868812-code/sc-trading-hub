@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalDistanceScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = require("@prisma/client/runtime/index-browser");
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -19,6 +19,7 @@ exports.ModelName = {
     Vehicle: 'Vehicle',
     CommodityAverage: 'CommodityAverage',
     TerminalCommodityMax: 'TerminalCommodityMax',
+    TerminalDistance: 'TerminalDistance',
     MarketIndex: 'MarketIndex'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
@@ -73,7 +74,8 @@ exports.TerminalScalarFieldEnum = {
     isFood: 'isFood',
     isRefuel: 'isRefuel',
     isRepair: 'isRepair',
-    isHabitation: 'isHabitation'
+    isHabitation: 'isHabitation',
+    locationType: 'locationType'
 };
 exports.PriceSnapshotScalarFieldEnum = {
     id: 'id',
@@ -128,12 +130,20 @@ exports.TerminalCommodityMaxScalarFieldEnum = {
     scuSellMax: 'scuSellMax',
     scuBuyMaxLocal: 'scuBuyMaxLocal',
     scuSellMaxLocal: 'scuSellMaxLocal',
+    scuBuyStockAvg24h: 'scuBuyStockAvg24h',
+    scuSellStockAvg24h: 'scuSellStockAvg24h',
     scuBuyAvg: 'scuBuyAvg',
     scuSellAvg: 'scuSellAvg',
     priceBuyAvg: 'priceBuyAvg',
     priceSellAvg: 'priceSellAvg',
+    containerSizes: 'containerSizes',
     dateModified: 'dateModified',
     fetchedAt: 'fetchedAt'
+};
+exports.TerminalDistanceScalarFieldEnum = {
+    originTerminalId: 'originTerminalId',
+    destTerminalId: 'destTerminalId',
+    distanceGm: 'distanceGm'
 };
 exports.MarketIndexScalarFieldEnum = {
     id: 'id',

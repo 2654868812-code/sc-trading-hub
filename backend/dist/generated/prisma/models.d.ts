@@ -5,5 +5,6 @@ export type * from './models/CargoRoute';
 export type * from './models/Vehicle';
 export type * from './models/CommodityAverage';
 export type * from './models/TerminalCommodityMax';
+export type * from './models/TerminalDistance';
 export type * from './models/MarketIndex';
 export type * from './commonInputTypes';

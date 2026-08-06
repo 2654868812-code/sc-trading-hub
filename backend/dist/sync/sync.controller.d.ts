@@ -8,6 +8,10 @@ export declare class SyncController {
         status: string;
         message: string;
     }>;
+    metaSync(): Promise<{
+        status: string;
+        message: string;
+    }>;
     freshness(): Promise<{
         latestFetchedAt: any;
     }>;

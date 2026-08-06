@@ -17,6 +17,7 @@ interface RouteTableProps {
   loading?: boolean;
   roundTrip?: boolean;
   flipKey?: number;
+  profitMode?: string;
   onCommodityClick?: (commodityId: number) => void;
 }
 
@@ -65,7 +66,19 @@ function fmtTime(iso: string) {
   return `${days} 天前`;
 }
 
-function StockBar({ stock, max }: { stock: number; max: number }) {
+function pickStock(mode: string | undefined, live: number, avg: number, max: number) {
+  if (mode === 'max') return max;
+  if (mode === 'expected') return avg;
+  return live; // live: current snapshot stock
+}
+
+function stockLabel(mode: string | undefined) {
+  if (mode === 'max') return '最大库存';
+  if (mode === 'expected') return '24h均库存';
+  return '当前库存';
+}
+
+function StockBar({ stock, max, mode }: { stock: number; max: number; mode?: string }) {
   if (stock <= 0) return <span className="text-muted-foreground/40 text-[9px]">—</span>;
 
   const hasMax = max > 0;
@@ -76,7 +89,7 @@ function StockBar({ stock, max }: { stock: number; max: number }) {
 
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[9px] tabular-nums whitespace-nowrap leading-none">
+      <span className="text-[9px] tabular-nums whitespace-nowrap leading-none" title={stockLabel(mode)}>
         {hasMax ? `${fmtK(stock)}/${fmtK(max)}` : fmtK(stock)}
       </span>
       {hasMax && (
@@ -88,8 +101,10 @@ function StockBar({ stock, max }: { stock: number; max: number }) {
   );
 }
 
-export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, onCommodityClick }: RouteTableProps) {
+export function RouteTable(props: RouteTableProps) {
+  const { routes, routePairs, loading, roundTrip, flipKey, onCommodityClick } = props;
   const shouldAnimate = flipKey && flipKey > 1;
+  const mode = props.profitMode || 'live';
   const router = useRouter();
 
   if (loading) return <Skeleton />;
@@ -121,17 +136,17 @@ export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, on
                 <th className="th-cell" style={{ width: '8%' }}>商品</th>
                 <th className="th-cell" style={{ width: '9%' }}>购买地</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>买价</th>
-                <th className="th-cell" style={{ width: '7%' }}>均/最大库存</th>
+                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}</th>
                 <th className="th-cell" style={{ width: '9%' }}>出售地</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
-                <th className="th-cell" style={{ width: '7%' }}>均/最大库存</th>
+                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
-                <th className="th-cell--right" style={{ width: '5%' }}>/SCU</th>
+                <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>
                 <th className="th-cell--right" style={{ width: '5%' }}>利润率</th>
-                <th className="th-cell--right" style={{ width: '5%' }}>距离</th>
-                <th className="th-cell--right" style={{ width: '5%' }}>货箱</th>
-                <th className="th-cell-last" style={{ width: '3%' }}>自动</th>
+                <th className="th-cell--right" style={{ width: '4%' }}>距离</th>
+                <th className="th-cell--right" style={{ width: '4%' }}>货箱</th>
+                <th className="th-cell-last" style={{ width: '4%' }}>自动</th>
               </tr>
             </thead>
             <tbody>
@@ -163,12 +178,12 @@ export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, on
                   {/* Outward row */}
                   <tr key={`out-${pair.outward.originTerminalId}-${pair.outward.destTerminalId}`}
                     className="border-b border-border/20">
-                    <RouteTableCells route={pair.outward} router={router} onCommodityClick={onCommodityClick} />
+                    <RouteTableCells route={pair.outward} router={router} profitMode={props.profitMode || 'live'} onCommodityClick={onCommodityClick} />
                   </tr>
                   {/* Return row */}
                   <tr key={`ret-${pair.return_.originTerminalId}-${pair.return_.destTerminalId}`}
                     className="border-b border-border/20">
-                    <RouteTableCells route={pair.return_} router={router} onCommodityClick={onCommodityClick} />
+                    <RouteTableCells route={pair.return_} router={router} profitMode={props.profitMode || 'live'} onCommodityClick={onCommodityClick} />
                   </tr>
                   {/* Separator between pairs */}
                   <tr className="h-2"><td colSpan={14} /></tr>
@@ -199,16 +214,17 @@ export function RouteTable({ routes, routePairs, loading, roundTrip, flipKey, on
         <span className="text-[11px] text-muted-foreground/60 tabular-nums">{routes.length} 条</span>
       </div>
       <div className="overflow-x-auto rounded-lg border border-border">
-        <RouteTableInner routes={routes} router={router} onCommodityClick={onCommodityClick} flipKey={flipKey} />
+        <RouteTableInner routes={routes} router={router} profitMode={mode} onCommodityClick={onCommodityClick} flipKey={flipKey} />
       </div>
     </div>
   );
 }
 
 /** Shared table row cell rendering for both round-trip and normal routes */
-function RouteTableCells({ route: r, router, onCommodityClick }: {
+function RouteTableCells({ route: r, router, profitMode, onCommodityClick }: {
   route: TradeRoute;
   router: ReturnType<typeof useRouter>;
+  profitMode?: string;
   onCommodityClick?: (commodityId: number) => void;
 }) {
   return (
@@ -245,9 +261,9 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
       </td>
       <td className="td-cell--right">
         {fmtM(r.buyPrice)}
-        <div className="text-[8px] text-muted-foreground/35">{fmtTime(r.originUpdatedAt)}</div>
+        <div className="text-[8px] text-muted-foreground/35">{profitMode === 'expected' ? '加权平均' : fmtTime(r.originUpdatedAt)}</div>
       </td>
-      <td className="td-cell"><StockBar stock={r.originStock} max={r.originStockMax} /></td>
+      <td className="td-cell"><StockBar stock={pickStock(profitMode, r.originStockLive, r.originStock, r.originStockMax)} max={r.originStockMax} mode={profitMode} /></td>
       <td className="td-cell min-w-[95px]">
         <button
           onClick={() => router.push(`/location/${encodeURIComponent(r.destLocationZh || r.destTerminalNameZh || r.destTerminalName)}`)}
@@ -262,9 +278,9 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
       </td>
       <td className="td-cell--right">
         {fmtM(r.sellPrice)}
-        <div className="text-[8px] text-muted-foreground/35">{fmtTime(r.destUpdatedAt)}</div>
+        <div className="text-[8px] text-muted-foreground/35">{profitMode === 'expected' ? '加权平均' : fmtTime(r.destUpdatedAt)}</div>
       </td>
-      <td className="td-cell"><StockBar stock={r.destStock} max={r.destStockMax} /></td>
+      <td className="td-cell"><StockBar stock={pickStock(profitMode, r.destStockLive, r.destStock, r.destStockMax)} max={r.destStockMax} mode={profitMode} /></td>
       <td className="td-cell--right">
         <span className="cursor-help border-b border-dotted border-muted-foreground/30" title={`买价(${fmtM(r.buyPrice)}) × 可售量(${r.sellScu}) = ${fmtM(r.totalInvestment)}`}>{fmtM(r.totalInvestment)}</span>
       </td>
@@ -276,7 +292,7 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
         <span className="text-chart-2">{r.roi}%</span>
       </td>
       <td className="td-cell--right">
-        {r.distanceGm != null ? `${r.distanceGm} GM` : '—'}
+        {r.distanceGm != null ? `${r.distanceGm}G` : '—'}
       </td>
       <td className="td-cell--right">
         <span className="text-[10px] tabular-nums">
@@ -297,9 +313,10 @@ function RouteTableCells({ route: r, router, onCommodityClick }: {
 }
 
 /** Normal table (reused for non-round-trip and unpaired routes) */
-function RouteTableInner({ routes, router, onCommodityClick, flipKey }: {
+function RouteTableInner({ routes, router, profitMode, onCommodityClick, flipKey }: {
   routes: TradeRoute[];
   router: ReturnType<typeof useRouter>;
+  profitMode?: string;
   onCommodityClick?: (commodityId: number) => void;
   flipKey?: number;
 }) {
@@ -310,18 +327,18 @@ function RouteTableInner({ routes, router, onCommodityClick, flipKey }: {
         <tr>
           <th className="th-cell">商品</th>
           <th className="th-cell">购买地</th>
-          <th className="th-cell--right">买价</th>
-          <th className="th-cell">均/最大库存</th>
+          <th className="th-cell--right" style={{ width: '6%' }}>买价</th>
+          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}</th>
           <th className="th-cell">出售地</th>
-          <th className="th-cell--right">卖价</th>
-          <th className="th-cell">均/最大库存</th>
-          <th className="th-cell--right">成本</th>
-          <th className="th-cell--right">利润</th>
-          <th className="th-cell--right">/SCU</th>
-          <th className="th-cell--right">利润率</th>
-          <th className="th-cell--right">距离</th>
-          <th className="th-cell--right">货箱</th>
-          <th className="th-cell-last">自动</th>
+          <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
+          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}</th>
+          <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
+          <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
+          <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>
+          <th className="th-cell--right" style={{ width: '5%' }}>利润率</th>
+          <th className="th-cell--right" style={{ width: '4%' }}>距离</th>
+          <th className="th-cell--right" style={{ width: '4%' }}>货箱</th>
+          <th className="th-cell-last" style={{ width: '4%' }}>自动</th>
         </tr>
       </thead>
       <tbody>
@@ -330,7 +347,7 @@ function RouteTableInner({ routes, router, onCommodityClick, flipKey }: {
             style={{
               animation: shouldAnimate ? `rowFlip 0.12s ease-in-out ${i * 120}ms both` : undefined,
             }}>
-            <RouteTableCells route={r} router={router} onCommodityClick={onCommodityClick} />
+            <RouteTableCells route={r} router={router} profitMode={profitMode || 'live'} onCommodityClick={onCommodityClick} />
           </tr>
         ))}
       </tbody>

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.MarketIndexScalarFieldEnum = exports.TerminalDistanceScalarFieldEnum = exports.TerminalCommodityMaxScalarFieldEnum = exports.CommodityAverageScalarFieldEnum = exports.VehicleScalarFieldEnum = exports.CargoRouteScalarFieldEnum = exports.PriceSnapshotScalarFieldEnum = exports.TerminalScalarFieldEnum = exports.CommodityScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = require("@prisma/client/runtime/client");
 exports.PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError;
 exports.PrismaClientUnknownRequestError = runtime.PrismaClientUnknownRequestError;
@@ -34,6 +34,7 @@ exports.ModelName = {
     Vehicle: 'Vehicle',
     CommodityAverage: 'CommodityAverage',
     TerminalCommodityMax: 'TerminalCommodityMax',
+    TerminalDistance: 'TerminalDistance',
     MarketIndex: 'MarketIndex'
 };
 exports.TransactionIsolationLevel = runtime.makeStrictEnum({
@@ -88,7 +89,8 @@ exports.TerminalScalarFieldEnum = {
     isFood: 'isFood',
     isRefuel: 'isRefuel',
     isRepair: 'isRepair',
-    isHabitation: 'isHabitation'
+    isHabitation: 'isHabitation',
+    locationType: 'locationType'
 };
 exports.PriceSnapshotScalarFieldEnum = {
     id: 'id',
@@ -143,12 +145,20 @@ exports.TerminalCommodityMaxScalarFieldEnum = {
     scuSellMax: 'scuSellMax',
     scuBuyMaxLocal: 'scuBuyMaxLocal',
     scuSellMaxLocal: 'scuSellMaxLocal',
+    scuBuyStockAvg24h: 'scuBuyStockAvg24h',
+    scuSellStockAvg24h: 'scuSellStockAvg24h',
     scuBuyAvg: 'scuBuyAvg',
     scuSellAvg: 'scuSellAvg',
     priceBuyAvg: 'priceBuyAvg',
     priceSellAvg: 'priceSellAvg',
+    containerSizes: 'containerSizes',
     dateModified: 'dateModified',
     fetchedAt: 'fetchedAt'
+};
+exports.TerminalDistanceScalarFieldEnum = {
+    originTerminalId: 'originTerminalId',
+    destTerminalId: 'destTerminalId',
+    distanceGm: 'distanceGm'
 };
 exports.MarketIndexScalarFieldEnum = {
     id: 'id',

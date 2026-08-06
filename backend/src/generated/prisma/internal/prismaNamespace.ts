@@ -404,6 +404,7 @@ export const ModelName = {
   Vehicle: 'Vehicle',
   CommodityAverage: 'CommodityAverage',
   TerminalCommodityMax: 'TerminalCommodityMax',
+  TerminalDistance: 'TerminalDistance',
   MarketIndex: 'MarketIndex'
 } as const
 
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax" | "marketIndex"
+    modelProps: "commodity" | "terminal" | "priceSnapshot" | "cargoRoute" | "vehicle" | "commodityAverage" | "terminalCommodityMax" | "terminalDistance" | "marketIndex"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -942,6 +943,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    TerminalDistance: {
+      payload: Prisma.$TerminalDistancePayload<ExtArgs>
+      fields: Prisma.TerminalDistanceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TerminalDistanceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TerminalDistanceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        findFirst: {
+          args: Prisma.TerminalDistanceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TerminalDistanceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        findMany: {
+          args: Prisma.TerminalDistanceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>[]
+        }
+        create: {
+          args: Prisma.TerminalDistanceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        createMany: {
+          args: Prisma.TerminalDistanceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TerminalDistanceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>[]
+        }
+        delete: {
+          args: Prisma.TerminalDistanceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        update: {
+          args: Prisma.TerminalDistanceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        deleteMany: {
+          args: Prisma.TerminalDistanceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TerminalDistanceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TerminalDistanceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>[]
+        }
+        upsert: {
+          args: Prisma.TerminalDistanceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TerminalDistancePayload>
+        }
+        aggregate: {
+          args: Prisma.TerminalDistanceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTerminalDistance>
+        }
+        groupBy: {
+          args: Prisma.TerminalDistanceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TerminalDistanceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TerminalDistanceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TerminalDistanceCountAggregateOutputType> | number
+        }
+      }
+    }
     MarketIndex: {
       payload: Prisma.$MarketIndexPayload<ExtArgs>
       fields: Prisma.MarketIndexFieldRefs
@@ -1105,7 +1180,8 @@ export const TerminalScalarFieldEnum = {
   isFood: 'isFood',
   isRefuel: 'isRefuel',
   isRepair: 'isRepair',
-  isHabitation: 'isHabitation'
+  isHabitation: 'isHabitation',
+  locationType: 'locationType'
 } as const
 
 export type TerminalScalarFieldEnum = (typeof TerminalScalarFieldEnum)[keyof typeof TerminalScalarFieldEnum]
@@ -1180,15 +1256,27 @@ export const TerminalCommodityMaxScalarFieldEnum = {
   scuSellMax: 'scuSellMax',
   scuBuyMaxLocal: 'scuBuyMaxLocal',
   scuSellMaxLocal: 'scuSellMaxLocal',
+  scuBuyStockAvg24h: 'scuBuyStockAvg24h',
+  scuSellStockAvg24h: 'scuSellStockAvg24h',
   scuBuyAvg: 'scuBuyAvg',
   scuSellAvg: 'scuSellAvg',
   priceBuyAvg: 'priceBuyAvg',
   priceSellAvg: 'priceSellAvg',
+  containerSizes: 'containerSizes',
   dateModified: 'dateModified',
   fetchedAt: 'fetchedAt'
 } as const
 
 export type TerminalCommodityMaxScalarFieldEnum = (typeof TerminalCommodityMaxScalarFieldEnum)[keyof typeof TerminalCommodityMaxScalarFieldEnum]
+
+
+export const TerminalDistanceScalarFieldEnum = {
+  originTerminalId: 'originTerminalId',
+  destTerminalId: 'destTerminalId',
+  distanceGm: 'distanceGm'
+} as const
+
+export type TerminalDistanceScalarFieldEnum = (typeof TerminalDistanceScalarFieldEnum)[keyof typeof TerminalDistanceScalarFieldEnum]
 
 
 export const MarketIndexScalarFieldEnum = {
@@ -1451,6 +1539,7 @@ export type GlobalOmitConfig = {
   vehicle?: Prisma.VehicleOmit
   commodityAverage?: Prisma.CommodityAverageOmit
   terminalCommodityMax?: Prisma.TerminalCommodityMaxOmit
+  terminalDistance?: Prisma.TerminalDistanceOmit
   marketIndex?: Prisma.MarketIndexOmit
 }
 

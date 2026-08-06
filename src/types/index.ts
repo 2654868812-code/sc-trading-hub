@@ -76,6 +76,8 @@ export interface TradeRoute {
   shipScu: number;
   originStock: number;
   destStock: number;
+  originStockLive: number;
+  destStockLive: number;
   originStockMax: number;
   destStockMax: number;
   originUpdatedAt: string;
@@ -106,7 +108,7 @@ export interface RouteFilters {
   sortBy?: 'roi' | 'profit' | 'distance';
   sortOrder?: 'asc' | 'desc';
   roundTrip?: boolean;
-  profitMode?: 'expected' | 'max';
+  profitMode?: 'expected' | 'live' | 'max';
 }
 
 export interface ShipOption {

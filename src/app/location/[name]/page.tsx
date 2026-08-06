@@ -127,13 +127,12 @@ function MergedFacilities({ terminals }: { terminals: TerminalGroup[] }) {
 function CommodityRow({ c, side, terminalName }: { c: TermCommodity; side: 'buy' | 'sell'; terminalName?: string }) {
   const router = useRouter();
   const price = side === 'buy' ? c.priceBuy : c.priceSell;
-  const avg = side === 'buy' ? c.priceBuyAvg : c.priceSellAvg;
+  const avg24h = side === 'buy' ? (c as any).priceBuyAvg24h : (c as any).priceSellAvg24h;
   const maxPrice = side === 'buy' ? c.priceBuyMax : c.priceSellMax;
-  const minPrice = side === 'buy' ? c.priceBuyMin : c.priceSellMin;
   const stock = side === 'buy' ? c.scuBuyStock : c.scuSellStock;
+  const stockAvg24h = side === 'buy' ? (c as any).scuBuyStockAvg24h : (c as any).scuSellStockAvg24h;
   const stockMax = side === 'buy' ? c.scuBuyMax : c.scuSellMax;
   const priceColor = side === 'buy' ? 'text-chart-2' : 'text-destructive';
-  const hasStats = avg != null || maxPrice != null || minPrice != null;
 
   return (
     <div
@@ -151,8 +150,7 @@ function CommodityRow({ c, side, terminalName }: { c: TermCommodity; side: 'buy'
         </div>
         <div className="flex items-center gap-2 mt-1">
           <span className="text-[10px] tabular-nums text-muted-foreground/50">
-            库存: {stock != null ? stock.toLocaleString() : '—'}
-            {stockMax ? ` / ${stockMax.toLocaleString()}` : ''}
+            库存: {stock != null ? stock.toLocaleString() : '—'} / {stockAvg24h != null ? stockAvg24h.toLocaleString() : '—'} / {stockMax ? stockMax.toLocaleString() : '—'}
           </span>
           {c.profitMargin != null && (
             <span className={`text-[10px] tabular-nums ${c.profitMargin > 0 ? 'text-chart-2' : 'text-destructive'}`}>
@@ -167,13 +165,11 @@ function CommodityRow({ c, side, terminalName }: { c: TermCommodity; side: 'buy'
             {price.toLocaleString()} aUEC
           </div>
         )}
-        {hasStats && (
-          <div className="text-[10px] tabular-nums text-muted-foreground/70 flex gap-1.5 justify-end mt-0.5">
-            {avg != null && <span title="历史均价">均{avg.toFixed(0)}</span>}
-            {maxPrice != null && <span title="历史最高">高{maxPrice.toFixed(0)}</span>}
-            {minPrice != null && <span title="历史最低">低{minPrice.toFixed(0)}</span>}
-          </div>
-        )}
+        <div className="text-[10px] tabular-nums text-muted-foreground/50 flex gap-1 justify-end mt-0.5">
+          <span title="24h均价">{avg24h != null ? avg24h.toFixed(0) : '—'}</span>
+          <span className="text-border/40">/</span>
+          <span title="24h最高">{maxPrice != null ? maxPrice.toFixed(0) : '—'}</span>
+        </div>
         <div className="text-[9px] text-muted-foreground/30 mt-0.5">
           {(() => {
             const diff = Date.now() - new Date(c.updatedAt).getTime();
