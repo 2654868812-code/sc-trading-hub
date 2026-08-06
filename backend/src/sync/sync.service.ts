@@ -16,23 +16,32 @@ export class SyncService {
 
   // ── Public API ───────────────────────────────────────────────
 
-  /** Full sync (backward compat — runs both metadata + prices in order) */
+  /** Full sync (backward compat — runs everything in order) */
   async fullSync() {
     this.logger.log('Starting full sync...');
-    await this.syncMetadata();
+    await this.syncSpaceStations();
+    await this.syncCommodities();
+    await this.syncTerminals();
+    await this.syncVehicles();
     await this.syncPricesData();
     await this.syncComputations();
     this.logger.log('Full sync complete');
   }
 
-  /** Slow sync: static reference data (24h) */
+  /** 24h: space stations, terminals, vehicles */
   async syncMetadata() {
     this.logger.log('Starting metadata sync...');
     await this.syncSpaceStations();
-    await this.syncCommodities();
     await this.syncTerminals();
     await this.syncVehicles();
     this.logger.log('Metadata sync complete');
+  }
+
+  /** 1h: commodities */
+  async syncCommoditiesOnly() {
+    this.logger.log('Starting commodities sync...');
+    await this.syncCommodities();
+    this.logger.log('Commodities sync complete');
   }
 
   /** Fast sync: price data (30min) */
