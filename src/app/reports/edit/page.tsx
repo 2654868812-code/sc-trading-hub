@@ -2,7 +2,11 @@
 
 import { useEffect, useState, useRef } from 'react';
 
+let _nextId = 1;
+function uid() { return `_${_nextId++}`; }
+
 interface NewsItem {
+  _key: string;
   title: string;
   body: string;
   image: string;
@@ -12,6 +16,7 @@ interface NewsItem {
 }
 
 interface RouteItem {
+  _key: string;
   ship: string;
   commodity: string;
   origin: string;
@@ -19,6 +24,8 @@ interface RouteItem {
   profit: string;
   note: string;
 }
+
+interface TipItem { _key: string; text: string }
 
 interface ReportsData {
   date: string;
@@ -28,11 +35,11 @@ interface ReportsData {
 }
 
 function emptyNews(): NewsItem {
-  return { title: '', body: '', image: '', imagePosition: 'left', imageScale: 45, style: 'default' };
+  return { _key: uid(), title: '', body: '', image: '', imagePosition: 'left', imageScale: 45, style: 'default' };
 }
 
 function emptyRoute(): RouteItem {
-  return { ship: '', commodity: '', origin: '', dest: '', profit: '', note: '' };
+  return { _key: uid(), ship: '', commodity: '', origin: '', dest: '', profit: '', note: '' };
 }
 
 function getToken(): string {
@@ -43,7 +50,7 @@ function getToken(): string {
 export default function ReportsEditPage() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
-  const [tips, setTips] = useState<string[]>([]);
+  const [tips, setTips] = useState<TipItem[]>([]);
   const [date, setDate] = useState('');
   const [gameVersion, setGameVersion] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -60,9 +67,9 @@ export default function ReportsEditPage() {
     ]).then(async ([reportsRes, verRes]) => {
       if (reportsRes.status === 401) { window.location.href = '/reports/login'; return; }
       const [d, ver] = await Promise.all([reportsRes.json(), verRes.json()]);
-      setNews((d as ReportsData).news?.length ? (d as ReportsData).news : [emptyNews()]);
-      setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes : [emptyRoute()]);
-      setTips((d as ReportsData).tips || []);
+      setNews((d as ReportsData).news?.length ? (d as ReportsData).news.map(item => ({ ...item, _key: uid() })) : [emptyNews()]);
+      setRoutes((d as ReportsData).routes?.length ? (d as ReportsData).routes.map(item => ({ ...item, _key: uid() })) : [emptyRoute()]);
+      setTips(((d as ReportsData).tips || []).map(text => ({ _key: uid(), text })));
       setDate((d as ReportsData).date || '');
       setGameVersion(ver.gameVersion);
       setLoaded(true);
@@ -101,9 +108,10 @@ export default function ReportsEditPage() {
 
   function save() {
     // Filter out empty items
-    const nonEmptyNews = news.filter((n) => n.title || n.body || n.image);
-    const nonEmptyRoutes = routes.filter((r) => r.commodity || r.origin || r.dest);
-    const nonEmptyTips = tips.filter(t => t.trim());
+    const stripKey = ({ _key, ...rest }: any) => rest;
+    const nonEmptyNews = news.filter((n) => n.title || n.body || n.image).map(stripKey);
+    const nonEmptyRoutes = routes.filter((r) => r.commodity || r.origin || r.dest).map(stripKey);
+    const nonEmptyTips = tips.filter(t => t.text.trim()).map(t => t.text);
     setSaving(true);
     setMsg('');
     fetch('/api/reports', {
@@ -181,12 +189,12 @@ export default function ReportsEditPage() {
         </div>
 
         {news.map((item, idx) => (
-          <div key={idx} className="section-card p-4 space-y-3">
+          <div key={item._key} className="section-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">新闻 #{idx + 1}</span>
               {news.length > 1 && (
                 <button
-                  onClick={() => setNews((prev) => prev.filter((_, i) => i !== idx))}
+                  onClick={() => setNews((prev) => prev.filter(n => n._key !== item._key))}
                   className="text-xs text-destructive hover:underline"
                 >
                   删除
@@ -359,12 +367,12 @@ export default function ReportsEditPage() {
         </div>
 
         {routes.map((item, idx) => (
-          <div key={idx} className="section-card p-4 space-y-3">
+          <div key={item._key} className="section-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">路线 #{idx + 1}</span>
               {routes.length > 1 && (
                 <button
-                  onClick={() => setRoutes((prev) => prev.filter((_, i) => i !== idx))}
+                  onClick={() => setRoutes((prev) => prev.filter(r => r._key !== item._key))}
                   className="text-xs text-destructive hover:underline"
                 >
                   删除
@@ -469,20 +477,20 @@ export default function ReportsEditPage() {
             <p className="text-[11px] text-muted-foreground mt-0.5">首页右下角定时轮播展示</p>
           </div>
           <button
-            onClick={() => setTips(prev => [...prev, ''])}
+            onClick={() => setTips(prev => [...prev, { _key: uid(), text: '' }])}
             className="text-xs px-3 py-1 rounded-md border border-border hover:bg-secondary transition-colors"
           >
             + 添加贴士
           </button>
         </div>
 
-        {tips.map((tip, idx) => (
-          <div key={idx} className="section-card p-4 space-y-3">
+        {tips.map((item, idx) => (
+          <div key={item._key} className="section-card p-4 space-y-3">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">贴士 #{idx + 1}</span>
               {tips.length > 1 && (
                 <button
-                  onClick={() => setTips(prev => prev.filter((_, i) => i !== idx))}
+                  onClick={() => setTips(prev => prev.filter(t => t._key !== item._key))}
                   className="text-xs text-destructive hover:underline"
                 >
                   删除
@@ -493,10 +501,10 @@ export default function ReportsEditPage() {
               <span className="text-xs text-muted-foreground self-center">内容</span>
               <input
                 type="text"
-                value={tip}
+                value={item.text}
                 onChange={e => {
                   const next = [...tips];
-                  next[idx] = e.target.value;
+                  next[idx] = { ...next[idx], text: e.target.value };
                   setTips(next);
                 }}
                 placeholder="贴士内容"

@@ -32,30 +32,35 @@ export default function HomePage() {
   const lastCommoditySyncRef = useRef<string | null>(null);
   const [, setTick] = useState(0);
 
-  const fetchCommodities = useCallback(async () => {
+  const fetchCommodities = useCallback(async (signal?: AbortSignal) => {
     try {
       const [dataRes, verRes, idxRes] = await Promise.all([
-        fetch('/api/commodities'),
-        fetch('/api/version'),
-        fetch('/api/market-index?days=14'),
+        fetch('/api/commodities', { signal }),
+        fetch('/api/version', { signal }),
+        fetch('/api/market-index?days=14', { signal }),
       ]);
+      if (signal?.aborted) return;
       if (!dataRes.ok) throw new Error(`HTTP ${dataRes.status}`);
       const lastUpd = dataRes.headers.get('X-LastUpdated');
       setLastUpdated(lastUpd);
       if (lastUpd) lastCommoditySyncRef.current = lastUpd;
       const [data, ver, idx] = await Promise.all([dataRes.json(), verRes.json(), idxRes.json()]);
+      if (signal?.aborted) return;
       setCommodities(data);
       setGameVersion(ver.gameVersion);
       setIndex(idx);
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
       console.error(err);
       setError('数据加载失败，请稍后刷新重试');
     }
   }, []);
 
   useEffect(() => {
-    fetchCommodities().finally(() => setLoading(false));
+    const ac = new AbortController();
+    fetchCommodities(ac.signal).finally(() => setLoading(false));
+    return () => ac.abort();
   }, [fetchCommodities]);
 
   // Tick every 30s to keep relative time display fresh
@@ -66,19 +71,22 @@ export default function HomePage() {
 
   // Poll for data sync every 60s, auto-refresh commodities
   useEffect(() => {
+    let cancelled = false;
     const timer = setInterval(async () => {
       try {
         const res = await fetch('/api/data-freshness');
-        if (!res.ok) return;
+        if (cancelled || !res.ok) return;
         const { latestFetchedAt } = await res.json();
         if (latestFetchedAt && lastCommoditySyncRef.current && lastCommoditySyncRef.current !== latestFetchedAt) {
-          await fetchCommodities();
+          const ac = new AbortController();
+          await fetchCommodities(ac.signal);
+          if (cancelled) { ac.abort(); return; }
           setFlipKey((k) => k + 1);
         }
-        if (latestFetchedAt) lastCommoditySyncRef.current = latestFetchedAt;
+        if (latestFetchedAt && !cancelled) lastCommoditySyncRef.current = latestFetchedAt;
       } catch { /* network error — retry next interval */ }
     }, 60_000);
-    return () => clearInterval(timer);
+    return () => { cancelled = true; clearInterval(timer); };
   }, [fetchCommodities]);
 
   const handleCommodityClick = useCallback(

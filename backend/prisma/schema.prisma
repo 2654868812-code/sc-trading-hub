@@ -59,6 +59,7 @@ model Terminal {
   isRefuel           Boolean          @default(false)
   isRepair           Boolean          @default(false)
   isHabitation       Boolean          @default(false)
+  locationType       String?          // 主城/空间站/拉格朗日点/星门/地面站
   priceSnapshots     PriceSnapshot[]
   cargoRoutesOrigin  CargoRoute[]     @relation("CargoRouteOrigin")
   cargoRoutesDest    CargoRoute[]     @relation("CargoRouteDest")

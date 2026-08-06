@@ -15,20 +15,23 @@ export default function MarketIndexPage() {
   const router = useRouter();
   const [data, setData] = useState<IndexData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/market-index?days=90')
-      .then(r => r.json())
+      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
       .then((d: IndexData) => setData(d))
-      .catch(() => {})
+      .catch((err) => { setFetchError(err instanceof Error ? err.message : '网络错误'); })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
+  if (fetchError) return <div className="text-center py-16 text-muted-foreground">数据加载失败，请刷新页面重试</div>;
   if (!data || data.current == null) return <div className="text-center py-16 text-muted-foreground">暂无数据，等待数据更新后生成</div>;
 
-  const high = Math.max(...data.history.map(h => h.v));
-  const low = Math.min(...data.history.map(h => h.v));
+  const historyValues = data.history.map(h => h.v);
+  const high = historyValues.length > 0 ? Math.max(...historyValues) : 0;
+  const low = historyValues.length > 0 ? Math.min(...historyValues) : 0;
   const range = high - low || 1;
 
   return (

@@ -71,29 +71,37 @@ function RoutesContent() {
   );
   const currentFiltersRef = useRef<RouteFilters | null>(null);
   const lastSyncRef = useRef<string | null>(null);
+  const searchAbortRef = useRef<AbortController | null>(null);
+  const mountedRef = useRef(true);
 
   // Read initial filters from URL only (sessionStorage handled client-side after mount)
   const initialFilters = readFiltersFromParams(searchParams);
 
   // Load systems list
   useEffect(() => {
-    fetch('/api/terminals?distinctSystems=true')
+    const ac = new AbortController();
+    fetch('/api/terminals?distinctSystems=true', { signal: ac.signal })
       .then((r) => r.json())
-      .then((data: string[]) =>
-        setSystems(data.map((name) => ({ en: name, zh: name })))
-      )
-      .catch(console.error);
+      .then((data: string[]) => { if (!ac.signal.aborted) setSystems(data.map((name) => ({ en: name, zh: name }))); })
+      .catch((err) => { if (err.name !== 'AbortError') console.error(err); });
+    return () => ac.abort();
   }, []);
 
   const doSearch = useCallback(async (filters: RouteFilters, silent?: boolean) => {
+    // Cancel any in-flight search
+    if (searchAbortRef.current) searchAbortRef.current.abort();
+    const ac = new AbortController();
+    searchAbortRef.current = ac;
+
     if (!silent) setLoading(true);
     setSearched(true);
     const params = buildFilterParams(filters);
 
     try {
-      const res = await fetch(`/api/routes?${params.toString()}`);
+      const res = await fetch(`/api/routes?${params.toString()}`, { signal: ac.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      if (ac.signal.aborted || !mountedRef.current) return;
       if (data.roundTrip) {
         setRoutePairs(data.pairs || []);
         setRoutes([]);
@@ -102,13 +110,15 @@ function RoutesContent() {
         setRoutePairs([]);
       }
       setSearchError(null);
-    } catch (err) {
+    } catch (err: any) {
+      if (err?.name === 'AbortError') return;
+      if (!mountedRef.current) return;
       console.error(err);
       setSearchError('查询失败，请稍后重试');
       setRoutes([]);
       setRoutePairs([]);
     } finally {
-      if (!silent) setLoading(false);
+      if (!silent && !ac.signal.aborted && mountedRef.current) setLoading(false);
     }
   }, []);
 
@@ -118,6 +128,7 @@ function RoutesContent() {
       currentFiltersRef.current = initialFilters;
       doSearch(initialFilters);
     }
+    return () => { mountedRef.current = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -158,12 +169,12 @@ function RoutesContent() {
       isChecking = true;
       try {
         const res = await fetch('/api/data-freshness');
-        if (!res.ok) return;
+        if (!mountedRef.current || !res.ok) return;
         const { latestFetchedAt } = await res.json();
         if (!latestFetchedAt) return;
         if (lastSyncRef.current && lastSyncRef.current !== latestFetchedAt && currentFiltersRef.current) {
           await doSearch(currentFiltersRef.current, true);
-          setFlipKey((k) => k + 1);
+          if (mountedRef.current) setFlipKey((k) => k + 1);
         }
         lastSyncRef.current = latestFetchedAt;
       } catch { /* network error — retry next interval */ }
@@ -171,7 +182,7 @@ function RoutesContent() {
     }
     check();
     timer = setInterval(check, 60_000);
-    return () => clearInterval(timer);
+    return () => { mountedRef.current = false; clearInterval(timer); };
   }, [doSearch]);
 
   return (

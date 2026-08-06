@@ -4,17 +4,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Public } from '../common/decorators/public.decorator';
 import { getZhKind } from '../lib/commodity-zh';
 
-function guessLocationType(terminals: any[], locationName: string): string {
-  const name = locationName || '';
-  // Gate
-  if (name.includes('星门') || name.includes('之门')) return '星门';
-  // Lagrange point
-  if (/[A-Z]+\s*L\d/i.test(name) || name.includes('拉格朗日')) return '拉格朗日点';
-  // City: any terminal with a city name
-  if (terminals.some(t => t.cityName)) return '主城';
-  // Space station: has space station name but no city
-  if (terminals.some(t => t.spaceStationName && !t.cityName)) return '空间站';
-  // Otherwise outpost/surface
+/** Read location type from terminals — reads the stored `locationType` field (synced from UEX API) */
+function locationTypeFrom(terminals: any[]): string {
+  for (const t of terminals) {
+    if (t.locationType) return t.locationType;
+  }
   return '地面站';
 }
 
@@ -26,7 +20,7 @@ export class LocationsController {
   @Public()
   async list() {
     const terminals = await this.prisma.terminal.findMany({
-      select: { name: true, nameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, starSystemName: true, planetName: true, moonName: true },
+      select: { name: true, nameEn: true, cityName: true, cityNameEn: true, spaceStationName: true, spaceStationNameEn: true, starSystemName: true, planetName: true, moonName: true, locationType: true },
       orderBy: { name: 'asc' },
     });
     const seen = new Map<string, any>();
@@ -34,7 +28,7 @@ export class LocationsController {
       const key = t.cityName || t.spaceStationName || t.name;
       if (!key || seen.has(key)) continue;
       const en = t.cityNameEn || t.spaceStationNameEn || t.nameEn;
-      seen.set(key, { name: key, nameEn: en || '', system: t.starSystemName || '', planet: t.planetName || t.moonName });
+      seen.set(key, { name: key, nameEn: en || '', system: t.starSystemName || '', planet: t.planetName || t.moonName, locationType: t.locationType || '地面站' });
     }
     return [...seen.values()];
   }
@@ -50,7 +44,7 @@ export class LocationsController {
     if (!terminals.length) { res.status(404); return { error: 'location not found' }; }
 
     const latest = await this.prisma.priceSnapshot.findFirst({ orderBy: { fetchedAt: 'desc' }, select: { fetchedAt: true } });
-    if (!latest) return { location: { name: locationName, terminalCount: terminals.length, locationType: guessLocationType(terminals, locationName) }, terminals: [], commodities: [] };
+    if (!latest) return { location: { name: locationName, terminalCount: terminals.length, locationType: locationTypeFrom(terminals) }, terminals: [], commodities: [] };
 
     const ids = terminals.map(t => t.id);
 
@@ -97,7 +91,7 @@ export class LocationsController {
     }
 
     return {
-      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length, locationType: guessLocationType(terminals, locationName) },
+      location: { name: locationName, starSystemName: terminals[0].starSystemName, starSystemNameEn: terminals[0].starSystemNameEn, planetName: terminals[0].planetName, planetNameEn: terminals[0].planetNameEn, moonName: terminals[0].moonName, moonNameEn: terminals[0].moonNameEn, terminalCount: terminals.length, locationType: locationTypeFrom(terminals) },
       terminals: [...termMap.values()],
       gameVersion: gameVer?.gameVersion ?? null,
     };

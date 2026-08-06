@@ -2,30 +2,71 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { uexFetch } from './uex';
 
+interface SpaceStationMeta {
+  isLagrange: boolean;
+  isJumpPoint: boolean;
+}
+
 @Injectable()
 export class SyncService {
   private readonly logger = new Logger(SyncService.name);
+  private spaceStationMeta: Map<string, SpaceStationMeta> = new Map();
+
   constructor(private readonly prisma: PrismaService) {}
 
+  // ── Public API ───────────────────────────────────────────────
+
+  /** Full sync (backward compat — runs both metadata + prices in order) */
   async fullSync() {
     this.logger.log('Starting full sync...');
+    await this.syncMetadata();
+    await this.syncPricesData();
+    await this.syncComputations();
+    this.logger.log('Full sync complete');
+  }
+
+  /** Slow sync: static reference data (24h) */
+  async syncMetadata() {
+    this.logger.log('Starting metadata sync...');
+    await this.syncSpaceStations();
     await this.syncCommodities();
     await this.syncTerminals();
+    await this.syncVehicles();
+    this.logger.log('Metadata sync complete');
+  }
+
+  /** Fast sync: price data (30min) */
+  async syncPricesData() {
+    this.logger.log('Starting price data sync...');
     await this.syncPrices();
-    // Non-critical — don't fail the whole sync if these error
     await Promise.allSettled([
       this.syncCommodityAverages(),
       this.syncCargoRoutes(),
-      this.syncVehicles(),
       this.syncTerminalCommodityMax(),
     ]);
-    // Compute 3-day averages (must run after syncPrices + syncTerminalCommodityMax)
+    this.logger.log('Price data sync complete');
+  }
+
+  /** Post-price computations: averages, profit changes, market index */
+  async syncComputations() {
+    this.logger.log('Starting post-price computations...');
     await this.computeAverages3d();
     await this.updatePriceChanges();
     await this.computeMarketIndex();
-    // Cleanup disabled — permanent storage
-    // await this.cleanupOldSnapshots(parseInt(process.env.PRICE_RETENTION_DAYS || '30', 10));
-    this.logger.log('Full sync complete');
+    this.logger.log('Post-price computations complete');
+  }
+
+  // ── Reference data (slow / 24h) ──────────────────────────────
+
+  /** Fetch /space_stations and build name→meta lookup */
+  private async syncSpaceStations() {
+    const data = await uexFetch<any[]>('/space_stations');
+    const map = new Map<string, SpaceStationMeta>();
+    for (const s of data) {
+      if (s.name) map.set(s.name, { isLagrange: s.is_lagrange === 1, isJumpPoint: s.is_jump_point === 1 });
+    }
+    this.spaceStationMeta = map;
+    this.logger.log(`Loaded ${map.size} space stations (${Array.from(map.values()).filter(v => v.isLagrange).length} Lagrange, ${Array.from(map.values()).filter(v => v.isJumpPoint).length} jump points)`);
   }
 
   private async syncCommodities() {
@@ -41,31 +82,52 @@ export class SyncService {
     this.logger.log(`Synced ${data.length} commodities`);
   }
 
+  /** Determine location type from city/space-station fields + API metadata */
+  private determineLocationType(cityName: string | null, spaceStationName: string | null): string | null {
+    if (cityName) return '主城';
+    if (spaceStationName) {
+      const meta = this.spaceStationMeta.get(spaceStationName);
+      if (meta?.isJumpPoint) return '星门';
+      if (meta?.isLagrange) return '拉格朗日点';
+      return '空间站';
+    }
+    return '地面站';
+  }
+
+  /** Whether this terminal supports auto-load: true for any city/station, else fallback to UEX */
+  private determineAutoLoad(cityName: string | null, spaceStationName: string | null, uexAutoLoad: boolean): boolean {
+    if (cityName || spaceStationName) return true;
+    return uexAutoLoad;
+  }
+
   private async syncTerminals() {
     const data = await uexFetch<any[]>('/terminals?type=commodity');
     const { getTerminalZh } = require('../lib/terminal-zh');
     const { getLocationZh } = require('../lib/location-zh');
 
-    // Auto-load: terminals at cities, space stations, Lagrange points, gates.
-    // UEX is_auto_load is outdated, override based on terminal context.
-    function guessAutoLoad(t: any): boolean {
-      const name = (t.name || '') + (t.space_station_name || '') + (t.city_name || '');
-      if (t.city_name) return true;                    // city terminal
-      if (t.space_station_name) return true;            // space station
-      if (/[A-Z]+\s*L\d/i.test(name)) return true;     // Lagrange point
-      if (/星门|之门|gate/i.test(name)) return true;    // stargate
-      return false;
-    }
     for (const t of data) {
-      const autoLoad = guessAutoLoad(t);
+      const cityName = t.city_name ? getLocationZh(t.city_name) : null;
+      const spaceStationName = t.space_station_name ? getLocationZh(t.space_station_name) : null;
+      const autoLoad = this.determineAutoLoad(t.city_name, t.space_station_name, t.is_auto_load === 1);
+      const locationType = this.determineLocationType(cityName, spaceStationName);
+
       await this.prisma.terminal.upsert({
         where: { id: t.id },
-        update: { name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: autoLoad || t.is_auto_load === 1, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1 },
-        create: { id: t.id, name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName: getLocationZh(t.city_name), cityNameEn: t.city_name || '', spaceStationName: getLocationZh(t.space_station_name), spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: autoLoad || t.is_auto_load === 1, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1 },
+        update: { name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName, cityNameEn: t.city_name || '', spaceStationName, spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: autoLoad, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1, locationType },
+        create: { id: t.id, name: getTerminalZh(t.name), nameEn: t.name, code: t.code, type: t.type, starSystemName: getLocationZh(t.star_system_name), starSystemNameEn: t.star_system_name || '', planetName: getLocationZh(t.planet_name), planetNameEn: t.planet_name || '', moonName: getLocationZh(t.moon_name), moonNameEn: t.moon_name || '', cityName, cityNameEn: t.city_name || '', spaceStationName, spaceStationNameEn: t.space_station_name || '', hasCargoCenter: t.is_cargo_center === 1, hasDockingPort: t.has_docking_port === 1, hasFreightElevator: t.has_freight_elevator === 1, hasLoadingDock: t.has_loading_dock === 1, isAutoLoad: autoLoad, isRefinery: t.is_refinery === 1, isMedical: t.is_medical === 1, isFood: t.is_food === 1, isRefuel: t.is_refuel === 1, isRepair: t.is_repair === 1, isHabitation: t.is_habitation === 1, locationType },
       });
     }
     this.logger.log(`Synced ${data.length} terminals`);
   }
+
+  private async syncVehicles() {
+    const data = await uexFetch<any[]>('/vehicles');
+    const ships = data.filter((v: any) => (v.scu ?? 0) > 0 && v.is_spaceship === 1).map((v: any) => ({ id: v.id, name: v.name_full || v.name, scu: v.scu ?? 0, companyName: v.company_name || '', isCargo: v.is_cargo === 1, padType: v.pad_type || '', updatedAt: new Date() }));
+    await this.prisma.$transaction(async tx => { await tx.vehicle.deleteMany(); for (let i = 0; i < ships.length; i += 500) await tx.vehicle.createMany({ data: ships.slice(i, i + 500) }); });
+    this.logger.log(`Synced ${ships.length} vehicles`);
+  }
+
+  // ── Price data (fast / 30min) ────────────────────────────────
 
   private async syncPrices() {
     const fetchedAt = new Date();
@@ -198,8 +260,6 @@ export class SyncService {
       for (let i = 0; i < deduped.length; i += 1000) {
         await tx.cargoRoute.createMany({ data: deduped.slice(i, i + 1000), skipDuplicates: true });
       }
-      const newKeys = deduped.map(r => `${r.commodityId}-${r.originTerminalId}-${r.destTerminalId}`);
-      // Delete routes not in the new set
       const allExisting = await tx.cargoRoute.findMany({ select: { commodityId: true, originTerminalId: true, destTerminalId: true } });
       for (const old of allExisting) {
         if (!seen.has(`${old.commodityId}-${old.originTerminalId}-${old.destTerminalId}`)) {
@@ -208,13 +268,6 @@ export class SyncService {
       }
     });
     this.logger.log(`Synced ${deduped.length} cargo routes`);
-  }
-
-  private async syncVehicles() {
-    const data = await uexFetch<any[]>('/vehicles');
-    const ships = data.filter((v: any) => (v.scu ?? 0) > 0 && v.is_spaceship === 1).map((v: any) => ({ id: v.id, name: v.name_full || v.name, scu: v.scu ?? 0, companyName: v.company_name || '', isCargo: v.is_cargo === 1, padType: v.pad_type || '', updatedAt: new Date() }));
-    await this.prisma.$transaction(async tx => { await tx.vehicle.deleteMany(); for (let i = 0; i < ships.length; i += 500) await tx.vehicle.createMany({ data: ships.slice(i, i + 500) }); });
-    this.logger.log(`Synced ${ships.length} vehicles`);
   }
 
   private async syncTerminalCommodityMax() {

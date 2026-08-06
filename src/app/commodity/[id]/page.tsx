@@ -33,7 +33,8 @@ export default function CommodityDetailPage() {
   const [priceData, setPriceData] = useState<PricePoint[]>([]);
   const [terminals, setTerminals] = useState<TerminalInfo[]>([]);
   const [hours, setHours] = useState(24);
-  const [loading, setLoading] = useState(true);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [chartLoading, setChartLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
   // Guard against invalid/missing route param
@@ -42,23 +43,26 @@ export default function CommodityDetailPage() {
   }
 
   useEffect(() => {
+    let cancelled = false;
     const ac = new AbortController();
     fetch(`/api/commodities/${commodityId}`, { signal: ac.signal })
       .then((r) => r.json())
       .then((data: CommodityWithChange) => {
+        if (cancelled) return;
         if (data && !('error' in data)) { setCommodity(data); setFetchError(false); }
       })
-      .catch((err) => { if (err.name !== 'AbortError') { console.error(err); setFetchError(true); } });
-    return () => ac.abort();
+      .catch((err) => { if (!cancelled && err.name !== 'AbortError') { console.error(err); setFetchError(true); } });
+    return () => { cancelled = true; ac.abort(); };
   }, [commodityId]);
 
   useEffect(() => {
+    let cancelled = false;
     const ac = new AbortController();
     fetch(`/api/prices/terminals?commodityId=${commodityId}`, { signal: ac.signal })
       .then((r) => r.json())
-      .then((data: TerminalInfo[]) => setTerminals(data))
-      .catch((err) => { if (err.name !== 'AbortError') console.error(err); });
-    return () => ac.abort();
+      .then((data: TerminalInfo[]) => { if (!cancelled) { setTerminals(data); setDataLoading(false); } })
+      .catch((err) => { if (!cancelled && err.name !== 'AbortError') console.error(err); });
+    return () => { cancelled = true; ac.abort(); };
   }, [commodityId]);
 
   // Pick top 5 buy terminals and top 5 sell terminals for charts
@@ -71,17 +75,18 @@ export default function CommodityDetailPage() {
   useEffect(() => {
     if (chartTerminalIds.length === 0) {
       setPriceData([]);
-      setLoading(false);
+      setChartLoading(false);
       return;
     }
-    setLoading(true);
+    let cancelled = false;
+    setChartLoading(true);
     const ac = new AbortController();
     fetch(`/api/prices?commodityId=${commodityId}&terminalIds=${chartTerminalIds.join(',')}&hours=${hours}`, { signal: ac.signal })
       .then((r) => r.json())
-      .then((data: PricePoint[]) => setPriceData(data))
-      .catch((err) => { if (err.name !== 'AbortError') console.error(err); })
-      .finally(() => setLoading(false));
-    return () => ac.abort();
+      .then((data: PricePoint[]) => { if (!cancelled) setPriceData(data); })
+      .catch((err) => { if (!cancelled && err.name !== 'AbortError') console.error(err); })
+      .finally(() => { if (!cancelled) setChartLoading(false); });
+    return () => { cancelled = true; ac.abort(); };
   }, [commodityId, chartTerminalIds, hours]);
 
   const { buyChartData, sellChartData, buyTerminalNames, sellTerminalNames } = useMemo(() => {
@@ -133,6 +138,13 @@ export default function CommodityDetailPage() {
         </span>
       </div>
 
+      {/* Error state */}
+      {fetchError && (
+        <div className="text-center py-8 text-muted-foreground">
+          数据加载失败，请刷新页面重试
+        </div>
+      )}
+
       {/* Commodity header */}
       {commodity && (
         <div>
@@ -182,7 +194,7 @@ export default function CommodityDetailPage() {
         <h3 className="text-xs font-semibold tracking-[0.2em] text-chart-2 uppercase mb-3">
           买价趋势
         </h3>
-        {loading ? (
+        {chartLoading ? (
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
             加载中...
           </div>
@@ -231,7 +243,7 @@ export default function CommodityDetailPage() {
         <h3 className="text-xs font-semibold tracking-[0.2em] text-destructive uppercase mb-3">
           卖价趋势
         </h3>
-        {loading ? (
+        {chartLoading ? (
           <div className="flex items-center justify-center h-[300px] text-muted-foreground">
             加载中...
           </div>

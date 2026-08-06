@@ -16,7 +16,15 @@ export class SyncController {
   @UseGuards(CronAuthGuard)
   async fetch() {
     await this.syncService.fullSync();
-    return { status: 'ok', message: 'Sync completed' };
+    return { status: 'ok', message: 'Full sync completed' };
+  }
+
+  @Get('cron/meta-sync')
+  @HttpCode(200)
+  @UseGuards(CronAuthGuard)
+  async metaSync() {
+    await this.syncService.syncMetadata();
+    return { status: 'ok', message: 'Metadata sync completed' };
   }
 
   @Get('data-freshness')
