@@ -82,11 +82,11 @@ export class SyncService {
     this.logger.log(`Synced ${data.length} commodities`);
   }
 
-  /** Determine location type from city/space-station fields + API metadata */
-  private determineLocationType(cityName: string | null, spaceStationName: string | null): string | null {
+  /** Determine location type from city/space-station names + /space_stations API metadata */
+  private determineLocationType(cityName: string | null, spaceStationNameEn: string | null): string | null {
     if (cityName) return '主城';
-    if (spaceStationName) {
-      const meta = this.spaceStationMeta.get(spaceStationName);
+    if (spaceStationNameEn) {
+      const meta = this.spaceStationMeta.get(spaceStationNameEn);
       if (meta?.isJumpPoint) return '星门';
       if (meta?.isLagrange) return '拉格朗日点';
       return '空间站';
@@ -109,7 +109,7 @@ export class SyncService {
       const cityName = t.city_name ? getLocationZh(t.city_name) : null;
       const spaceStationName = t.space_station_name ? getLocationZh(t.space_station_name) : null;
       const autoLoad = this.determineAutoLoad(t.city_name, t.space_station_name, t.is_auto_load === 1);
-      const locationType = this.determineLocationType(cityName, spaceStationName);
+      const locationType = this.determineLocationType(cityName, t.space_station_name);
 
       await this.prisma.terminal.upsert({
         where: { id: t.id },

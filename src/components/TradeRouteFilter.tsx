@@ -227,6 +227,13 @@ export function TradeRouteFilter({
     onFilterChange({ ...stored, sortOrder: 'desc' });
   }, [hasUrlParams, fKey, onFilterChange, ships]);
 
+  // Restore ship search text from URL params (shipId set but shipSearch empty)
+  useEffect(() => {
+    if (!shipId || !ships.length) return;
+    const s = ships.find((x: ShipOption) => x.id === parseInt(shipId));
+    if (s) setShipSearch(s.name);
+  }, [shipId, ships]);
+
   // Auto-persist filter changes to URL/sessionStorage without triggering search
   useEffect(() => {
     if (!hasShip || !onFiltersPersist) return;
