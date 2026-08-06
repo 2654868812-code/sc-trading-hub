@@ -80,6 +80,7 @@ export interface TradeRoute {
   destStockLive: number;
   originStockMax: number;
   destStockMax: number;
+  destStockPredicted?: boolean;
   originUpdatedAt: string;
   destUpdatedAt: string;
   isAutoLoadOrigin: boolean;
