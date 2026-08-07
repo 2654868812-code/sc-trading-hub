@@ -63,9 +63,9 @@ export default function HomePage() {
     return () => ac.abort();
   }, [fetchCommodities]);
 
-  // Tick every 30s to keep relative time display fresh
+  // Tick every 60s to keep relative time display fresh
   useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 30_000);
+    const timer = setInterval(() => setTick(t => t + 1), 60_000);
     return () => clearInterval(timer);
   }, []);
 
