@@ -38,21 +38,21 @@ export class SyncService {
     this.logger.log('Metadata sync complete');
   }
 
-  /** 1h: commodities + averages */
+  /** 1h: commodities */
   async syncCommoditiesOnly() {
     this.logger.log('Starting commodities sync...');
     await this.syncCommodities();
-    await this.syncCommodityAverages();
     this.logger.log('Commodities sync complete');
   }
 
-  /** Fast sync: price data (30min) */
+  /** Fast sync: price data + averages (30min) */
   async syncPricesData() {
     this.logger.log('Starting price data sync...');
     await this.syncPrices();
     await Promise.allSettled([
       this.syncCargoRoutes(),
       this.syncTerminalCommodityMax(),
+      this.syncCommodityAverages(),
     ]);
     this.logger.log('Price data sync complete');
   }

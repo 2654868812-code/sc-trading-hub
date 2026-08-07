@@ -35,48 +35,53 @@ async function bootstrap() {
 
   // ── Scheduler ─────────────────────────────────────────────
 
-  // Fast sync (30min): prices, routes, terminalMax → computations
+  // Safety timeout: ensure mutex always released after 20min max
+  function withMutexGuard(flag: { busy: boolean }, label: string, fn: () => Promise<void>, maxMs = 1_200_000) {
+    return async () => {
+      if (flag.busy) { console.log(`${label} busy, skip`); return; }
+      flag.busy = true;
+      const timer = setTimeout(() => {
+        if (flag.busy) { console.error(`${label} TIMEOUT after ${maxMs}ms — force releasing mutex`); flag.busy = false; }
+      }, maxMs);
+      try { await fn(); }
+      catch (err) { console.error(`${label} failed:`, err); }
+      finally { clearTimeout(timer); flag.busy = false; }
+    };
+  }
+
+  // Fast sync (30min): prices, routes, terminalMax, averages → computations
   // UEX TTL: +30 min for prices/routes/averages
   const fastMin = clamp(process.env.FETCH_INTERVAL_MINUTES, 1, 59, 30);
-  let fastBusy = false;
-  const runFast = async () => {
-    if (fastBusy) { console.log('Fast sync busy, skip'); return; }
-    fastBusy = true;
-    try { await syncService.syncPricesData(); await syncService.syncComputations(); }
-    catch (err) { console.error('Fast sync failed:', err); }
-    finally { fastBusy = false; }
-  };
+  const fastFlag = { busy: false };
+  const runFast = withMutexGuard(fastFlag, 'Fast sync', async () => {
+    await syncService.syncPricesData();
+    await syncService.syncComputations();
+  });
   cron.schedule(`*/${fastMin} * * * *`, () => runFast());
-  console.log(`Cron: fast sync every ${fastMin}min (30min UEX TTL)`);
+  console.log(`Cron: fast sync every ${fastMin}min`);
 
-  // Mid sync (1h): commodities only
+  // Mid sync (1h): commodities
   // UEX TTL: +1 hour
   const midMin = clamp(process.env.FETCH_COMMODITIES_INTERVAL_MINUTES, 10, 360, 60);
-  let midBusy = false;
-  const runMid = async () => {
-    if (midBusy) { console.log('Commodity sync busy, skip'); return; }
-    midBusy = true;
-    try { await syncService.syncCommoditiesOnly(); }
-    catch (err) { console.error('Commodity sync failed:', err); }
-    finally { midBusy = false; }
-  };
+  const midFlag = { busy: false };
+  const runMid = withMutexGuard(midFlag, 'Commodity sync', () => syncService.syncCommoditiesOnly());
   cron.schedule(midMin < 60 ? `*/${midMin} * * * *` : `7 */${Math.floor(midMin / 60)} * * *`, () => runMid());
-  console.log(`Cron: commodity sync every ${midMin}min (1h UEX TTL)`);
+  console.log(`Cron: commodity sync every ${midMin}min`);
 
   // Slow sync (24h): space stations, terminals, vehicles
   // UEX TTL: +1 day
   const slowHours = clamp(process.env.FETCH_META_INTERVAL_HOURS, 1, 168, 24);
-  let slowBusy = false;
-  const runSlow = async () => {
-    if (slowBusy) { console.log('Slow sync busy, skip'); return; }
-    slowBusy = true;
-    try { await syncService.syncMetadata(); }
-    catch (err) { console.error('Slow sync failed:', err); }
-    finally { slowBusy = false; }
-  };
+  const slowFlag = { busy: false };
+  const runSlow = withMutexGuard(slowFlag, 'Slow sync', () => syncService.syncMetadata());
   const cronExpr = slowHours === 24 ? '7 0 * * *' : `7 */${slowHours} * * *`;
   cron.schedule(cronExpr, () => runSlow());
-  console.log(`Cron: slow sync every ${slowHours}h (1d UEX TTL) — ${cronExpr}`);
+  console.log(`Cron: slow sync every ${slowHours}h — ${cronExpr}`);
+
+  // Heartbeat: confirm scheduler is alive
+  cron.schedule('*/5 * * * *', () => {
+    const m = Math.floor(Date.now() / 60000);
+    console.log(`[heartbeat] ${new Date().toISOString()} | fast=${fastFlag.busy} mid=${midFlag.busy} slow=${slowFlag.busy}`);
+  });
 
   // ── Startup sync ──────────────────────────────────────────
 

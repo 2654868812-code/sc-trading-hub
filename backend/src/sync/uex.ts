@@ -6,9 +6,9 @@ function uexHeaders(): Record<string, string> {
   return { Authorization: `Bearer ${token}` };
 }
 
-export async function uexFetch<T>(path: string): Promise<T> {
+export async function uexFetch<T>(path: string, timeoutMs = 120_000): Promise<T> {
   const url = `${API_BASE}${path}`;
-  const res = await fetch(url, { headers: uexHeaders(), cache: 'no-store' });
+  const res = await fetch(url, { headers: uexHeaders(), cache: 'no-store', signal: AbortSignal.timeout(timeoutMs) });
   if (!res.ok) throw new Error(`UEX API error: ${res.status} ${res.statusText} for ${url}`);
   const json = await res.json();
   if (json.status !== 'ok') throw new Error(`UEX API non-ok: ${JSON.stringify(json)}`);
