@@ -63,9 +63,26 @@ export default function HomePage() {
     return () => ac.abort();
   }, [fetchCommodities]);
 
-  // Tick every 30s to keep relative time display fresh
+  // Tick every 30s to keep relative time display fresh + refresh market index
   useEffect(() => {
-    const timer = setInterval(() => setTick(t => t + 1), 30_000);
+    const refreshIndex = async () => {
+      try {
+        const res = await fetch('/api/market-index?days=1');
+        if (!res.ok) return;
+        const idx = await res.json();
+        setIndex(prev => {
+          // Only update if value changed, keep history from initial fetch
+          if (idx.current != null && idx.current !== prev.current) {
+            return { ...prev, current: idx.current, min: idx.min ?? prev.min, max: idx.max ?? prev.max };
+          }
+          return prev;
+        });
+      } catch { /* ignore */ }
+    };
+    const timer = setInterval(() => {
+      setTick(t => t + 1);
+      refreshIndex();
+    }, 30_000);
     return () => clearInterval(timer);
   }, []);
 
