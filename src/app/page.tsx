@@ -63,15 +63,22 @@ export default function HomePage() {
     return () => ac.abort();
   }, [fetchCommodities]);
 
-  // Tick every 30s to keep relative time display fresh + refresh market index
+  // Tick every 30s to keep relative time display fresh
   useEffect(() => {
+    const timer = setInterval(() => setTick(t => t + 1), 30_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Poll market index every 60s
+  useEffect(() => {
+    let active = true;
     const refreshIndex = async () => {
       try {
         const res = await fetch('/api/market-index?days=1');
-        if (!res.ok) return;
+        if (!active || !res.ok) return;
         const idx = await res.json();
+        if (!active) return;
         setIndex(prev => {
-          // Only update if value changed, keep history from initial fetch
           if (idx.current != null && idx.current !== prev.current) {
             return { ...prev, current: idx.current, min: idx.min ?? prev.min, max: idx.max ?? prev.max };
           }
@@ -79,11 +86,8 @@ export default function HomePage() {
         });
       } catch { /* ignore */ }
     };
-    const timer = setInterval(() => {
-      setTick(t => t + 1);
-      refreshIndex();
-    }, 30_000);
-    return () => clearInterval(timer);
+    const timer = setInterval(refreshIndex, 60_000);
+    return () => { active = false; clearInterval(timer); };
   }, []);
 
   // Poll for data sync every 60s, auto-refresh commodities
