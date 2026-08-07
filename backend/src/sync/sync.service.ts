@@ -20,7 +20,7 @@ export class SyncService {
   async fullSync() {
     this.logger.log('Starting full sync...');
     await this.syncSpaceStations();
-    await this.syncCommodities();
+    await this.syncCommoditiesOnly();
     await this.syncTerminals();
     await this.syncVehicles();
     await this.syncPricesData();
@@ -38,10 +38,11 @@ export class SyncService {
     this.logger.log('Metadata sync complete');
   }
 
-  /** 1h: commodities */
+  /** 1h: commodities + averages */
   async syncCommoditiesOnly() {
     this.logger.log('Starting commodities sync...');
     await this.syncCommodities();
+    await this.syncCommodityAverages();
     this.logger.log('Commodities sync complete');
   }
 
@@ -50,7 +51,6 @@ export class SyncService {
     this.logger.log('Starting price data sync...');
     await this.syncPrices();
     await Promise.allSettled([
-      this.syncCommodityAverages(),
       this.syncCargoRoutes(),
       this.syncTerminalCommodityMax(),
     ]);

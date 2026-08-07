@@ -166,27 +166,31 @@ let RoutesController = class RoutesController {
                 if (!buyPrice || !sellPrice || buyPrice <= 0 || sellPrice <= 0 || sellPrice <= buyPrice)
                     continue;
                 const profitPerScu = sellPrice - buyPrice;
-                let originStock;
+                let originAvail;
                 if (mode === 'max') {
-                    originStock = oStock?.scuBuyMax
-                        || oStock?.scuBuyMaxLocal
-                        || buy.scuBuyStock
-                        || commAvg?.scuBuyMax
-                        || 1;
+                    originAvail = oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || 1;
                 }
                 else if (mode === 'expected') {
-                    originStock = Math.round(oStock?.scuBuyStockAvg24h ?? oStock?.scuBuyAvg ?? 0)
-                        || buy.scuBuyStock
-                        || commAvg?.scuBuyMax
-                        || 1;
+                    originAvail = Math.round(oStock?.scuBuyStockAvg24h ?? oStock?.scuBuyAvg ?? 0) || buy.scuBuyStock || 1;
                 }
                 else {
-                    originStock = buy.scuBuyStock
-                        || commAvg?.scuBuyMax
-                        || 1;
+                    originAvail = buy.scuBuyStock || 1;
                 }
-                const loadScu = shipScu > 0 ? Math.min(shipScu, originStock > 0 ? originStock : 1) : 1;
-                const sellScu = loadScu;
+                const destMaxUex = dStock?.scuSellMax;
+                let destAvail = 1;
+                if (destMaxUex) {
+                    if (mode === 'max') {
+                        destAvail = dStock?.scuSellMax || dStock?.scuSellMaxLocal || sell.scuSellStock || 1;
+                    }
+                    else if (mode === 'expected') {
+                        destAvail = Math.round(dStock?.scuSellStockAvg24h ?? dStock?.scuSellAvg ?? 0) || sell.scuSellStock || 1;
+                    }
+                    else {
+                        destAvail = sell.scuSellStock || 1;
+                    }
+                }
+                const loadScu = shipScu > 0 ? Math.min(shipScu, originAvail > 0 ? originAvail : 1) : 1;
+                const sellScu = destMaxUex ? Math.min(loadScu, destAvail > 0 ? destAvail : 1) : loadScu;
                 const totalInvestment = buyPrice * sellScu;
                 const totalProfit = profitPerScu * sellScu;
                 const roi = totalInvestment > 0 ? Math.round((totalProfit / totalInvestment) * 1000) / 10 : 0;
@@ -214,7 +218,8 @@ let RoutesController = class RoutesController {
                     totalProfit, totalInvestment, loadScu, sellScu, shipScu,
                     originStock: Math.round(oStock?.scuBuyStockAvg24h || oStock?.scuBuyAvg || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellStockAvg24h || dStock?.scuSellAvg || sell.scuSellStock || commAvg?.scuSellMax || 0),
                     originStockLive: Math.round(buy.scuBuyStock || 0), destStockLive: Math.round(sell.scuSellStock || 0),
-                    originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || dStock?.scuSellMaxLocal || sell.scuSellStock || commAvg?.scuSellMax || 0),
+                    originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || commAvg?.scuSellMax || oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0),
+                    destStockPredicted: !dStock?.scuSellMax,
                     originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
                     destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
                     isAutoLoadOrigin: buy.terminal.isAutoLoad, isAutoLoadDest: sell.terminal.isAutoLoad,

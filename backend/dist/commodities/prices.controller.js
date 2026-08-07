@@ -99,13 +99,11 @@ let PricesController = class PricesController {
         });
         const tids = [...new Set(snapshots.map(s => s.terminalId))];
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-        const [buyStats, sellStats, termMax, commAvg] = await Promise.all([
+        const [buyStats, sellStats, termMax] = await Promise.all([
             this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceBuy: { gt: 0 }, fetchedAt: { gte: oneDayAgo } }, _max: { priceBuy: true }, _min: { priceBuy: true }, _avg: { priceBuy: true } }),
             this.prisma.priceSnapshot.groupBy({ by: ['terminalId'], where: { commodityId: cid, terminalId: { in: tids }, priceSell: { gt: 0 }, fetchedAt: { gte: oneDayAgo } }, _max: { priceSell: true }, _min: { priceSell: true }, _avg: { priceSell: true } }),
             this.prisma.terminalCommodityMax.findMany({ where: { commodityId: cid }, select: { terminalId: true, scuBuyMax: true, scuSellMax: true, scuBuyMaxLocal: true, scuSellMaxLocal: true, scuBuyAvg: true, scuSellAvg: true, scuBuyStockAvg24h: true, scuSellStockAvg24h: true, priceBuyAvg: true, priceSellAvg: true } }),
-            this.prisma.commodityAverage.findUnique({ where: { commodityId: cid }, select: { scuBuyMax: true, scuSellMax: true } }),
         ]);
-        const globalMax = { buyMax: commAvg?.scuBuyMax || 0, sellMax: commAvg?.scuSellMax || 0 };
         const buyMap = {}, sellMap = {}, maxMap = {};
         for (const b of buyStats)
             buyMap[b.terminalId] = { avg: b._avg.priceBuy, max: b._max.priceBuy, min: b._min.priceBuy };
@@ -127,7 +125,7 @@ let PricesController = class PricesController {
             priceSell: s.priceSell, priceSellAvg: sellMap[s.terminalId]?.avg ?? null, priceSellMax: sellMap[s.terminalId]?.max ?? null, priceSellMin: sellMap[s.terminalId]?.min ?? null,
             priceBuyAvg24h: maxMap[s.terminalId]?.priceBuyAvg24h ?? null, priceSellAvg24h: maxMap[s.terminalId]?.priceSellAvg24h ?? null,
             scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
-            scuBuyMax: maxMap[s.terminalId]?.buyMax || maxMap[s.terminalId]?.buyMaxLocal || s.scuBuyStock || globalMax.buyMax || null, scuSellMax: maxMap[s.terminalId]?.sellMax || maxMap[s.terminalId]?.sellMaxLocal || s.scuSellStock || globalMax.sellMax || null,
+            scuBuyMax: maxMap[s.terminalId]?.buyMax || maxMap[s.terminalId]?.buyMaxLocal || s.scuBuyStock || null, scuSellMax: maxMap[s.terminalId]?.sellMax || maxMap[s.terminalId]?.sellMaxLocal || s.scuSellStock || null,
             scuBuyAvg: maxMap[s.terminalId]?.buyAvg ?? null, scuSellAvg: maxMap[s.terminalId]?.sellAvg ?? null,
             scuBuyStockAvg24h: maxMap[s.terminalId]?.buyStockAvg24h ?? null, scuSellStockAvg24h: maxMap[s.terminalId]?.sellStockAvg24h ?? null,
             updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),

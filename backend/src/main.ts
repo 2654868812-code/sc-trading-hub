@@ -35,7 +35,7 @@ async function bootstrap() {
 
   // ── Scheduler ─────────────────────────────────────────────
 
-  // Fast sync (30min): prices, routes, averages, terminalMax → computations
+  // Fast sync (30min): prices, routes, terminalMax → computations
   // UEX TTL: +30 min for prices/routes/averages
   const fastMin = clamp(process.env.FETCH_INTERVAL_MINUTES, 1, 59, 30);
   let fastBusy = false;

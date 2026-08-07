@@ -88,7 +88,7 @@ export class LocationsController {
         priceSell: s.priceSell, priceSellAvg: sStat?.avg ?? null, priceSellMax: sStat?.max ?? null, priceSellMin: sStat?.min ?? null,
         priceBuyAvg24h: sm?.priceBuyAvg24h ?? null, priceSellAvg24h: sm?.priceSellAvg24h ?? null,
         scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
-        scuBuyMax: (sm?.scuBuyMax || sm?.scuBuyMaxLocal || s.scuBuyStock) || null, scuSellMax: (sm?.scuSellMax || sm?.scuSellMaxLocal || s.scuSellStock) || null,
+        scuBuyMax: (sm?.scuBuyMax || sm?.scuBuyMaxLocal || s.scuBuyStock) || 1, scuSellMax: (sm?.scuSellMax || sm?.scuSellMaxLocal || s.scuSellStock) || 1,
         scuBuyStockAvg24h: sm?.scuBuyStockAvg24h ?? null, scuSellStockAvg24h: sm?.scuSellStockAvg24h ?? null,
         updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),
       };

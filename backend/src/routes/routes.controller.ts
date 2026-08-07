@@ -234,7 +234,7 @@ export class RoutesController {
           totalProfit, totalInvestment, loadScu, sellScu, shipScu,
           originStock: Math.round(oStock?.scuBuyStockAvg24h || oStock?.scuBuyAvg || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStock: Math.round(dStock?.scuSellStockAvg24h || dStock?.scuSellAvg || sell.scuSellStock || commAvg?.scuSellMax || 0),
           originStockLive: Math.round(buy.scuBuyStock || 0), destStockLive: Math.round(sell.scuSellStock || 0),
-          originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || commAvg?.scuSellMax || oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0),
+          originStockMax: Math.round(oStock?.scuBuyMax || oStock?.scuBuyMaxLocal || buy.scuBuyStock || commAvg?.scuBuyMax || 0), destStockMax: Math.round(dStock?.scuSellMax || commAvg?.scuSellMax || oStock?.scuBuyMax || 0),
           destStockPredicted: !dStock?.scuSellMax,
           originUpdatedAt: buy.uexModifiedAt ? new Date(buy.uexModifiedAt * 1000).toISOString() : buy.fetchedAt.toISOString(),
           destUpdatedAt: sell.uexModifiedAt ? new Date(sell.uexModifiedAt * 1000).toISOString() : sell.fetchedAt.toISOString(),
