@@ -157,7 +157,7 @@ function RoutesContent() {
     [router]
   );
 
-  // Check for data sync every 2 minutes, auto-refresh if new data available
+  // Check for data sync every 60s, auto-refresh if new data available
   useEffect(() => {
     let timer: ReturnType<typeof setInterval>;
     let isChecking = false;

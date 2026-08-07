@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -88,6 +88,32 @@ export default function CommodityDetailPage() {
       .finally(() => { if (!cancelled) setChartLoading(false); });
     return () => { cancelled = true; ac.abort(); };
   }, [commodityId, chartTerminalIds, hours]);
+
+  // Poll for data refresh every 60s
+  const lastSyncRef = useRef<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch('/api/data-freshness');
+        if (!active || !res.ok) return;
+        const { latestFetchedAt } = await res.json();
+        if (latestFetchedAt && lastSyncRef.current && lastSyncRef.current !== latestFetchedAt) {
+          // Re-fetch commodity info + terminals (skip chart — historical data)
+          fetch(`/api/commodities/${commodityId}`)
+            .then(r => r.json())
+            .then((data: CommodityWithChange) => { if (active && data && !('error' in data)) setCommodity(data); })
+            .catch(() => {});
+          fetch(`/api/prices/terminals?commodityId=${commodityId}`)
+            .then(r => r.json())
+            .then((data: TerminalInfo[]) => { if (active) { setTerminals(data); setDataLoading(false); } })
+            .catch(() => {});
+        }
+        if (latestFetchedAt && active) lastSyncRef.current = latestFetchedAt;
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { active = false; clearInterval(timer); };
+  }, [commodityId]);
 
   const { buyChartData, sellChartData, buyTerminalNames, sellTerminalNames } = useMemo(() => {
     const buyMap = new Map<string, Record<string, number | null>>();

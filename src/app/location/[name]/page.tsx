@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -231,6 +231,27 @@ export default function LocationDetailPage() {
       .finally(() => setChartLoading(false));
     return () => ac.abort();
   }, [locationName, hours]);
+
+  // Poll for data refresh every 60s
+  const lastSyncRef = useRef<string | null>(null);
+  useEffect(() => {
+    let active = true;
+    const timer = setInterval(async () => {
+      try {
+        const res = await fetch('/api/data-freshness');
+        if (!active || !res.ok) return;
+        const { latestFetchedAt } = await res.json();
+        if (latestFetchedAt && lastSyncRef.current && lastSyncRef.current !== latestFetchedAt) {
+          fetch(`/api/locations/${encodeURIComponent(locationName)}`)
+            .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+            .then((d: LocationData & { error?: string }) => { if (active && !('error' in d)) setData(d); })
+            .catch(() => {});
+        }
+        if (latestFetchedAt && active) lastSyncRef.current = latestFetchedAt;
+      } catch { /* ignore */ }
+    }, 60_000);
+    return () => { active = false; clearInterval(timer); };
+  }, [locationName]);
 
   // Process chart data
   const { buyChartData, sellChartData, buyNames, sellNames } = useMemo(() => {

@@ -58,6 +58,7 @@ export default function ReportsPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     Promise.all([
       fetch('/api/reports').then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -65,12 +66,11 @@ export default function ReportsPage() {
       }),
       fetch('/api/version').then((r) => r.json()),
     ]).then(([reports, ver]) => {
-      setData(reports);
-      setGameVersion(ver.gameVersion);
+      if (!cancelled) { setData(reports); setGameVersion(ver.gameVersion); }
     }).catch((err) => {
-      console.error(err);
-      setError(true);
+      if (!cancelled) { console.error(err); setError(true); }
     });
+    return () => { cancelled = true; };
   }, []);
 
   if (error) {

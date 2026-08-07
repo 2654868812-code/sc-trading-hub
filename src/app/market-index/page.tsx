@@ -18,11 +18,19 @@ export default function MarketIndexPage() {
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/market-index?days=90')
-      .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then((d: IndexData) => setData(d))
-      .catch((err) => { setFetchError(err instanceof Error ? err.message : '网络错误'); })
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    const fetchData = () => {
+      fetch('/api/market-index?days=90')
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then((d: IndexData) => { if (!cancelled) setData(d); })
+        .catch((err) => { if (!cancelled) setFetchError(err instanceof Error ? err.message : '网络错误'); })
+        .finally(() => { if (!cancelled) setLoading(false); });
+    };
+    fetchData();
+
+    // Poll every 60s
+    const timer = setInterval(fetchData, 60_000);
+    return () => { cancelled = true; clearInterval(timer); };
   }, []);
 
   if (loading) return <div className="text-center py-16 text-muted-foreground">加载中…</div>;
