@@ -120,6 +120,7 @@ export class PricesController {
       priceBuyAvg24h: maxMap[s.terminalId]?.priceBuyAvg24h ?? null, priceSellAvg24h: maxMap[s.terminalId]?.priceSellAvg24h ?? null,
       scuBuyStock: s.scuBuyStock, scuSellStock: s.scuSellStock,
       scuBuyMax: maxMap[s.terminalId]?.buyMax || maxMap[s.terminalId]?.buyMaxLocal || s.scuBuyStock || 1, scuSellMax: maxMap[s.terminalId]?.sellMax || maxMap[s.terminalId]?.sellMaxLocal || s.scuSellStock || 1,
+      sellStockPredicted: !maxMap[s.terminalId]?.sellMax,
       scuBuyAvg: maxMap[s.terminalId]?.buyAvg ?? null, scuSellAvg: maxMap[s.terminalId]?.sellAvg ?? null,
       scuBuyStockAvg24h: maxMap[s.terminalId]?.buyStockAvg24h ?? null, scuSellStockAvg24h: maxMap[s.terminalId]?.sellStockAvg24h ?? null,
       updatedAt: s.uexModifiedAt ? new Date(s.uexModifiedAt * 1000).toISOString() : s.fetchedAt.toISOString(),

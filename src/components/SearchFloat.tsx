@@ -60,16 +60,15 @@ export function SearchFloat() {
     setCommodities(allCommodities.filter(c =>
       c.nameZh.toLowerCase().includes(q) ||
       c.nameEn.toLowerCase().includes(q) ||
-      c.kindZh.includes(q) ||
-      c.code.toLowerCase().includes(q)
-    ).slice(0, 12));
+c.code.toLowerCase().includes(q)
+    ));
 
     setLocations(allLocations.filter(l =>
       l.name.toLowerCase().includes(q) ||
       l.nameEn.toLowerCase().includes(q) ||
       l.system.toLowerCase().includes(q) ||
       (l.planet || '').toLowerCase().includes(q)
-    ).slice(0, 8));
+    ));
   }, [query, dataLoaded, allCommodities, allLocations]);
 
   // Keyboard shortcut

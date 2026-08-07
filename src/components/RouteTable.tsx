@@ -90,7 +90,7 @@ function StockBar({ stock, max, mode, predicted }: { stock: number; max: number;
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[9px] tabular-nums whitespace-nowrap leading-none" title={stockLabel(mode)}>
-        {hasMax ? `${fmtK(stock)}/${fmtK(max)}` : fmtK(stock)}{predicted && <span className="text-[10px] text-chart-1 font-medium" title="仅作参考，不作约束">*</span>}
+        {hasMax ? `${fmtK(stock)}/${fmtK(max)}` : fmtK(stock)}{predicted && <span className="text-[10px] text-chart-1 font-medium" title="此可卖出最大库存无法准确预测，仅作参考">*</span>}
       </span>
       {hasMax && (
         <div className="w-8 h-1 rounded-full bg-secondary overflow-hidden flex-shrink-0">
@@ -139,7 +139,7 @@ export function RouteTable(props: RouteTableProps) {
                 <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}</th>
                 <th className="th-cell">出售地</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
-                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">售卖地库存无法准确预测，带*数据仅作参考，不参与约束</span></span></th>
+                <th className="th-cell" style={{ width: '7%' }}>{stockLabel(mode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">售卖地库存无法准确预测，带*数据仅作参考</span></span></th>
                 <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
                 <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
                 <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>
@@ -331,7 +331,7 @@ function RouteTableInner({ routes, router, profitMode, onCommodityClick, flipKey
           <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}</th>
           <th className="th-cell">出售地</th>
           <th className="th-cell--right" style={{ width: '6%' }}>卖价</th>
-          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">售卖地库存无法准确预测，带*数据仅作参考，不参与约束</span></span></th>
+          <th className="th-cell" style={{ width: '7%' }}>{stockLabel(profitMode)}<span className="relative group/help inline-flex ml-0.5"><svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg><span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">售卖地库存无法准确预测，带*数据仅作参考</span></span></th>
           <th className="th-cell--right" style={{ width: '6%' }}>成本</th>
           <th className="th-cell--right" style={{ width: '6%' }}>利润</th>
           <th className="th-cell--right" style={{ width: '4%' }}>/SCU</th>

@@ -143,4 +143,5 @@ export interface TerminalInfo {
   isAutoLoad: boolean;
   scuBuyStock?: number | null;
   scuSellStock?: number | null;
+  sellStockPredicted?: boolean;
 }

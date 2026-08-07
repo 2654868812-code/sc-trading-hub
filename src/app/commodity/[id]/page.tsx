@@ -355,6 +355,10 @@ export default function CommodityDetailPage() {
         <div className="section-card p-5">
           <h3 className="text-xs font-semibold tracking-[0.2em] text-destructive uppercase mb-4">
             可售出地点
+            <span className="relative group/help inline-flex ml-0.5">
+              <svg width="12" height="12" viewBox="0 0 14 14" className="cursor-help stroke-muted-foreground/50 hover:stroke-foreground transition-colors inline-block align-text-top" fill="none" strokeWidth="1"><circle cx="7" cy="7" r="6.5" /><text x="7" y="10.5" textAnchor="middle" fill="currentColor" stroke="none" fontSize="9" fontWeight="600" fontFamily="sans-serif">?</text></svg>
+              <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-44 p-2 rounded-md border border-border bg-card text-[10px] leading-relaxed text-foreground shadow-lg z-50 hidden group-hover/help:block">售卖地库存无法准确预测，带*数据仅作参考</span>
+            </span>
           </h3>
           <div className="space-y-1 max-h-[500px] overflow-y-auto">
             {sellTerminals.map((t: any) => {
@@ -387,6 +391,7 @@ export default function CommodityDetailPage() {
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-[10px] tabular-nums text-muted-foreground/50">
                           库存: {t.scuSellStock != null ? t.scuSellStock.toLocaleString() : '—'} / {t.scuSellStockAvg24h != null ? t.scuSellStockAvg24h.toLocaleString() : '—'} / {t.scuSellMax ? t.scuSellMax.toLocaleString() : '—'}
+                          {t.sellStockPredicted && <span className="text-[10px] text-chart-1 font-medium ml-0.5" title="此可卖出最大库存无法准确预测，仅作参考">*</span>}
                         </span>
                       </div>
                     </div>
